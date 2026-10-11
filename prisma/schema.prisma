@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  RECEPTIONIST
+  DENTIST
+  CLINIC_ADMIN
+}
+
+model Clinic {
+  id               String              @id @default(uuid())
+  slug             String              @unique
+  name             String
+  taglineEn        String?
+  taglineAm        String?
+  location         String
+  phone            String
+  tinNumber        String              // Ministry of Revenues TIN e.g. 0049283711
+  depositPolicyETB Decimal             @default(300.00) @db.Decimal(10, 2)
+  openHours        String              @default("Mon - Sat: 8:30 AM - 7:00 PM")
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  users            User[]
+  services         Service[]
+  chairs           OperatoryChair[]
+  appointments     Appointment[]
+  ledger           LedgerTransaction[]
+  dayCloseReports  DayCloseReport[]
+}
+
+model User {
+  id           String         @id @default(uuid())
+  clinicId     String
+  clinic       Clinic         @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  email        String         @unique
+  phone        String
+  fullName     String
+  role         UserRole
+  titleEn      String
+  titleAm      String?
+  passwordHash String
+  pinHash      String?
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  sessions     Session[]
+  doctorProfile DoctorProfile?
+  auditLogs    AuditLog[]
+
+  @@index([clinicId, role])
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash   String   @unique
+  stationName String?
+  ipAddress   String?
+  userAgent   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model DoctorProfile {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty     String
+  licenseNumber String?
+  availableDays String[]
+  appointments  Appointment[]
+}
+
+model OperatoryChair {
+  id           String        @id @default(uuid())
+  clinicId     String
+  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  chairNumber  Int
+  name         String
+  roomName     String
+  status       String        @default("available")
+  updatedAt    DateTime      @updatedAt
+
+  appointments Appointment[]
+
+  @@unique([clinicId, chairNumber])
+}
+
+model Service {
+  id              String        @id @default(uuid())
+  clinicId        String
+  clinic          Clinic        @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  nameEn          String
+  nameAm          String
+  durationMinutes Int           @default(30)
+  priceETB        Decimal       @db.Decimal(10, 2)
+  depositRequired Boolean       @default(false)
+  depositETB      Decimal       @default(0.00) @db.Decimal(10, 2)
+  description     String?
+  isActive        Boolean       @default(true)
+
+  appointments    Appointment[]
+}
+
+model Patient {
+  id             String        @id @default(uuid())
+  clinicId       String
+  fullName       String
+  phone          String
+  emergencyPhone String?
+  dateOfBirth    DateTime?
+  gender         String?
+  medicalAlerts  Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  appointments   Appointment[]
+  toothRecords   ToothRecord[]
+}
+
+model ToothRecord {
+  id           String   @id @default(uuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  toothNumber  Int      // FDI 11-48
+  status       String   // healthy, caries, filled, crown, rct, missing
+  notes        String?
+  recordedById String
+  recordedAt   DateTime @default(now())
+
+  @@index([patientId, toothNumber])
+}
+
+model Appointment {
+  id             String          @id @default(uuid())
+  clinicId       String
+  clinic         Clinic          @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  patientId      String
+  patient        Patient         @relation(fields: [patientId], references: [id])
+  doctorId       String
+  doctor         DoctorProfile   @relation(fields: [doctorId], references: [id])
+  serviceId      String
+  service        Service         @relation(fields: [serviceId], references: [id])
+  chairId        String?
+  chair          OperatoryChair? @relation(fields: [chairId], references: [id])
+  startsAt       DateTime
+  endsAt         DateTime
+  status         String          // confirmed, checked_in, in_progress, completed, cancelled
+  paymentStatus  String          // deposit_paid, fully_paid, none
+  totalDueETB    Decimal         @db.Decimal(10, 2)
+  depositPaidETB Decimal         @default(0.00) @db.Decimal(10, 2)
+  clinicalNotes  String?
+  receiptNumber  String?
+  createdAt      DateTime        @default(now())
+
+  transactions   LedgerTransaction[]
+}
+
+model LedgerTransaction {
+  id            String      @id @default(uuid())
+  clinicId      String
+  clinic        Clinic      @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  receiptNumber String      @unique
+  amountETB     Decimal     @db.Decimal(10, 2)
+  method        String      // cash, telebirr_manual, cbe_manual, chapa_online
+  cashierId     String
+  createdAt     DateTime    @default(now())
+
+  @@index([clinicId, createdAt])
+}
+
+model DayCloseReport {
+  id                String   @id @default(uuid())
+  clinicId          String
+  clinic            Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  zReportNumber     String   @unique
+  closedBy          String
+  closedAt          DateTime @default(now())
+  totalBilledETB    Decimal  @db.Decimal(10, 2)
+  totalCollectedETB Decimal  @db.Decimal(10, 2)
+  cashExpectedETB   Decimal  @db.Decimal(10, 2)
+  cashCountedETB    Decimal  @db.Decimal(10, 2)
+  cashVarianceETB   Decimal  @db.Decimal(10, 2)
+  telebirrTotalETB  Decimal  @db.Decimal(10, 2)
+  cbeTotalETB       Decimal  @db.Decimal(10, 2)
+  tinNumber         String
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+}

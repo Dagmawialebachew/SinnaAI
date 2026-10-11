@@ -1,38 +1,50 @@
-# TENA-DENT OS: APPLE-GRADE DESIGN SYSTEM & PRODUCTION SPECIFICATION
-**Codename:** Project Pearl  
-**Classification:** Top 0.0001% Enterprise Vertical Architecture  
-**Target Market:** Urban Ethiopia (Addis Ababa, Hawassa, Adama) & Diaspora Healthcare Remittance Corridor  
-**Deployment Infrastructure (100% Free Tier Forever):**
-* **Frontend & Edge API:** Vercel Global Edge Network (Zero cold start, sub-250ms TTFB in Addis Ababa)
-* **Serverless Database:** Neon PostgreSQL 16 (`@neondatabase/serverless` connection pooler, GiST exclusion locks)
-* **Keep-Alive Heartbeat:** UptimeRobot 48-hour ping against `/api/health`
-* **Realtime Layer:** Server-Sent Events (SSE) & Optimistic State Streaming
+# SINNA DENTAL AI: CLINICAL ARCHITECTURE & DESIGN SYSTEM
+**Codename:** Sinna Dental AI  
+**Design Standard:** DentalPin & Linear Precision (Clean Clinical Luxury)  
+**Target Market:** Urban Ethiopia (Addis Ababa, Bole Medhanialem) & Global Healthcare Practice  
+**Deployment Infrastructure:**
+* **Frontend & Edge API:** Next.js 15 App Router on Vercel Global Edge Network
+* **Database Engine:** PostgreSQL via Prisma Client with `@prisma/adapter-pg` pooling
+* **SMS Gateway:** AfroMessage Telecommunications Engine for patient reminders & recalls
 
 ---
 
-## 1. DESIGN PHILOSOPHY: APPLE-GRADE "WARM CLINICAL LUXURY"
+## 1. DESIGN PHILOSOPHY: CLINICAL LUXURY (DENTALPIN CONSISTENCY)
 
-Most dental and medical software is ugly, claustrophobic, and feels like Windows 98. 
-Tena-Dent OS is designed with **Warm Clinical Luxury**—the tactile refinement of Apple Human Interface Guidelines fused with the modern precision of Linear and Stripe.
+Sinna Dental AI adheres strictly to the **DentalPin** design architecture:
+1. **Zero Emojis**: 100% SVG Lucide iconography across the entire application.
+2. **Organized Categorical Navigation**:
+   - General: `Home` (`/`), `Schedule` (`/schedule`)
+   - `CLINICAL`: `Patients` (`/patients`), `Recalls` (`/recalls`), `Treatment Plans` (`/treatment-plans`)
+   - `FINANCIALS`: `Quotes` (`/quotes`), `Invoices` (`/invoices`), `Payments` (`/payments`)
+   - `PRACTICE`: `Reports` (`/reports`)
+   - Operator Profile & Settings Gear (`/admin` - Doctor Only)
+3. **No AI Fluff or Toy Pickers**:
+   - Real, authentic enterprise clinical software.
+   - Clean single email/password login (no redundant tabs, no station dropdowns, clean demo quick-fill).
+4. **Strict 2-Actor Permission Model**:
+   - **Doctor / Clinical Director (`Dr. Senait Tadesse`)**: Full access to all features and Admin Settings.
+   - **Front Desk (`Helen Tadesse`)**: Operational access only; strictly blocked from Admin Settings.
 
-### 1.1 Color Palette & Visual Tokens (Hex & HSL Precision)
+### 1.1 Color Palette & Visual Tokens (Clinical Sapphire Edition)
 
 ```css
 :root {
-  /* Surface hierarchy: Clean, non-glare alabaster */
-  --bg-app: #FBFBFC;             /* Apple off-white canvas */
+  /* Surface hierarchy: Swiss Clinical Alabaster */
+  --bg-app: #F8FAFC;             /* Slate-50 clean medical canvas */
   --bg-card: #FFFFFF;            /* Pure elevated surface */
-  --bg-subtle: #F3F4F6;          /* Secondary input fills */
+  --bg-subtle: #F0F7FF;          /* 2% Sapphire tint input fill */
   
-  /* Primary Clinical Accents (Deep Emerald / Healing Teal) */
-  --brand-primary: #044E42;      /* Deep Ethiopian forest emerald */
-  --brand-accent: #0D9488;       /* Luminous clinical teal */
-  --brand-surface: #E6F4F1;      /* 10% opacity soft badge background */
+  /* Primary Clinical Accents (Clinical Sapphire & Electric Cyan) */
+  --brand-primary: #1A4F9E;      /* Royal Medical Deep Blue (Authority & Precision) */
+  --brand-accent: #00BFFF;       /* Vivid Electric Cyan (High-Tech Diagnostic Highlight) */
+  --brand-surface: #EBF5FF;      /* Soft blue pill badge background */
+  --brand-hover: #143E7D;        /* Deep sapphire button press state */
   
   /* Financial & Status Tokens */
-  --status-confirmed: #059669;   /* Crisp emerald: Paid / Checked-in */
+  --status-confirmed: #059669;   /* Crisp emerald: Paid deposit / Checked-in */
   --status-pending: #D97706;     /* Amber: 10-minute hold active */
-  --status-danger: #DC2626;      /* Crimson: Unpaid deposit / Red flag */
+  --status-danger: #DC2626;      /* Crimson: Unpaid deposit / Red flag alert */
   --status-muted: #64748B;       /* Slate: Archive / Complete */
 
   /* Typography */
