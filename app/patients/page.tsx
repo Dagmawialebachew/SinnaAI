@@ -16,7 +16,9 @@ import {
   ArrowRight,
   ChevronRight,
   ChevronLeft,
+  ArrowLeft,
   Edit,
+  Pencil,
   Activity,
   FileText,
   Pill,
@@ -25,14 +27,17 @@ import {
   Trash2,
   Archive,
   Compass,
+  LayoutDashboard,
   Wallet,
   Stethoscope,
   BellOff,
   Bell,
   Image as ImageIcon,
+  Images,
   Receipt,
   Printer,
   Building2,
+  Briefcase,
   Clock,
   ArrowUpDown,
   Check,
@@ -42,7 +47,9 @@ import {
   SlidersHorizontal,
   ChevronDown,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  ClipboardList,
+  History as HistoryIcon
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { BookingModal } from '@/components/booking-modal';
@@ -544,6 +551,7 @@ const INITIAL_PATIENTS: FullPatientProfile[] = [
 ];
 
 type ProfileTab = 'summary' | 'info' | 'clinical' | 'administration' | 'gallery' | 'activity';
+type ClinicalSubTab = 'diagnosis' | 'treatment_plans' | 'appointments' | 'history';
 
 export default function PatientsPage() {
   const store = useSinnaStore();
@@ -553,6 +561,8 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState<FullPatientProfile[]>(INITIAL_PATIENTS);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [activeProfileTab, setActiveProfileTab] = useState<ProfileTab>('summary');
+  const [clinicalSubTab, setClinicalSubTab] = useState<ClinicalSubTab>('diagnosis');
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [patientTeeth, setPatientTeeth] = useState<Record<number, ToothStatus>>({
     16: 'caries',
     36: 'rct',
@@ -780,152 +790,226 @@ export default function PatientsPage() {
 
     return (
       <div className="space-y-5 max-w-7xl mx-auto pb-12 animate-fade-in">
-        {/* Patient Profile Header Bar (Matching Screenshot 2 & 4) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200/80">
-          <div className="flex items-start sm:items-center gap-3.5">
-            {/* Back Button */}
+        {/* DentalPin Patient Sticky Header */}
+        <header className="patient-sticky-header sticky top-0 z-30 -mx-4 sm:mx-0 bg-white/95 backdrop-blur border-b border-slate-200 px-4 sm:px-3 py-2.5 rounded-xl shadow-2xs mb-4" aria-label="Patient header">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               type="button"
+              aria-label="Back"
               onClick={() => setSelectedPatientId(null)}
-              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors shadow-2xs"
+              className="rounded-md font-medium inline-flex items-center transition-colors text-xs gap-1.5 text-slate-700 hover:bg-slate-100 active:bg-slate-200 p-1.5 shrink-0 border border-slate-200/80"
               title="Return to patient directory"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ArrowLeft className="shrink-0 w-4 h-4" />
             </button>
-
-            {/* Avatar Circle */}
-            <div className="w-11 h-11 rounded-full bg-slate-100 border border-slate-200 text-slate-800 font-bold text-sm flex items-center justify-center shrink-0">
+            <span className="inline-flex items-center justify-center select-none rounded-full align-middle bg-slate-100 size-9 text-xs shrink-0 ring-2 ring-slate-200 text-slate-700 font-bold">
               {initials}
-            </div>
-
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            </span>
+            <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-base sm:text-lg text-slate-900 font-semibold truncate">
                   {currentPatient.name}
                 </h1>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Active Patient" />
-                <span className="text-xs font-semibold text-slate-500 font-amharic">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block shrink-0" aria-label="Active" />
+                <span className="text-xs font-semibold text-slate-400 font-amharic hidden sm:inline truncate">
                   ({currentPatient.nameAmharic})
                 </span>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 mt-0.5">
-                <span>{currentPatient.age} years</span>
-                <span>•</span>
+              <div className="flex items-center gap-x-2.5 gap-y-1 flex-wrap text-xs text-slate-500">
+                <span className="font-mono">{currentPatient.age} years</span>
+                <span className="text-slate-300">•</span>
                 <a
                   href={`tel:${currentPatient.phone}`}
-                  className="inline-flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sky-600 hover:bg-slate-100 transition-colors"
+                  aria-label={`Phone: ${currentPatient.phone}`}
+                  title={currentPatient.phone}
                 >
-                  <Phone className="w-3 h-3 text-slate-400" />
-                  <span className="font-mono">{currentPatient.phone}</span>
+                  <Phone className="w-3.5 h-3.5" />
                 </a>
-                <span>•</span>
                 <a
                   href={`mailto:${currentPatient.email}`}
-                  className="inline-flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sky-600 hover:bg-slate-100 transition-colors"
+                  aria-label={`Email: ${currentPatient.email}`}
+                  title={currentPatient.email}
                 >
-                  <Mail className="w-3 h-3 text-slate-400" />
-                  <span>{currentPatient.email}</span>
+                  <Mail className="w-3.5 h-3.5" />
                 </a>
+                <span className="text-slate-300 hidden md:inline">•</span>
+                <span className="font-mono text-[11px] text-slate-400 hidden md:inline">{currentPatient.mrn}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 relative">
+              <button
+                type="button"
+                aria-label="Edit patient"
+                onClick={() => setActiveProfileTab('info')}
+                className="rounded-md font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs shrink-0"
+              >
+                <Pencil className="shrink-0 w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setActionsMenuOpen(!actionsMenuOpen)}
+                  className="rounded-md font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-sky-700 bg-sky-50 hover:bg-sky-100 active:bg-sky-150 border border-sky-200 shadow-2xs shrink-0"
+                >
+                  <Plus className="shrink-0 w-3.5 h-3.5" />
+                  <span className="hidden sm:inline font-semibold">Actions</span>
+                  <ChevronDown className={`shrink-0 w-3.5 h-3.5 transition-transform ${actionsMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {actionsMenuOpen && (
+                  <div className="absolute right-0 mt-1.5 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 animate-in fade-in-50 zoom-in-95 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        setBookingModalOpen(true);
+                      }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Book Appointment</span>
+                    </button>
+                    <Link
+                      href="/treatment-plans"
+                      onClick={() => setActionsMenuOpen(false)}
+                      className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    >
+                      <ClipboardList className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>New Treatment Plan</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        sinnaStore.toastInfo('Print Ready', `Clinical chart document generated for ${currentPatient.name}`);
+                      }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    >
+                      <Printer className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Print Paper Chart</span>
+                    </button>
+                    <Link
+                      href="/recalls"
+                      onClick={() => setActionsMenuOpen(false)}
+                      className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                    >
+                      <Bell className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Recall Follow-up</span>
+                    </Link>
+                    <div className="border-t border-slate-100 my-1" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        handleArchivePatient();
+                      }}
+                      className="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2"
+                    >
+                      <Archive className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Archive Patient</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+        </header>
 
-          {/* Action Buttons Top Right (Exact match: Edit + Actions dropdown) */}
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setActiveProfileTab('info')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 shadow-2xs transition-colors"
-            >
-              <Edit className="w-3.5 h-3.5 text-slate-500" />
-              <span>Edit</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setBookingModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white shadow-2xs transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Actions</span>
-              <ChevronDown className="w-3.5 h-3.5 ml-0.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Segmented Pill Tabs Navigation (Exact match: Summary, Info, Clinical, Administration, Gallery, Activity) */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-slate-200 text-xs font-semibold text-slate-500">
+        {/* DentalPin 6-Tab Navigation (Summary, Info, Clinical, Administration, Gallery, Activity) */}
+        <div className="relative flex p-1 group bg-slate-100/90 rounded-xl w-full border border-slate-200/60 overflow-x-auto gap-1" role="tablist">
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'summary'}
             onClick={() => setActiveProfileTab('summary')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'summary'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Compass className="w-3.5 h-3.5 text-slate-500" />
-            <span>Summary</span>
+            <LayoutDashboard className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Summary</span>
           </button>
 
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'info'}
             onClick={() => setActiveProfileTab('info')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'info'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Users className="w-3.5 h-3.5 text-slate-500" />
-            <span>Info</span>
+            <User className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Info</span>
           </button>
 
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'clinical'}
             onClick={() => setActiveProfileTab('clinical')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'clinical'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Stethoscope className="w-3.5 h-3.5 text-slate-500" />
-            <span>Clinical</span>
+            <Stethoscope className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Clinical</span>
           </button>
 
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'administration'}
             onClick={() => setActiveProfileTab('administration')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'administration'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5 text-slate-500" />
-            <span>Administration</span>
+            <Briefcase className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Administration</span>
           </button>
 
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'gallery'}
             onClick={() => setActiveProfileTab('gallery')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'gallery'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
-            <span>Gallery</span>
+            <Images className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Gallery</span>
           </button>
 
           <button
+            type="button"
+            role="tab"
+            aria-selected={activeProfileTab === 'activity'}
             onClick={() => setActiveProfileTab('activity')}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg transition-all ${
+            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
               activeProfileTab === 'activity'
-                ? 'bg-white text-slate-900 border border-slate-200 shadow-2xs font-bold'
-                : 'hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
             }`}
           >
-            <Activity className="w-3.5 h-3.5 text-slate-500" />
-            <span>Activity</span>
+            <HistoryIcon className="shrink-0 w-4 h-4 text-slate-500" />
+            <span className="truncate">Activity</span>
           </button>
         </div>
 
@@ -1121,13 +1205,13 @@ export default function PatientsPage() {
                   <div className="space-y-1.5 text-xs">
                     {currentPatient.systemicDiseases.map((dis, i) => (
                       <div key={i} className="flex items-start gap-1.5 text-slate-700">
-                        <span className="text-rose-500 font-bold">⚡</span>
+                        <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                         <span>{dis}</span>
                       </div>
                     ))}
                     {currentPatient.allergies.map((all, i) => (
                       <div key={i} className="flex items-start gap-1.5 text-slate-700">
-                        <span className="text-amber-500 font-bold">⚠️</span>
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                         <span>{all}</span>
                       </div>
                     ))}
@@ -1499,128 +1583,519 @@ export default function PatientsPage() {
         )}
 
         {/* ------------------------------------------------------------------- */}
-        {/* TAB 3: CLINICAL (32-Tooth Anatomic Odontogram & Restorative Staging) */}
+        {/* TAB 3: CLINICAL (DentalPin Standard: Diagnosis, Treatment Plans, Appointments, History) */}
         {/* ------------------------------------------------------------------- */}
         {activeProfileTab === 'clinical' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-card">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4 text-blue-600" />
-                    <span>32-Tooth FDI Anatomic Dental Chart</span>
-                  </h3>
-                  <p className="text-xs text-slate-500">Dual-View Anatomic Geometry: Crown, Roots, and Occlusal Facets</p>
+          <div className="clinical-tab space-y-4">
+            {/* Secondary Sub-tabs: Diagnosis, Treatment plans, Appointments, History */}
+            <div className="items-center gap-1 p-1 bg-slate-100 rounded-xl overflow-x-auto flex w-full border border-slate-200/60" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={clinicalSubTab === 'diagnosis'}
+                onClick={() => setClinicalSubTab('diagnosis')}
+                className={`inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap px-3.5 py-1.5 flex-1 ${
+                  clinicalSubTab === 'diagnosis'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Stethoscope className="w-4 h-4 shrink-0 text-sky-600" />
+                <span>Diagnosis</span>
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={clinicalSubTab === 'treatment_plans'}
+                onClick={() => setClinicalSubTab('treatment_plans')}
+                className={`inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap px-3.5 py-1.5 flex-1 ${
+                  clinicalSubTab === 'treatment_plans'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <ClipboardList className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>Treatment plans</span>
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={clinicalSubTab === 'appointments'}
+                onClick={() => setClinicalSubTab('appointments')}
+                className={`inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap px-3.5 py-1.5 flex-1 ${
+                  clinicalSubTab === 'appointments'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Calendar className="w-4 h-4 shrink-0 text-indigo-600" />
+                <span>Appointments</span>
+              </button>
+
+              <button
+                type="button"
+                role="tab"
+                aria-selected={clinicalSubTab === 'history'}
+                onClick={() => setClinicalSubTab('history')}
+                className={`inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap px-3.5 py-1.5 flex-1 ${
+                  clinicalSubTab === 'history'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <HistoryIcon className="w-4 h-4 shrink-0 text-amber-600" />
+                <span>History</span>
+              </button>
+            </div>
+
+            {/* Sub-tab 1: Diagnosis (Odontogram + Register Conditions + Sidebar) */}
+            {clinicalSubTab === 'diagnosis' && (
+              <div className="min-[960px]:flex min-[960px]:gap-4 min-[960px]:items-start">
+                {/* Left Column: Register conditions Card */}
+                <div className="flex-1 min-w-0 space-y-4">
+                  <div className="overflow-hidden shadow-sm rounded-2xl bg-white border border-slate-200 divide-y divide-slate-100">
+                    <div className="p-4 px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Stethoscope className="w-5 h-5 text-sky-600" />
+                        <span className="font-semibold text-slate-900 text-sm">Register conditions</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href="/treatment-plans"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+                        >
+                          <span>Full Treatment Plan Workspace</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="p-4 sm:p-5">
+                      {/* Permanent / Primary Toggle & Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-slate-900">Dental Chart</h3>
+                          <span className="text-xs text-slate-400 font-mono">FDI World Dental Federation (11-48)</span>
+                        </div>
+                        <div className="items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg inline-flex border border-slate-200/80">
+                          <button
+                            type="button"
+                            onClick={() => setArchType('permanent')}
+                            className={`inline-flex items-center justify-center text-xs font-semibold rounded-md transition-colors px-3 py-1 ${
+                              archType === 'permanent'
+                                ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                                : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                          >
+                            Permanent
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setArchType('primary')}
+                            className={`inline-flex items-center justify-center text-xs font-semibold rounded-md transition-colors px-3 py-1 ${
+                              archType === 'primary'
+                                ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                                : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                          >
+                            Primary
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Odontogram Component */}
+                      <TreatmentOdontogramChart
+                        chartNotation={patientTeeth}
+                        selectedTooth={selectedTooth}
+                        onSelectTooth={(num) => setSelectedTooth(selectedTooth === num ? null : num)}
+                        archType={archType}
+                        onToggleArchType={(type) => setArchType(type)}
+                        onWholeMouthSelect={() => setSelectedTooth(null)}
+                        onAddQuickCleaning={() => {
+                          sinnaStore.toastSuccess('Prophylaxis Added', 'Ultrasonic Scaling & Prophylaxis (1,500 ETB) recorded in chart.');
+                        }}
+                        onAddQuickFirstVisit={() => {
+                          sinnaStore.toastSuccess('Diagnostic Exam Added', 'Initial Clinical Consultation & X-Ray recorded in chart.');
+                        }}
+                      />
+
+                      {/* Selected Tooth Clinical Action Drawer */}
+                      {selectedTooth && (
+                        <div className="mt-4 p-4 rounded-xl border border-sky-200 bg-sky-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in text-xs">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-7 h-7 rounded-lg bg-sky-600 text-white font-mono font-bold flex items-center justify-center text-xs shadow-2xs">
+                                #{selectedTooth}
+                              </span>
+                              <div>
+                                <p className="font-bold text-slate-900">
+                                  Tooth #{selectedTooth} Selected
+                                </p>
+                                <p className="text-[11px] text-slate-500">
+                                  Condition: <span className="font-mono font-bold uppercase text-sky-700">{patientTeeth[selectedTooth] || 'SOUND / HEALTHY'}</span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {[
+                              { status: 'healthy' as ToothStatus, label: 'Sound', color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' },
+                              { status: 'caries' as ToothStatus, label: 'Caries (Decay)', color: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' },
+                              { status: 'filled' as ToothStatus, label: 'Filled', color: 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100' },
+                              { status: 'crown' as ToothStatus, label: 'Crown', color: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100' },
+                              { status: 'rct' as ToothStatus, label: 'Root Canal', color: 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100' },
+                              { status: 'missing' as ToothStatus, label: 'Extraction', color: 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' },
+                            ].map((item) => (
+                              <button
+                                key={item.status}
+                                type="button"
+                                onClick={() => {
+                                  handleUpdateToothStatus(selectedTooth, item.status);
+                                  sinnaStore.toastSuccess('Tooth Status Updated', `Tooth #${selectedTooth} marked as ${item.label}.`);
+                                }}
+                                className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all ${item.color} ${
+                                  (patientTeeth[selectedTooth] || 'healthy') === item.status ? 'ring-2 ring-sky-500 font-bold shadow-2xs' : ''
+                                }`}
+                              >
+                                {item.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Right Column: Active Diagnoses & Chairside Dispatch (>=960px sidebar) */}
+                <div className="min-[960px]:w-80 space-y-4 shrink-0 mt-4 min-[960px]:mt-0">
+                  {/* Active Diagnoses Card */}
+                  <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Diagnoses & Pathologies</span>
+                      </h4>
+                      <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">
+                        {Object.values(patientTeeth).filter(s => s === 'caries' || s === 'rct' || s === 'missing').length} active
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      {Object.entries(patientTeeth)
+                        .filter(([_, status]) => status === 'caries' || status === 'rct' || status === 'missing')
+                        .map(([toothNum, status]) => (
+                          <div key={toothNum} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-slate-900">#{toothNum}</span>
+                              <span className="text-slate-600 capitalize">
+                                {status === 'caries' ? 'Dental Caries' : status === 'rct' ? 'Pulpitis / Endo' : 'Missing / Extraction'}
+                              </span>
+                            </div>
+                            <span className="font-mono font-semibold text-slate-900">
+                              {status === 'caries' ? '2,200 ETB' : status === 'rct' ? '6,000 ETB' : '800 ETB'}
+                            </span>
+                          </div>
+                        ))}
+
+                      {Object.values(patientTeeth).filter(s => s === 'caries' || s === 'rct' || s === 'missing').length === 0 && (
+                        <div className="text-center py-4 text-slate-400 text-xs">
+                          <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+                          No active pathological conditions recorded.
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-medium">Est. Treatment Total:</span>
+                      <span className="font-mono font-bold text-emerald-700 text-sm">
+                        {Object.entries(patientTeeth).reduce((sum, [_, status]) => {
+                          if (status === 'caries') return sum + 2200;
+                          if (status === 'rct') return sum + 6000;
+                          if (status === 'crown') return sum + 7500;
+                          if (status === 'missing') return sum + 800;
+                          return sum;
+                        }, 0).toLocaleString()} ETB
+                      </span>
+                    </div>
+
+                    <Link
+                      href="/treatment-plans"
+                      className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                    >
+                      <ClipboardList className="w-3.5 h-3.5" />
+                      <span>Stage into Treatment Plan</span>
+                    </Link>
+                  </div>
+
+                  {/* Operatory Chairside Dispatch */}
+                  <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Chairside Operatory Dispatch</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500">Dispatch patient to active clinical dental unit:</p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sinnaStore.toastSuccess('Seated in Chair 1', `${currentPatient.name} seated in Chair 1 (Main Operatory).`);
+                        }}
+                        className="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/90 text-indigo-900 font-semibold text-xs flex flex-col items-center justify-center gap-1 transition-colors shadow-2xs text-center"
+                      >
+                        <span className="font-bold">Chair 1</span>
+                        <span className="text-[10px] text-indigo-700 font-normal">Main Operatory</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          sinnaStore.toastSuccess('Seated in Chair 2', `${currentPatient.name} seated in Chair 2 (Hygiene & Endo).`);
+                        }}
+                        className="p-2.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100/90 text-sky-900 font-semibold text-xs flex flex-col items-center justify-center gap-1 transition-colors shadow-2xs text-center"
+                      >
+                        <span className="font-bold">Chair 2</span>
+                        <span className="text-[10px] text-sky-700 font-normal">Hygiene & Endo</span>
+                      </button>
+                    </div>
+
+                    <Link
+                      href="/schedule"
+                      className="w-full py-1.5 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <span>Open Schedule Timeline</span>
+                      <ArrowRight className="w-3 h-3 text-slate-400" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-tab 2: Treatment Plans */}
+            {clinicalSubTab === 'treatment_plans' && (
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <ClipboardList className="w-4 h-4 text-emerald-600" />
+                      <span>{currentPatient.activePlanTitle || 'General Restorative Plan'}</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Staged Ethiopian Clinical Dental Protocol</p>
+                  </div>
                   <Link
                     href="/treatment-plans"
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors flex items-center gap-1.5"
                   >
-                    <span>Full Treatment Workspace</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Open Odontogram Workspace</span>
+                  </Link>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-700">Phase Completion Progress</span>
+                    <span className="font-mono text-emerald-700">{currentPatient.activePlanProgress?.percent || 60}%</span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${currentPatient.activePlanProgress?.percent || 60}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                    <span>{currentPatient.activePlanProgress?.completed || 3} of {currentPatient.activePlanProgress?.total || 5} procedures completed</span>
+                    <span className="font-mono font-bold text-slate-900">Total: {currentPatient.balanceETB + currentPatient.totalPaidETB} ETB</span>
+                  </div>
+                </div>
+
+                {/* Staged Procedure Breakdown */}
+                <div className="space-y-2 text-xs">
+                  <h5 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Staged Clinical Procedures</h5>
+                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+                    <div className="p-3 bg-white flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                          <Check className="w-3.5 h-3.5" />
+                        </span>
+                        <div>
+                          <p className="font-semibold text-slate-900">Stage 1: Comprehensive Periodontal Scaling & Debridement</p>
+                          <p className="text-[11px] text-slate-500">Completed on {currentPatient.lastVisit?.date || 'Sep 24, 2026'}</p>
+                        </div>
+                      </div>
+                      <span className="font-mono font-semibold text-slate-900">1,500 ETB</span>
+                    </div>
+
+                    <div className="p-3 bg-white flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
+                          <Clock className="w-3.5 h-3.5" />
+                        </span>
+                        <div>
+                          <p className="font-semibold text-slate-900">Stage 2: Composite Resin Restoration (Tooth #16 MO)</p>
+                          <p className="text-[11px] text-sky-600 font-medium">In Progress · Scheduled Next Visit</p>
+                        </div>
+                      </div>
+                      <span className="font-mono font-semibold text-slate-900">2,200 ETB</span>
+                    </div>
+
+                    <div className="p-3 bg-white flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
+                          3
+                        </span>
+                        <div>
+                          <p className="font-semibold text-slate-900">Stage 3: Full Zirconia Crown (Tooth #46)</p>
+                          <p className="text-[11px] text-slate-500">Planned · Awaiting Tooth Preparation</p>
+                        </div>
+                      </div>
+                      <span className="font-mono font-semibold text-slate-900">7,500 ETB</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-2">
+                  <Link
+                    href="/quotes"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-colors flex items-center gap-1.5"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>View Formal ETB Quote</span>
                   </Link>
                   <Link
-                    href="/doctor"
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-2xs flex items-center gap-1.5"
+                    href="/invoices"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-2xs transition-colors flex items-center gap-1.5"
                   >
-                    <Stethoscope className="w-3.5 h-3.5" />
-                    <span>Open Doctor Operatory</span>
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Issue Fiscal MoR Invoice</span>
                   </Link>
                 </div>
               </div>
+            )}
 
-              {/* Authentic Anatomic Treatment Plan Odontogram */}
-              <TreatmentOdontogramChart
-                chartNotation={patientTeeth}
-                selectedTooth={selectedTooth}
-                onSelectTooth={(num) => setSelectedTooth(selectedTooth === num ? null : num)}
-                archType={archType}
-                onToggleArchType={(type) => setArchType(type)}
-                onWholeMouthSelect={() => setSelectedTooth(null)}
-                onAddQuickCleaning={() => {
-                  sinnaStore.toastSuccess('Prophylaxis Added', 'Ultrasonic Scaling & Prophylaxis (1,500 ETB) recorded in chart.');
-                }}
-                onAddQuickFirstVisit={() => {
-                  sinnaStore.toastSuccess('Diagnostic Exam Added', 'Initial Clinical Consultation & X-Ray recorded in chart.');
-                }}
-              />
-
-              {/* Selected Tooth Clinical Action Drawer */}
-              {selectedTooth && (
-                <div className="mt-4 p-4 rounded-xl border border-blue-200 bg-blue-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in text-xs">
+            {/* Sub-tab 3: Appointments */}
+            {clinicalSubTab === 'appointments' && (
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-lg bg-blue-600 text-white font-mono font-bold flex items-center justify-center text-xs">
-                        #{selectedTooth}
-                      </span>
+                    <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-indigo-600" />
+                      <span>Appointments & Operatory Visits</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Bole Dental Studio Chair Scheduling Record</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBookingModalOpen(true)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition-colors flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>New Appointment</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  {/* Next appointment */}
+                  {currentPatient.nextAppointment && (
+                    <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <p className="font-bold text-slate-900">
-                          Tooth #{selectedTooth} Selected
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          Current Status: <span className="font-mono font-bold uppercase text-blue-700">{patientTeeth[selectedTooth] || 'SOUND / HEALTHY'}</span>
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
+                            Upcoming Visit
+                          </span>
+                          <span className="font-bold text-slate-900">{currentPatient.nextAppointment.date}</span>
+                        </div>
+                        <p className="text-slate-700 font-medium">{currentPatient.nextAppointment.service}</p>
+                        <p className="text-[11px] text-slate-500">Provider: {currentPatient.nextAppointment.doctor}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            sinnaStore.toastSuccess('Checked In', `${currentPatient.name} marked as Arrived & Checked In.`);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs shadow-2xs transition-colors"
+                        >
+                          Check In Patient
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Past Visit history */}
+                  <div className="space-y-2">
+                    <h5 className="font-bold text-slate-900 uppercase tracking-wider text-[11px] pt-2">Past Clinical Encounters</h5>
+                    <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+                      <div className="p-3 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-900">{currentPatient.lastVisit?.date || 'Oct 02, 2026 09:30 AM'}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Completed
+                            </span>
+                          </div>
+                          <p className="text-slate-600 mt-0.5">{currentPatient.lastVisit?.procedure || 'Routine Oral Health Evaluation & Debridement'}</p>
+                          <p className="text-[11px] text-slate-400">Chair 1 · Provider: {currentPatient.lastVisit?.doctor || 'Dr. Senait Tadesse'}</p>
+                        </div>
+                        <span className="font-mono font-semibold text-emerald-700 self-start sm:self-auto">1,500 ETB Paid</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Rapid Clinical Status Marking Pills */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {[
-                      { status: 'healthy' as ToothStatus, label: 'Sound', color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' },
-                      { status: 'caries' as ToothStatus, label: 'Caries (Decay)', color: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' },
-                      { status: 'filled' as ToothStatus, label: 'Filled', color: 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100' },
-                      { status: 'crown' as ToothStatus, label: 'Crown', color: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100' },
-                      { status: 'rct' as ToothStatus, label: 'Root Canal', color: 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100' },
-                      { status: 'missing' as ToothStatus, label: 'Extraction', color: 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' },
-                    ].map((item) => (
-                      <button
-                        key={item.status}
-                        type="button"
-                        onClick={() => {
-                          handleUpdateToothStatus(selectedTooth, item.status);
-                          sinnaStore.toastSuccess('Tooth Status Updated', `Tooth #${selectedTooth} marked as ${item.label}.`);
-                        }}
-                        className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all ${item.color} ${
-                          (patientTeeth[selectedTooth] || 'healthy') === item.status ? 'ring-2 ring-blue-500 font-bold shadow-2xs' : ''
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Clinical Dental Summary Bar */}
-              <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                  <span className="text-slate-500">Pathology Untreated:</span>
-                  <span className="font-mono font-bold text-amber-700">
-                    {Object.values(patientTeeth).filter((s) => s === 'caries' || s === 'rct' || s === 'missing').length} Teeth
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                  <span className="text-slate-500">Restorations Present:</span>
-                  <span className="font-mono font-bold text-sky-700">
-                    {Object.values(patientTeeth).filter((s) => s === 'filled' || s === 'crown').length} Teeth
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                  <span className="text-slate-500">Est. Restorative Need:</span>
-                  <span className="font-mono font-bold text-emerald-700">
-                    {Object.entries(patientTeeth).reduce((sum, [_, status]) => {
-                      if (status === 'caries') return sum + 2200;
-                      if (status === 'rct') return sum + 6000;
-                      if (status === 'crown') return sum + 7500;
-                      if (status === 'missing') return sum + 800;
-                      return sum;
-                    }, 0).toLocaleString()} ETB
-                  </span>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Sub-tab 4: History */}
+            {clinicalSubTab === 'history' && (
+              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                      <HistoryIcon className="w-4 h-4 text-amber-600" />
+                      <span>Clinical Dental Chart History & Diagnostic Findings</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Bole Dental Studio Clinical Archive</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                    <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <HeartPulse className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Medical Alerts & Allergies</span>
+                    </p>
+                    <div className="space-y-1 text-slate-700">
+                      {currentPatient.allergies.map((a, i) => (
+                        <p key={i} className="flex items-center gap-1.5 text-rose-700 font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                          {a}
+                        </p>
+                      ))}
+                      {currentPatient.systemicDiseases.map((d, i) => (
+                        <p key={i} className="flex items-center gap-1.5 text-slate-600">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                          {d}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                    <p className="font-bold text-slate-900 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-sky-600" />
+                      <span>Radiographic & Examination Notes</span>
+                    </p>
+                    <p className="text-slate-600 leading-relaxed">
+                      {currentPatient.notes || 'Full arch panoramic examination conducted. Generalized marginal gingivitis noted. Good bone crest levels observed throughout posterior quadrants.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
