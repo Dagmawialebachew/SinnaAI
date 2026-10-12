@@ -419,6 +419,31 @@ export const sinnaStore = {
     emitChange();
   },
 
+  addPaymentTransaction(tx: LedgerTransaction) {
+    currentState = {
+      ...currentState,
+      ledger: [tx, ...currentState.ledger],
+    };
+    emitChange();
+  },
+
+  refundPayment(txId: string, refundAmountETB: number, reason: string) {
+    currentState = {
+      ...currentState,
+      ledger: currentState.ledger.map((tx) =>
+        tx.id === txId || tx.receiptNumber === txId
+          ? {
+              ...tx,
+              isRefunded: true,
+              refundAmountETB,
+              refundReason: reason,
+            }
+          : tx
+      ),
+    };
+    emitChange();
+  },
+
   triggerNotification(notification: SmsToastNotification) {
     currentState = {
       ...currentState,

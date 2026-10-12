@@ -167,11 +167,17 @@ export interface LedgerTransaction {
   id: string;
   appointmentId: string;
   patientName: string;
+  patientMrn?: string;
+  patientNameAmharic?: string;
   receiptNumber: string;
   amountETB: number;
-  method: 'cash' | 'telebirr_manual' | 'cbe_manual' | 'chapa_online';
+  method: 'cash' | 'telebirr_manual' | 'cbe_manual' | 'chapa_online' | 'direct_debit' | 'transfer' | string;
   recordedBy: string;
   timestamp: string;
+  allocation?: string;
+  isRefunded?: boolean;
+  refundAmountETB?: number;
+  refundReason?: string;
 }
 
 export interface SmsToastNotification {
