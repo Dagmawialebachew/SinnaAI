@@ -3,489 +3,756 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  FileSpreadsheet,
-  TrendingUp,
-  Download,
   Calendar,
-  DollarSign,
-  CheckCircle2,
+  ChevronDown,
+  Receipt,
+  FileText,
+  CalendarCheck,
+  Wallet,
+  Banknote,
+  PiggyBank,
+  Clock,
+  Activity,
+  LineChart,
+  CreditCard,
+  Stethoscope,
+  UserPlus,
+  CalendarX,
   AlertCircle,
-  RotateCcw,
   Printer,
   ShieldCheck,
-  ChevronRight,
-  ArrowRight,
-  ArrowUpRight,
-  Plus,
-  Banknote,
-  Receipt,
-  Stethoscope,
-  Smartphone,
-  CreditCard
+  Check,
+  X
 } from 'lucide-react';
-import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { useSinnaStore, getClinicData } from '@/lib/store';
 import { ZReportModal } from '@/components/z-report-modal';
-import { LedgerTransaction } from '@/lib/types';
 
 export default function ReportsPage() {
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
 
-  const [datePeriod, setDatePeriod] = useState('Period · 2026-10-01 — 2026-10-10');
+  // Date Period State
+  const [selectedPeriod, setSelectedPeriod] = useState('Period · 2026-10-01 → 2026-10-12');
+  const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState(false);
   const [zModalOpen, setZModalOpen] = useState(false);
+  const [activePaymentMethodHover, setActivePaymentMethodHover] = useState<string | null>(null);
 
+  // Dynamic Ledger Calculations
   const safeLedger = Array.isArray(store.ledger) ? store.ledger : [];
-  const totalCollectedETB = safeLedger.reduce((sum, tx) => sum + (tx.amountETB || 0), 18075);
-  const totalProductionETB = 24950;
+  const baseCollectedETB = 18075.0;
+  const totalCollectedETB = safeLedger.length > 0 
+    ? safeLedger.reduce((sum, tx) => sum + (tx.amountETB || 0), 0)
+    : baseCollectedETB;
+
+  const totalProductionETB = 24950.0;
   const completedTreatmentsCount = 22;
   const paymentsCount = Math.max(safeLedger.length, 6);
-  const avgCollectedTicketETB = Math.round(totalCollectedETB / paymentsCount);
+  const avgCollectedTicketETB = (totalCollectedETB / paymentsCount);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* 1. TOP HEADER & QUICK SHORTCUTS */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-            Reports & Practice Analytics
+    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {/* 1. STICKY DENTALPIN HEADER */}
+      <header className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-sm border-b border-slate-200/90 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between transition-colors">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate">
+            Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Your clinic production, collections, and daily fiscal close · {clinic.name}
+          <p className="text-xs sm:text-sm text-slate-500 truncate">
+            Your clinic at a glance · {clinic.name}
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white border border-slate-200/90 text-slate-700 shadow-2xs hover:bg-slate-50 cursor-pointer">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" />
-            <span>{datePeriod}</span>
-            <ChevronRight className="w-3 h-3 text-slate-400 rotate-90" />
-          </div>
+        <div className="flex items-center gap-2 shrink-0 relative">
+          <button
+            type="button"
+            onClick={() => setIsPeriodMenuOpen(!isPeriodMenuOpen)}
+            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 shadow-xs"
+          >
+            <Calendar className="shrink-0 size-4 text-sky-600" />
+            <span>{selectedPeriod}</span>
+            <ChevronDown className="shrink-0 size-3.5 text-sky-500" />
+          </button>
 
           <button
+            type="button"
             onClick={() => setZModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-xs"
+            className="rounded-lg font-medium inline-flex items-center transition-colors px-3 py-1.5 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs"
           >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Generate Z-Report</span>
+            <Printer className="size-3.5" />
+            <span className="hidden sm:inline">Daily</span> Z-Report
           </button>
-        </div>
-      </div>
 
-      {/* 2. ACTION SHORTCUT PILLS */}
-      <div className="flex flex-wrap items-center gap-2">
+          {/* Period Selection Popover */}
+          {isPeriodMenuOpen && (
+            <div className="absolute top-full end-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
+              <div className="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Select Analytics Window
+              </div>
+              {[
+                'Period · 2026-10-01 → 2026-10-12',
+                'Today · 2026-10-12',
+                'This Week · 2026-10-05 → 2026-10-12',
+                'Last 30 Days · Rolling',
+                'Quarter 4 · 2026'
+              ].map((period) => (
+                <button
+                  key={period}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPeriod(period);
+                    setIsPeriodMenuOpen(false);
+                  }}
+                  className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-slate-50 ${
+                    selectedPeriod === period ? 'font-bold text-sky-700 bg-sky-50/50' : 'text-slate-700'
+                  }`}
+                >
+                  <span className="truncate">{period}</span>
+                  {selectedPeriod === period && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* 2. DRILL DOWN NAVIGATION PILLS (DentalPin Standard) */}
+      <nav aria-label="Drill down" className="flex gap-2 overflow-x-auto sm:flex-wrap pb-1 scrollbar-thin">
         <Link
           href="/invoices"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all shadow-2xs"
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
         >
-          <Plus className="w-3.5 h-3.5 text-blue-600" />
-          <span>Billing</span>
+          <Receipt className="h-4 w-4 text-sky-600" />
+          <span className="truncate">Billing</span>
         </Link>
         <Link
           href="/quotes"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all shadow-2xs"
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
         >
-          <Plus className="w-3.5 h-3.5 text-blue-600" />
-          <span>Quotes</span>
+          <FileText className="h-4 w-4 text-sky-600" />
+          <span className="truncate">Quotes</span>
         </Link>
         <Link
           href="/schedule"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all shadow-2xs"
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
         >
-          <Plus className="w-3.5 h-3.5 text-blue-600" />
-          <span>Schedule</span>
+          <CalendarCheck className="h-4 w-4 text-sky-600" />
+          <span className="truncate">Schedule</span>
         </Link>
         <Link
           href="/payments"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-blue-50/60 text-slate-700 hover:text-blue-700 border border-slate-200 transition-all shadow-2xs"
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
         >
-          <Plus className="w-3.5 h-3.5 text-blue-600" />
-          <span>Payments</span>
+          <Wallet className="h-4 w-4 text-sky-600" />
+          <span className="truncate">Payments</span>
         </Link>
-      </div>
+      </nav>
 
-      {/* 3. FOUR TOP KPI METRIC CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: CASH COLLECTED */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-card relative overflow-hidden flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+      {/* 3. FOUR PRIMARY SUMMARY CARDS */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Card 1: Cash Collected */}
+        <Link
+          href="/invoices"
+          className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
+        >
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <Banknote className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Cash Collected
+              Cash collected
             </span>
-            <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <Banknote className="w-3.5 h-3.5" />
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                {totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">{paymentsCount} payments</div>
+              </div>
+              <div className="block w-full mt-2" style={{ height: 32 }}>
+                <svg
+                  viewBox="0 0 100 32"
+                  preserveAspectRatio="none"
+                  role="img"
+                  aria-label="Trend 3 points, up 1263"
+                  className="w-full h-full overflow-visible"
+                >
+                  <path
+                    d="M0.00,30.00 L50.00,22.40 L100.00,2.00 L100,32 L0,32 Z"
+                    fill="#10b981"
+                    fillOpacity="0.14"
+                  />
+                  <path
+                    d="M0.00,30.00 L50.00,22.40 L100.00,2.00"
+                    stroke="#10b981"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
-          <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
-              {totalCollectedETB.toLocaleString()} ETB
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {paymentsCount} payments received
-            </p>
-          </div>
-          <div className="mt-4 pt-2">
-            <svg className="w-full h-8 text-emerald-500" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path
-                d="M0,22 Q25,20 50,14 T100,5 L100,25 L0,25 Z"
-                fill="currentColor"
-                fillOpacity="0.1"
-              />
-              <path
-                d="M0,22 Q25,20 50,14 T100,5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
-        </div>
+        </Link>
 
-        {/* Card 2: PATIENT CREDIT */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-card relative overflow-hidden flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+        {/* Card 2: Patient Credit */}
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-sky-500">
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <PiggyBank className="w-4 h-4 shrink-0 text-sky-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Patient Credit
+              Patient credit
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-              Today
+            <span
+              className="ms-auto inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium"
+              title="Today"
+            >
+              <Clock className="w-3 h-3 text-slate-400" /> Today
             </span>
-          </div>
-          <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
-              0.00 ETB
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Unallocated advances
-            </p>
-          </div>
-          <div className="mt-4 pt-2">
-            <div className="h-8 flex items-end">
-              <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                <div className="w-0 h-full bg-slate-400" />
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                0.00 ETB
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">Unallocated advances</div>
+              </div>
+              <div className="block w-full mt-2" style={{ height: 32 }}>
+                <div className="h-full flex items-end">
+                  <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-0 h-full bg-slate-300" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 3: PRODUCTION */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-card relative overflow-hidden flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+        {/* Card 3: Production */}
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-sky-500">
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <Activity className="w-4 h-4 shrink-0 text-sky-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Production
             </span>
-            <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-              <TrendingUp className="w-3.5 h-3.5" />
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                {totalProductionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">
+                  {completedTreatmentsCount} treatments
+                </div>
+              </div>
+              <div className="block w-full mt-2" style={{ height: 32 }}>
+                <svg
+                  viewBox="0 0 100 32"
+                  preserveAspectRatio="none"
+                  role="img"
+                  className="w-full h-full overflow-visible"
+                >
+                  <path
+                    d="M0.00,28.00 L50.00,16.00 L100.00,4.00 L100,32 L0,32 Z"
+                    fill="#0284c7"
+                    fillOpacity="0.12"
+                  />
+                  <path
+                    d="M0.00,28.00 L50.00,16.00 L100.00,4.00"
+                    stroke="#0284c7"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
-              {totalProductionETB.toLocaleString()} ETB
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {completedTreatmentsCount} treatments completed
-            </p>
-          </div>
-          <div className="mt-4 pt-2">
-            <svg className="w-full h-8 text-blue-500" viewBox="0 0 100 25" preserveAspectRatio="none">
-              <path
-                d="M0,24 Q30,18 60,10 T100,4 L100,25 L0,25 Z"
-                fill="currentColor"
-                fillOpacity="0.08"
-              />
-              <path
-                d="M0,24 Q30,18 60,10 T100,4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              />
-            </svg>
           </div>
         </div>
 
-        {/* Card 4: AVG COLLECTED TICKET */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-card relative overflow-hidden flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
+        {/* Card 4: Avg Collected Ticket */}
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-transparent">
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <Receipt className="w-4 h-4 shrink-0 text-slate-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Avg Collected Ticket
+              Avg collected ticket
             </span>
-            <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
-              <Receipt className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
-              {avgCollectedTicketETB.toLocaleString()} ETB
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Over {paymentsCount} payments
-            </p>
-          </div>
-          <div className="mt-4 pt-2">
-            <div className="h-8 flex items-end">
-              <div className="w-full h-1.5 bg-indigo-50 rounded-full overflow-hidden">
-                <div className="w-3/4 h-full bg-indigo-500 rounded-full" />
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                {avgCollectedTicketETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">Over {paymentsCount} payments</div>
+              </div>
+              <div className="block w-full mt-2" style={{ height: 32 }}>
+                <div className="h-full flex items-end">
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-3/4 h-full bg-slate-400 rounded-full" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* 4. CHARTS SECTION: Collections Over Time & By Payment Method */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left: Collections Over Time Area Chart */}
-        <div className="lg:col-span-7 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                Collections Over Time
-              </span>
-              <div className="text-xl font-bold text-slate-900 mt-0.5 font-mono">
-                13,300.00 ETB
-              </div>
-            </div>
-            <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              +18.4% vs last week
-            </span>
-          </div>
-
-          <div className="h-48 relative pt-4">
-            <svg className="w-full h-full text-emerald-500" viewBox="0 0 500 150" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="gradReportEmerald" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#059669" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#059669" stopOpacity="0.01" />
-                </linearGradient>
-              </defs>
-              <line x1="0" y1="130" x2="500" y2="130" stroke="#f1f5f9" strokeDasharray="4 4" />
-              <line x1="0" y1="80" x2="500" y2="80" stroke="#f1f5f9" strokeDasharray="4 4" />
-              <line x1="0" y1="30" x2="500" y2="30" stroke="#f1f5f9" strokeDasharray="4 4" />
-
-              <polygon
-                points="0,130 80,125 160,110 240,90 320,55 400,35 500,20 500,140 0,140"
-                fill="url(#gradReportEmerald)"
-              />
-              <polyline
-                points="0,130 80,125 160,110 240,90 320,55 400,35 500,20"
-                fill="none"
-                stroke="#059669"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-              <circle cx="80" cy="125" r="3.5" fill="#059669" />
-              <circle cx="160" cy="110" r="3.5" fill="#059669" />
-              <circle cx="240" cy="90" r="3.5" fill="#059669" />
-              <circle cx="320" cy="55" r="3.5" fill="#059669" />
-              <circle cx="400" cy="35" r="3.5" fill="#059669" />
-              <circle cx="500" cy="20" r="4" fill="#059669" />
-            </svg>
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono pt-3 border-t border-slate-100">
-            <span>Oct 02</span>
-            <span>Oct 04</span>
-            <span>Oct 06</span>
-            <span>Oct 08</span>
-            <span>Oct 10</span>
-          </div>
-        </div>
-
-        {/* Right: By Payment Method Donut */}
-        <div className="lg:col-span-5 bg-white border border-slate-200/90 rounded-2xl p-6 shadow-card flex flex-col justify-between">
-          <div className="mb-4">
+      {/* 4. MID SECTION: COLLECTIONS OVER TIME & PAYMENT METHOD DONUT */}
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Collections Over Time (Matching DentalPin SVG) */}
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500">
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <LineChart className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              By Payment Method
+              Collections over time
             </span>
-            <div className="text-xs text-slate-400 mt-0.5">
-              Ethiopian Financial Rail Settlement
-            </div>
-          </div>
+          </header>
+          <div className="flex-1 px-4 pb-4 min-w-0">
+            <div className="w-full">
+              <div className="relative w-full select-none" style={{ height: 220 }}>
+                <svg
+                  viewBox="0 0 800 220"
+                  preserveAspectRatio="none"
+                  role="img"
+                  aria-label="Trend over 3 points"
+                  className="w-full h-full overflow-visible"
+                >
+                  {/* Fill polygon */}
+                  <path
+                    d="M8.00,190.26 L400.00,140.81 L792.00,8.00 L792.00,200 L8.00,200 Z"
+                    fill="#10b981"
+                    fillOpacity="0.12"
+                  />
+                  {/* Target dashed benchmark line */}
+                  <path
+                    d="M8.00,200.00 L400.00,200.00 L792.00,200.00"
+                    stroke="#f43f5e"
+                    strokeWidth="1.25"
+                    strokeDasharray="4 4"
+                    fill="none"
+                    opacity="0.6"
+                  />
+                  {/* Main spline */}
+                  <path
+                    d="M8.00,190.26 L400.00,140.81 L792.00,8.00"
+                    stroke="#10b981"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                  {/* Data Point Nodes */}
+                  <circle cx="8" cy="190.26" r="4.5" fill="#10b981" />
+                  <circle cx="400" cy="140.81" r="4.5" fill="#10b981" />
+                  <circle cx="792" cy="8.00" r="5" fill="#10b981" />
+                </svg>
 
-          <div className="flex flex-col sm:flex-row items-center gap-6 my-auto">
-            <div className="relative w-36 h-36 shrink-0">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" stroke="#f1f5f9" strokeWidth="12" fill="none" />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#0284c7"
-                  strokeWidth="12"
-                  strokeDasharray="108 251.2"
-                  strokeDashoffset="0"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#16a34a"
-                  strokeWidth="12"
-                  strokeDasharray="78 251.2"
-                  strokeDashoffset="-108"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#334155"
-                  strokeWidth="12"
-                  strokeDasharray="58 251.2"
-                  strokeDashoffset="-186"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#d97706"
-                  strokeWidth="12"
-                  strokeDasharray="8 251.2"
-                  strokeDashoffset="-244"
-                  fill="none"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Total</span>
-                <span className="text-xs font-bold text-slate-900 font-mono">
-                  {(totalCollectedETB / 1000).toFixed(1)}k ETB
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2 flex-1 text-xs w-full">
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-sky-600 shrink-0" />
-                  <span className="text-slate-600">Telebirr SuperApp</span>
+                {/* Date Axis Badges */}
+                <div
+                  className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
+                  style={{ left: '2%', bottom: '0px' }}
+                >
+                  Oct 04
                 </div>
-                <span className="font-semibold text-slate-900 font-mono">7,800 ETB</span>
-              </div>
-
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0" />
-                  <span className="text-slate-600">CBE Birr POS</span>
+                <div
+                  className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
+                  style={{ left: '50%', bottom: '0px' }}
+                >
+                  Oct 07
                 </div>
-                <span className="font-semibold text-slate-900 font-mono">5,695 ETB</span>
-              </div>
-
-              <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-700 shrink-0" />
-                  <span className="text-slate-600">Physical Cash</span>
+                <div
+                  className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
+                  style={{ left: '98%', bottom: '0px' }}
+                >
+                  Oct 10
                 </div>
-                <span className="font-semibold text-slate-900 font-mono">4,100 ETB</span>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-600 shrink-0" />
-                  <span className="text-slate-600">Chapa Online Gateway</span>
+                {/* Top Value Indicator */}
+                <div className="absolute top-0 start-0 text-xs text-slate-500 font-mono font-bold pointer-events-none bg-white/80 px-1.5 py-0.5 rounded border border-slate-200/60">
+                  13,300.00 ETB
                 </div>
-                <span className="font-semibold text-slate-900 font-mono">480 ETB</span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* By Payment Method (DentalPin Donut SVG) */}
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-transparent">
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <CreditCard className="w-4 h-4 shrink-0 text-slate-400" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              By payment method
+            </span>
+          </header>
+          <div className="flex-1 px-4 pb-4 min-w-0">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+              {/* Donut Chart */}
+              <div className="relative shrink-0 self-center" style={{ width: 148, height: 148 }}>
+                <svg
+                  width="148"
+                  height="148"
+                  viewBox="0 0 148 148"
+                  role="img"
+                  aria-label="Donut chart, 4 segments"
+                >
+                  {/* Segment 1: Direct debit (Slate) */}
+                  <path
+                    d="M 74.000 0.000 A 74 74 0 0 1 104.860 141.258 L 98.188 126.716 A 58 58 0 0 0 74.000 16.000 Z"
+                    fill="#64748b"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
+                    onMouseEnter={() => setActivePaymentMethodHover('Direct debit')}
+                    onMouseLeave={() => setActivePaymentMethodHover(null)}
+                  >
+                    <title>Direct debit: 7,800.00 ETB</title>
+                  </path>
+                  {/* Segment 2: Card / CBE Birr (Sky) */}
+                  <path
+                    d="M 104.860 141.258 A 74 74 0 0 1 0.017 75.575 L 16.013 75.235 A 58 58 0 0 0 98.188 126.716 Z"
+                    fill="#0284c7"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
+                    onMouseEnter={() => setActivePaymentMethodHover('Card')}
+                    onMouseLeave={() => setActivePaymentMethodHover(null)}
+                  >
+                    <title>Card / CBE Birr POS: 5,695.00 ETB</title>
+                  </path>
+                  {/* Segment 3: Bank transfer (Indigo) */}
+                  <path
+                    d="M 0.017 75.575 A 74 74 0 0 1 61.710 1.028 L 64.367 16.806 A 58 58 0 0 0 16.013 75.235 Z"
+                    fill="#6366f1"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
+                    onMouseEnter={() => setActivePaymentMethodHover('Bank transfer')}
+                    onMouseLeave={() => setActivePaymentMethodHover(null)}
+                  >
+                    <title>Bank transfer: 4,100.00 ETB</title>
+                  </path>
+                  {/* Segment 4: Cash (Emerald) */}
+                  <path
+                    d="M 61.710 1.028 A 74 74 0 0 1 74.000 0.000 L 74.000 16.000 A 58 58 0 0 0 64.367 16.806 Z"
+                    fill="#10b981"
+                    className="cursor-pointer transition-opacity hover:opacity-80"
+                    onMouseEnter={() => setActivePaymentMethodHover('Cash')}
+                    onMouseLeave={() => setActivePaymentMethodHover(null)}
+                  >
+                    <title>Cash: 480.00 ETB</title>
+                  </path>
+                </svg>
+
+                {/* Donut Center */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                  <div className="text-[10px] text-slate-400 uppercase font-semibold">Total</div>
+                  <div className="text-xs font-bold text-slate-900 font-mono">
+                    {totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                  </div>
+                </div>
+              </div>
+
+              {/* Legend List */}
+              <ul className="flex-1 min-w-0 space-y-2">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePaymentMethodHover('Direct debit')}
+                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
+                      activePaymentMethodHover === 'Direct debit' ? 'bg-slate-100' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-500" />
+                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-slate-900">
+                      Direct debit
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
+                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
+                      7,800.00 ETB
+                    </span>
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePaymentMethodHover('Card')}
+                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
+                      activePaymentMethodHover === 'Card' ? 'bg-sky-50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-sky-600" />
+                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-sky-700">
+                      Card / CBE Birr
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono shrink-0">3 payments</span>
+                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
+                      5,695.00 ETB
+                    </span>
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePaymentMethodHover('Bank transfer')}
+                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
+                      activePaymentMethodHover === 'Bank transfer' ? 'bg-indigo-50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-indigo-500" />
+                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-indigo-700">
+                      Bank transfer
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
+                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
+                      4,100.00 ETB
+                    </span>
+                  </button>
+                </li>
+
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setActivePaymentMethodHover('Cash')}
+                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
+                      activePaymentMethodHover === 'Cash' ? 'bg-emerald-50' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
+                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-emerald-700">
+                      Cash
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
+                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
+                      480.00 ETB
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. PRODUCTION BY DOCTOR */}
+      <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-sky-500">
+        <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+          <Stethoscope className="w-4 h-4 shrink-0 text-sky-600" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Production by doctor
+          </span>
+        </header>
+        <div className="flex-1 px-4 pb-4 min-w-0">
+          <ul className="space-y-4">
+            {/* Doctor 1: Dr. Senait Tadesse */}
+            <li>
+              <div className="block w-full text-start group">
+                <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-900 truncate">
+                      Dr. Senait Tadesse <span className="text-xs text-slate-400 font-normal">ዶ/ር ሰናይት ታደሰ</span>
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">21 treatments</div>
+                  </div>
+                  <div className="text-sm font-bold font-mono text-slate-900 shrink-0">
+                    24,350.00 ETB
+                  </div>
+                </div>
+                <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                  <div
+                    className="h-full rounded-full transition-all duration-300 ease-out bg-sky-500"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+            </li>
+
+            {/* Doctor 2: Dr. Brook Zewde */}
+            <li>
+              <div className="block w-full text-start group">
+                <div className="flex items-baseline justify-between gap-3 mb-1.5">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-slate-900 truncate">
+                      Dr. Brook Zewde <span className="text-xs text-slate-400 font-normal">ዶ/ር ብሩክ ዘውዴ</span>
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">1 treatments</div>
+                  </div>
+                  <div className="text-sm font-bold font-mono text-slate-900 shrink-0">
+                    600.00 ETB
+                  </div>
+                </div>
+                <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                  <div
+                    className="h-full rounded-full transition-all duration-300 ease-out bg-sky-500"
+                    style={{ width: '2.5%' }}
+                  />
+                </div>
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
 
-      {/* 5. PRODUCTION BY DOCTOR & Z-REPORT CLOSE */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-card">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Stethoscope className="w-4 h-4 text-blue-600" />
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                Production by Doctor
-              </h2>
+      {/* 6. NEW PATIENTS & NO-SHOW RATE CARDS */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* New patients */}
+        <Link
+          href="/schedule"
+          className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
+        >
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <UserPlus className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              New patients
+            </span>
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                11
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">
+                  68.8% of total appointments
+                </div>
+              </div>
             </div>
-            <span className="text-xs text-slate-500 font-mono">Oct 01 — Oct 10</span>
           </div>
+        </Link>
 
-          <div className="divide-y divide-slate-100">
-            <div className="py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-xs flex items-center justify-center">
-                  ST
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">Dr. Senait Tadesse</p>
-                  <p className="text-xs text-slate-500">Lead Specialist & Surgeon</p>
-                </div>
+        {/* No-show rate */}
+        <Link
+          href="/schedule"
+          className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
+        >
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <CalendarX className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              No-show rate
+            </span>
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
+                0.0%
               </div>
-              <div className="text-right">
-                <span className="text-base font-bold text-slate-900 font-mono">24,950.00 ETB</span>
-                <p className="text-[11px] text-emerald-600 font-medium">18 Completed Procedures</p>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="text-xs text-slate-500 truncate">
+                  100.0% completed
+                </div>
               </div>
             </div>
+          </div>
+        </Link>
+      </section>
 
-            <div className="py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs flex items-center justify-center">
-                  DB
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">Dr. Dawit Bekele</p>
-                  <p className="text-xs text-slate-500">Oral Surgeon & Endodontist</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-base font-bold text-slate-900 font-mono">14,200.00 ETB</span>
-                <p className="text-[11px] text-blue-600 font-medium">9 Completed Procedures</p>
-              </div>
+      {/* 7. AGING RECEIVABLES CARD */}
+      <Link
+        href="/invoices"
+        className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-amber-500"
+      >
+        <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Aging receivables
+          </span>
+          <span className="ms-auto inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+            <Clock className="w-3 h-3 text-slate-400" /> Today
+          </span>
+        </header>
+        <div className="flex-1 px-4 pb-4 min-w-0">
+          <div className="space-y-3.5">
+            <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono">
+              6,875.00 ETB
             </div>
+            <ul className="space-y-3">
+              {/* 0-30 days */}
+              <li>
+                <div className="block w-full text-start group">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-slate-800 truncate">0-30 days</div>
+                      <div className="text-[11px] text-slate-500 truncate">6 patients</div>
+                    </div>
+                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
+                      6,875.00 ETB
+                    </div>
+                  </div>
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out bg-emerald-500"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+              </li>
+
+              {/* 31-60 days */}
+              <li>
+                <div className="block w-full text-start group">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-slate-800 truncate">31-60 days</div>
+                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
+                    </div>
+                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
+                      0.00 ETB
+                    </div>
+                  </div>
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out bg-amber-500"
+                      style={{ width: '0%' }}
+                    />
+                  </div>
+                </div>
+              </li>
+
+              {/* 61-90 days */}
+              <li>
+                <div className="block w-full text-start group">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-slate-800 truncate">61-90 days</div>
+                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
+                    </div>
+                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
+                      0.00 ETB
+                    </div>
+                  </div>
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out bg-rose-500"
+                      style={{ width: '0%' }}
+                    />
+                  </div>
+                </div>
+              </li>
+
+              {/* 90+ days */}
+              <li>
+                <div className="block w-full text-start group">
+                  <div className="flex items-baseline justify-between gap-3 mb-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-slate-800 truncate">90+ days</div>
+                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
+                    </div>
+                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
+                      0.00 ETB
+                    </div>
+                  </div>
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out bg-rose-500"
+                      style={{ width: '0%' }}
+                    />
+                  </div>
+                </div>
+              </li>
+            </ul>
           </div>
         </div>
+      </Link>
 
-        {/* Daily Close Audit Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-card flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
-                Daily Z-Report & Cash Drawer Close
-              </h3>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
-                store.isDayClosed
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}>
-                {store.isDayClosed ? 'Shift Sealed' : 'Shift Active'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Verify physical 200, 100, and 50 Birr bank notes against system receipts before sealing the cash drawer.
-            </p>
-
-            <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Ministry of Revenues TIN:</span>
-                <span className="font-mono font-bold text-slate-800">0049283711</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Total Billed Today:</span>
-                <span className="font-mono font-bold text-slate-800">18,075.00 ETB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Cash Discrepancy / Variance:</span>
-                <span className="font-mono font-bold text-emerald-600">0.00 ETB (Exact Match)</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end">
-            <button
-              onClick={() => setZModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-xs"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Launch Z-Report Close Modal</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
+      {/* 8. MODAL FOR DAILY FISCAL Z-REPORT */}
       {zModalOpen && (
         <ZReportModal
           isOpen={zModalOpen}
