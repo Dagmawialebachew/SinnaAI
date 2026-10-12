@@ -4,6 +4,7 @@ import React from 'react';
 import { X, Printer, CheckCircle2, QrCode } from 'lucide-react';
 import { Clinic, Appointment, LedgerTransaction } from '@/lib/types';
 import { useSinnaStore } from '@/lib/store';
+import { printThermalReceipt } from '@/lib/smart-print';
 
 interface ReceiptModalProps {
   clinic?: Clinic;
@@ -18,12 +19,20 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
   const clinic = clinicProp || store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
   if (!isOpen || !appointment) return null;
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const receiptNumber = transaction?.receiptNumber || appointment.receiptNumber || 'RCP-2026-0089';
   const finalAmount = transaction?.amountETB || (appointment.totalDueETB - appointment.depositPaidETB);
+
+  const handlePrint = () => {
+    printThermalReceipt({
+      receiptNumber,
+      patientName: appointment.patientName,
+      doctorName: appointment.doctorName,
+      serviceName: appointment.serviceName,
+      amountETB: finalAmount,
+      paymentMethod: transaction?.method || 'Telebirr / Cash',
+      tinNumber: '0049283711'
+    }, clinic);
+  };
 
   const contract = store.contracts?.find(
     (c) => c.patientId === appointment.id || c.patientName.toLowerCase() === appointment.patientName.toLowerCase()

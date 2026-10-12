@@ -25,6 +25,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printFiscalInvoice } from '@/lib/smart-print';
 
 export type InvoiceStatus = 'Issued' | 'Paid' | 'Partially paid' | 'Draft';
 
@@ -430,12 +431,15 @@ export default function InvoicesPage() {
                       <div className="shrink-0 flex items-center gap-1">
                         <button
                           type="button"
-                          aria-label="Print Fiscal Receipt"
-                          title="Print official MoR fiscal receipt"
-                          onClick={() => setSelectedInvoiceForPrint(invoice)}
-                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200/80"
+                          aria-label="Download Fiscal Receipt"
+                          title="Print / Download official MoR fiscal receipt"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            printFiscalInvoice(invoice, clinic);
+                          }}
+                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200/80 hover:border-emerald-300 hover:text-emerald-700"
                         >
-                          <Printer className="shrink-0 size-4 text-slate-500" />
+                          <Download className="shrink-0 size-4 text-slate-500" />
                         </button>
                         <button
                           type="button"
@@ -446,7 +450,10 @@ export default function InvoicesPage() {
                         >
                           <Trash2 className="shrink-0 size-4 text-rose-500" />
                         </button>
-                        <ChevronRight className="size-4 text-slate-300" />
+                        <ChevronRight 
+                          className="size-4 text-slate-300 cursor-pointer hover:text-slate-600" 
+                          onClick={() => setSelectedInvoiceForPrint(invoice)}
+                        />
                       </div>
                     </div>
 
@@ -477,10 +484,11 @@ export default function InvoicesPage() {
                         <span>Issued: {invoice.issueDate}</span>
                         <button
                           type="button"
-                          onClick={() => setSelectedInvoiceForPrint(invoice)}
-                          className="text-sky-600 font-semibold"
+                          onClick={() => printFiscalInvoice(invoice, clinic)}
+                          className="text-emerald-700 font-semibold inline-flex items-center gap-1"
                         >
-                          Print MoR Receipt
+                          <Download className="size-3" />
+                          <span>Download Receipt</span>
                         </button>
                       </div>
                     </div>
@@ -709,8 +717,8 @@ export default function InvoicesPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    sinnaStore.toastSuccess('Receipt Printed', `Official MoR fiscal receipt sent to thermal/A4 printer.`);
-                    setSelectedInvoiceForPrint(null);
+                    printFiscalInvoice(selectedInvoiceForPrint, clinic);
+                    sinnaStore.toastSuccess('Receipt Printed', `Official MoR fiscal tax invoice sent to printer.`);
                   }}
                   className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 shadow-2xs"
                 >

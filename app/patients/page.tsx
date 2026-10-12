@@ -52,6 +52,7 @@ import {
   History as HistoryIcon
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printPatientChart } from '@/lib/smart-print';
 import { BookingModal } from '@/components/booking-modal';
 import { TreatmentOdontogramChart } from '@/components/treatment-odontogram-chart';
 import { ToothStatus } from '@/lib/types';
@@ -886,7 +887,8 @@ export default function PatientsPage() {
                       type="button"
                       onClick={() => {
                         setActionsMenuOpen(false);
-                        sinnaStore.toastInfo('Print Ready', `Clinical chart document generated for ${currentPatient.name}`);
+                        printPatientChart(currentPatient, clinic);
+                        sinnaStore.toastSuccess('Chart Ready', `Printing clinical paper chart for ${currentPatient.name}`);
                       }}
                       className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
                     >

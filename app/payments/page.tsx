@@ -14,6 +14,7 @@ import {
   Printer
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printThermalReceipt } from '@/lib/smart-print';
 
 export default function PaymentsPage() {
   const store = useSinnaStore();
@@ -80,13 +81,34 @@ export default function PaymentsPage() {
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-base font-bold text-slate-900 font-mono">
-                    +{tx.amountETB.toLocaleString()} ETB
-                  </span>
-                  <p className="text-[11px] text-slate-400 font-mono">
-                    {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <span className="text-base font-bold text-slate-900 font-mono">
+                      +{tx.amountETB.toLocaleString()} ETB
+                    </span>
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      printThermalReceipt({
+                        receiptNumber: tx.receiptNumber,
+                        patientName: tx.patientName,
+                        doctorName: 'Dr. Senait Tadesse',
+                        serviceName: 'Clinical Dental Treatment Settlement',
+                        amountETB: tx.amountETB,
+                        paymentMethod: tx.method,
+                        tinNumber: '0049283711'
+                      }, clinic);
+                    }}
+                    className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors"
+                    title="Print Thermal POS Receipt"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             );
@@ -96,3 +118,4 @@ export default function PaymentsPage() {
     </div>
   );
 }
+

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { DayCloseReport, Clinic } from '@/lib/types';
 import { useSinnaStore } from '@/lib/store';
+import { smartPrint } from '@/lib/smart-print';
 
 interface ZReportModalProps {
   report?: DayCloseReport | null;
@@ -47,7 +48,14 @@ export function ZReportModal({ report: reportProp, clinic: clinicProp, isOpen, o
   };
 
   const handlePrint = () => {
-    if (typeof window !== 'undefined') {
+    const el = document.getElementById('z-report-paper-inner');
+    if (el) {
+      smartPrint({
+        title: `Z_Report_${report.zReportNumber}`,
+        html: el.innerHTML,
+        paperSize: 'thermal'
+      });
+    } else {
       window.print();
     }
   };
@@ -81,7 +89,7 @@ export function ZReportModal({ report: reportProp, clinic: clinicProp, isOpen, o
 
         {/* Printable Thermal Z-Report Paper */}
         <div className="p-6 overflow-y-auto bg-slate-50 font-mono text-xs text-slate-800 space-y-4 print:p-0 print:bg-white">
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div id="z-report-paper-inner" className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
             
             {/* Practice Header */}
             <div className="text-center border-b border-dashed border-slate-300 pb-4 space-y-1">

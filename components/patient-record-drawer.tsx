@@ -23,7 +23,8 @@ import {
   HeartPulse,
   Send
 } from 'lucide-react';
-import { useSinnaStore, sinnaStore } from '@/lib/store';
+import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printPatientChart } from '@/lib/smart-print';
 import { Appointment } from '@/lib/types';
 
 interface PatientRecordDrawerProps {
@@ -39,6 +40,7 @@ export default function PatientRecordDrawer({
 }: PatientRecordDrawerProps) {
   const router = useRouter();
   const store = useSinnaStore();
+  const clinic = getClinicData(store.activeClinicSlug);
 
   if (!isOpen || !appointmentId) return null;
 
@@ -58,7 +60,27 @@ export default function PatientRecordDrawer({
   };
 
   const handlePrintChart = () => {
-    window.print();
+    printPatientChart({
+      id: apt.id,
+      mrn: chart?.medicalRecordNumber || chart?.cardNo || 'BDS-MRN-2026-0041',
+      name: apt.patientName,
+      nameAmharic: chart?.fullNameAmharic || '',
+      phone: apt.patientPhone,
+      email: 'patient@clinic.et',
+      age: chart?.age || 28,
+      gender: chart?.gender || 'Female',
+      dob: '1998-05-12',
+      subcity: chart?.subcityWoreda || 'Bole Woreda 03',
+      allergies: chart?.medicalHistory?.allergies || [],
+      systemicDiseases: chart?.medicalHistory?.systemicDiseases || [],
+      currentMedications: chart?.medicalHistory?.currentMedications || [],
+      diagnosesUntreated: chart?.definitiveDiagnosis ? [chart.definitiveDiagnosis] : [],
+      notes: chart?.hpi || chart?.chiefComplaint || 'Clinical examination within normal parameters.',
+      activePlanTitle: contract?.title,
+      balanceETB: apt.totalDueETB - apt.depositPaidETB,
+      totalPaidETB: apt.depositPaidETB
+    }, clinic);
+    sinnaStore.toastSuccess('Chart Ready', `Printing clinical chart for ${apt.patientName}`);
   };
 
   return (

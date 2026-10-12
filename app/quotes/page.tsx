@@ -27,6 +27,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printTreatmentQuote } from '@/lib/smart-print';
 
 export type QuoteStatus = 'Accepted' | 'Completed' | 'Sent' | 'Draft' | 'Rejected';
 
@@ -461,9 +462,12 @@ export default function QuotesPage() {
                         <button
                           type="button"
                           aria-label="Download PDF"
-                          title="Print / View formal ETB estimate"
-                          onClick={() => setSelectedQuoteForPrint(quote)}
-                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200/80"
+                          title="Print / Download formal ETB estimate"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            printTreatmentQuote(quote, clinic);
+                          }}
+                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200/80 hover:border-sky-300 hover:text-sky-700"
                         >
                           <Download className="shrink-0 size-4 text-slate-500" />
                         </button>
@@ -476,7 +480,10 @@ export default function QuotesPage() {
                         >
                           <Trash2 className="shrink-0 size-4 text-rose-500" />
                         </button>
-                        <ChevronRight className="size-4 text-slate-300" />
+                        <ChevronRight 
+                          className="size-4 text-slate-300 cursor-pointer hover:text-slate-600" 
+                          onClick={() => setSelectedQuoteForPrint(quote)}
+                        />
                       </div>
                     </div>
 
@@ -501,10 +508,11 @@ export default function QuotesPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => setSelectedQuoteForPrint(quote)}
-                            className="text-sky-600 font-semibold"
+                            onClick={() => printTreatmentQuote(quote, clinic)}
+                            className="text-sky-600 font-semibold inline-flex items-center gap-1"
                           >
-                            Print PDF
+                            <Download className="size-3" />
+                            <span>Download PDF</span>
                           </button>
                         </div>
                       </div>
@@ -711,8 +719,8 @@ export default function QuotesPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    sinnaStore.toastSuccess('Estimate Printed', `Formal treatment quote sent to system printer.`);
-                    setSelectedQuoteForPrint(null);
+                    printTreatmentQuote(selectedQuoteForPrint, clinic);
+                    sinnaStore.toastSuccess('Estimate Printed', `Formal treatment quote document sent to printer.`);
                   }}
                   className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 shadow-2xs"
                 >

@@ -25,6 +25,7 @@ import {
   Printer
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { printTreatmentPlan } from '@/lib/smart-print';
 import { TreatmentPlan, TreatmentPlanStatus, PlanProcedureItem, PlanClinicalNote } from '@/lib/types';
 import { TreatmentOdontogramChart } from '@/components/treatment-odontogram-chart';
 import { TreatmentProcedureGrid, ProcedureDefinition } from '@/components/treatment-procedure-grid';
@@ -484,7 +485,26 @@ export default function TreatmentPlansPage() {
               {/* Print Summary Action */}
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={() => {
+                  if (activePlan) {
+                    printTreatmentPlan(
+                      {
+                        id: activePlan.id,
+                        title: activePlan.title,
+                        patientName: activePlan.patientName,
+                        status: activePlan.status,
+                        doctorName: 'Dr. Senait Tadesse',
+                        procedures: activePlan.procedures,
+                        totalFeeETB: activePlan.quoteAmountETB,
+                        clinicalNotes: activePlan.clinicalNotes,
+                      },
+                      clinic
+                    );
+                    sinnaStore.toastSuccess('Plan Ready', `Printing treatment plan for ${activePlan.patientName}`);
+                  } else {
+                    window.print();
+                  }
+                }}
                 className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200/90 transition-colors"
                 title="Print Clinical Treatment Summary"
               >
@@ -508,7 +528,24 @@ export default function TreatmentPlansPage() {
                       type="button"
                       onClick={() => {
                         setMoreMenuOpen(false);
-                        window.print();
+                        if (activePlan) {
+                          printTreatmentPlan(
+                            {
+                              id: activePlan.id,
+                              title: activePlan.title,
+                              patientName: activePlan.patientName,
+                              status: activePlan.status,
+                              doctorName: 'Dr. Senait Tadesse',
+                              procedures: activePlan.procedures,
+                              totalFeeETB: activePlan.quoteAmountETB,
+                              clinicalNotes: activePlan.clinicalNotes,
+                            },
+                            clinic
+                          );
+                          sinnaStore.toastSuccess('Plan Ready', `Printing treatment plan for ${activePlan.patientName}`);
+                        } else {
+                          window.print();
+                        }
                       }}
                       className="w-full px-3.5 py-2 text-left hover:bg-slate-50 flex items-center gap-2 text-slate-700 font-medium"
                     >
