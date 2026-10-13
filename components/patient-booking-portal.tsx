@@ -18,7 +18,6 @@ import {
   Smartphone,
   Printer,
   Globe,
-  Instagram,
   X,
   AlertCircle
 } from 'lucide-react';
@@ -58,14 +57,17 @@ function getUpcoming4Days() {
     let labelAm = `${dayNamesAm[dayOfWeek]} (${month} ${dayOfMonth})`;
     let labelOm = `${dayNamesOm[dayOfWeek]} (${month} ${dayOfMonth})`;
 
+    let displayDay = `${dayNamesEn[dayOfWeek]}`;
     if (i === 0) {
       labelEn = `Today (${month} ${dayOfMonth})`;
       labelAm = `ዛሬ (${month} ${dayOfMonth})`;
       labelOm = `Har'a (${month} ${dayOfMonth})`;
+      displayDay = 'Today';
     } else if (i === 1) {
       labelEn = `Tomorrow (${month} ${dayOfMonth})`;
       labelAm = `ነገ (${month} ${dayOfMonth})`;
       labelOm = `Boru (${month} ${dayOfMonth})`;
+      displayDay = 'Tomorrow';
     }
 
     days.push({
@@ -73,6 +75,7 @@ function getUpcoming4Days() {
       labelEn,
       labelAm,
       labelOm,
+      displayDay,
       displayDate: `${month} ${dayOfMonth}`,
       fullFormatted: `${dayNamesEn[dayOfWeek]}, ${month} ${dayOfMonth}`,
     });
@@ -91,8 +94,13 @@ export function PatientBookingPortal({
   const store = useSinnaStore();
   const clinic = store.clinics[clinicSlug] || Object.values(store.clinics)[0];
 
+  // Language & Modal State
   const [lang, setLang] = useState<BookingLang>(initialLang);
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(true);
   const t = BOOKING_DICTIONARY[lang];
+
+  // Helper to remove any redundant numeric prefix like "1. " from i18n label
+  const cleanStepTitle = (label: string) => label.replace(/^\d+\.\s*/, '');
 
   // 4 upcoming days list
   const upcomingDays = useMemo(() => getUpcoming4Days(), []);
@@ -102,7 +110,7 @@ export function PatientBookingPortal({
   const [selectedService, setSelectedService] = useState<LocalizedService>(LOCALIZED_SERVICES[0]);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>(clinic.doctors[0]);
   
-  // Date State: either one of the 4 quick days or custom chosen date
+  // Date State
   const [selectedIsoDate, setSelectedIsoDate] = useState<string>(upcomingDays[1].isoDate);
   const [selectedDateDisplay, setSelectedDateDisplay] = useState<string>(upcomingDays[1].labelEn);
   const [customDateValue, setCustomDateValue] = useState<string>('');
@@ -225,7 +233,12 @@ export function PatientBookingPortal({
       setConfirmedAppointment(createdApt);
       setIsProcessing(false);
       setStep(4);
-    }, 900);
+    }, 850);
+  };
+
+  const handleSelectLanguage = (selectedLang: BookingLang) => {
+    setLang(selectedLang);
+    setShowLanguageModal(false);
   };
 
   return (
@@ -233,10 +246,172 @@ export function PatientBookingPortal({
       {/* Toast Carrier */}
       <SmsToast />
 
-      {/* Mobile-Centric Container (Instagram / Maps / TikTok Link-in-Bio Standard) */}
+      {/* ========================================================================= */}
+      {/* MINIMALIST LANGUAGE SELECTION MODAL WITH CIRCULATING SINNA BORDER BEAM    */}
+      {/* ========================================================================= */}
+      {showLanguageModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
+          
+          {/* Card Outer Container with Circulating Sinna Palette Border Beam */}
+          <div className="relative w-full max-w-sm p-[2px] rounded-3xl overflow-hidden shadow-2xl transition-transform animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Luminous Circulating Border Beam Glow (Backdrop ambient trail) */}
+            <div className="sinna-border-beam-glow pointer-events-none" />
+            
+            {/* Crisp Circulating Sinna Border Beam (Traces entire rectangular rounded border) */}
+            <div className="sinna-border-beam pointer-events-none" />
+
+            {/* Static Subtle Inner Border Layer */}
+            <div className="absolute inset-0 rounded-3xl border border-slate-200/60 pointer-events-none" />
+
+            {/* Minimalist Card Body */}
+            <div className="relative bg-white rounded-[calc(1.5rem-2px)] p-6 sm:p-7 z-10 space-y-5">
+              
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-semibold">
+                    <Globe className="w-3.5 h-3.5 text-[#1A4F9E]" />
+                    <span>Sinna · Language</span>
+                  </div>
+                  <h2 className="text-base font-bold text-slate-950 tracking-tight pt-1">
+                    Choose Your Language
+                  </h2>
+                  <p className="text-[11px] text-slate-500 font-amharic">
+                    ቋንቋ ይምረጡ · Afaan Filadhaa
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowLanguageModal(false)}
+                  className="text-slate-400 hover:text-slate-700 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+                  title="Close modal"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 3 Language Choices (Minimalist, uncluttered rows) */}
+              <div className="space-y-2.5 pt-1">
+                {/* 1. English */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectLanguage('en')}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all group ${
+                    lang === 'en'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl font-mono text-xs font-bold flex items-center justify-center shrink-0 transition-colors ${
+                      lang === 'en'
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'bg-slate-100 text-slate-800 border border-slate-200/80'
+                    }`}>
+                      EN
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs tracking-tight">
+                        English
+                      </div>
+                      <div className={`text-[10px] ${lang === 'en' ? 'text-slate-300' : 'text-slate-400'}`}>
+                        Standard International
+                      </div>
+                    </div>
+                  </div>
+                  {lang === 'en' ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                  )}
+                </button>
+
+                {/* 2. Amharic (አማርኛ) */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectLanguage('am')}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all group ${
+                    lang === 'am'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-[#1A4F9E]/40 hover:bg-[#F0F7FF]/50 text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl font-amharic text-xs font-bold flex items-center justify-center shrink-0 transition-colors ${
+                      lang === 'am'
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'bg-[#F0F7FF] text-[#1A4F9E] border border-blue-200/80'
+                    }`}>
+                      አማ
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs font-amharic tracking-tight">
+                        አማርኛ
+                      </div>
+                      <div className={`text-[10px] ${lang === 'am' ? 'text-slate-300' : 'text-slate-400'}`}>
+                        Amharic (Ethiopia)
+                      </div>
+                    </div>
+                  </div>
+                  {lang === 'am' ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                  )}
+                </button>
+
+                {/* 3. Afaan Oromoo */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectLanguage('om')}
+                  className={`w-full p-3.5 rounded-2xl border text-left flex items-center justify-between transition-all group ${
+                    lang === 'om'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-[#008F7E]/40 hover:bg-[#E8F5F1]/50 text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl font-mono text-xs font-bold flex items-center justify-center shrink-0 transition-colors ${
+                      lang === 'om'
+                        ? 'bg-white/10 text-white border border-white/20'
+                        : 'bg-[#E8F5F1] text-[#005A3E] border border-emerald-200/80'
+                    }`}>
+                      OM
+                    </div>
+                    <div>
+                      <div className="font-bold text-xs tracking-tight">
+                        Afaan Oromoo
+                      </div>
+                      <div className={`text-[10px] ${lang === 'om' ? 'text-slate-300' : 'text-slate-400'}`}>
+                        Oromiffa (Ethiopia)
+                      </div>
+                    </div>
+                  </div>
+                  {lang === 'om' ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
+                  )}
+                </button>
+              </div>
+
+              {/* Minimalist Footnote */}
+              <div className="pt-2 text-center text-[10px] text-slate-400 border-t border-slate-100 flex items-center justify-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Bole Dental Studio · Operatory Portal</span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Mobile-Centric Container */}
       <div className="max-w-lg mx-auto px-4 py-4 sm:py-6 space-y-4">
         
-        {/* Top Header Card: Identity & Language Selector */}
+        {/* Top Header Card: Identity & Re-open Language Modal */}
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-card p-5 relative overflow-hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
@@ -244,56 +419,27 @@ export function PatientBookingPortal({
                 BDS
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h1 className="font-bold text-slate-950 text-base leading-tight tracking-tight truncate">
-                    {clinic.name}
-                  </h1>
-                </div>
+                <h1 className="font-bold text-slate-950 text-base leading-tight tracking-tight truncate">
+                  {clinic.name}
+                </h1>
                 <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
-                  Bole Medhanialem, Morning Star Mall
+                  Bole Medhanialem, Morning Star Mall 3rd Floor
                 </p>
               </div>
             </div>
 
-            {/* Language Switcher Pill: EN | አማ | OM */}
-            <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs shrink-0">
-              <button
-                type="button"
-                onClick={() => setLang('en')}
-                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  lang === 'en'
-                    ? 'bg-white text-slate-950 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-                title="English"
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang('am')}
-                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  lang === 'am'
-                    ? 'bg-white text-slate-950 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-                title="አማርኛ (Amharic)"
-              >
-                አማ
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang('om')}
-                className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  lang === 'om'
-                    ? 'bg-white text-slate-950 shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-                title="Afaan Oromoo"
-              >
-                OM
-              </button>
-            </div>
+            {/* Language Switcher Badge with Modal Trigger */}
+            <button
+              type="button"
+              onClick={() => setShowLanguageModal(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/70 border border-slate-200/80 text-xs font-semibold text-slate-800 transition-all shadow-2xs shrink-0"
+              title="Change Language"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#1A4F9E]" />
+              <span className="font-bold uppercase tracking-wider text-[11px]">
+                {lang}
+              </span>
+            </button>
           </div>
 
           {/* Clinical Verification & Trust Badges */}
@@ -315,7 +461,7 @@ export function PatientBookingPortal({
             </span>
           </div>
 
-          {/* Clinic Bio & Social Rails */}
+          {/* Clinic Bio & Clinical Action Rails */}
           <div className="mt-3.5 space-y-2.5">
             <p className="text-xs text-slate-600 leading-relaxed">
               {t.clinicAbout}
@@ -326,7 +472,7 @@ export function PatientBookingPortal({
                 href={`tel:${clinic.phone}`}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition-colors"
               >
-                <Phone className="w-3 h-3 text-blue-600" />
+                <Phone className="w-3 h-3 text-[#1A4F9E]" />
                 <span>Call Clinic</span>
               </a>
 
@@ -353,76 +499,111 @@ export function PatientBookingPortal({
           </div>
         </div>
 
-        {/* 4-Step Interactive Booking Engine */}
+        {/* ========================================================================= */}
+        {/* 4-STEP INTERACTIVE BOOKING ENGINE (MINIMALIST & WORLD-CLASS)               */}
+        {/* ========================================================================= */}
         <div className="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
           
-          {/* Step Progress Bar */}
-          <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5 text-xs font-semibold">
+          {/* DECENT & MINIMALIST STEP PROGRESS HEADER */}
+          <div className="border-b border-slate-100 bg-slate-50/70 px-5 py-3.5 flex items-center justify-between">
+            
+            {/* 3 Step Linear Nodes */}
+            <div className="flex items-center gap-2 sm:gap-3 text-xs">
+              
+              {/* Step 1 Node */}
               <button
                 type="button"
                 onClick={() => step > 1 && setStep(1)}
-                className={`flex items-center gap-1 ${
-                  step === 1 ? 'text-blue-600 font-bold' : step > 1 ? 'text-slate-900 cursor-pointer' : 'text-slate-400'
+                className={`flex items-center gap-1.5 transition-colors ${
+                  step === 1 
+                    ? 'text-slate-900 font-bold' 
+                    : step > 1 
+                    ? 'text-slate-600 hover:text-slate-900 cursor-pointer font-medium' 
+                    : 'text-slate-400 font-normal'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
-                  step === 1 ? 'bg-blue-600 text-white' : step > 1 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold transition-all ${
+                  step === 1 
+                    ? 'bg-slate-900 text-white shadow-xs' 
+                    : step > 1 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-300' 
+                    : 'bg-slate-200 text-slate-600'
                 }`}>
-                  {step > 1 ? '✓' : '1'}
+                  {step > 1 ? <Check className="w-3 h-3 stroke-[2.5]" /> : '1'}
                 </span>
-                <span>{t.step1Treatment}</span>
+                <span className="hidden xs:inline sm:inline">{cleanStepTitle(t.step1Treatment)}</span>
               </button>
 
               <span className="text-slate-300">/</span>
 
+              {/* Step 2 Node */}
               <button
                 type="button"
                 onClick={() => step > 2 && setStep(2)}
-                className={`flex items-center gap-1 ${
-                  step === 2 ? 'text-blue-600 font-bold' : step > 2 ? 'text-slate-900 cursor-pointer' : 'text-slate-400'
+                className={`flex items-center gap-1.5 transition-colors ${
+                  step === 2 
+                    ? 'text-slate-900 font-bold' 
+                    : step > 2 
+                    ? 'text-slate-600 hover:text-slate-900 cursor-pointer font-medium' 
+                    : 'text-slate-400 font-normal'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
-                  step === 2 ? 'bg-blue-600 text-white' : step > 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold transition-all ${
+                  step === 2 
+                    ? 'bg-slate-900 text-white shadow-xs' 
+                    : step > 2 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-300' 
+                    : 'bg-slate-200 text-slate-600'
                 }`}>
-                  {step > 2 ? '✓' : '2'}
+                  {step > 2 ? <Check className="w-3 h-3 stroke-[2.5]" /> : '2'}
                 </span>
-                <span>{t.step2Time}</span>
+                <span className="hidden xs:inline sm:inline">{cleanStepTitle(t.step2Time)}</span>
               </button>
 
               <span className="text-slate-300">/</span>
 
+              {/* Step 3 Node */}
               <button
                 type="button"
                 onClick={() => step > 3 && setStep(3)}
-                className={`flex items-center gap-1 ${
-                  step === 3 ? 'text-blue-600 font-bold' : step > 3 ? 'text-slate-900 cursor-pointer' : 'text-slate-400'
+                className={`flex items-center gap-1.5 transition-colors ${
+                  step === 3 
+                    ? 'text-slate-900 font-bold' 
+                    : step > 3 
+                    ? 'text-slate-600 hover:text-slate-900 cursor-pointer font-medium' 
+                    : 'text-slate-400 font-normal'
                 }`}
               >
-                <span className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
-                  step === 3 ? 'bg-blue-600 text-white' : step > 3 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold transition-all ${
+                  step === 3 
+                    ? 'bg-slate-900 text-white shadow-xs' 
+                    : step > 3 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-300' 
+                    : 'bg-slate-200 text-slate-600'
                 }`}>
-                  {step > 3 ? '✓' : '3'}
+                  {step > 3 ? <Check className="w-3 h-3 stroke-[2.5]" /> : '3'}
                 </span>
-                <span>{t.step3Details}</span>
+                <span className="hidden xs:inline sm:inline">{cleanStepTitle(t.step3Details)}</span>
               </button>
             </div>
 
+            {/* Step 3 Chair Hold Countdown Pill (Minimalist clinical badge) */}
             {step === 3 && (
-              <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                <Clock className="w-3 h-3" />
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200/80 shadow-2xs">
+                <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                 <span>{formatTimer(holdTimer)}</span>
               </div>
             )}
           </div>
 
           <div className="p-5 sm:p-6">
-            {/* STEP 1: SELECT CLINICAL PROCEDURE */}
+            {/* =================================================================== */}
+            {/* STEP 1: SELECT CLINICAL PROCEDURE                                   */}
+            {/* =================================================================== */}
             {step === 1 && (
               <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">
+                  <h2 className="text-base font-bold text-slate-950 tracking-tight">
                     {t.servicesTitle}
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-0.5">
@@ -439,44 +620,50 @@ export function PatientBookingPortal({
                         onClick={() => setSelectedService(srv)}
                         className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-50/70 border-blue-600 ring-1 ring-blue-600 shadow-xs'
+                            ? 'bg-[#F0F7FF]/60 border-[#1A4F9E] ring-1 ring-[#1A4F9E]/20 shadow-xs'
                             : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-bold text-slate-900 text-xs">
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-slate-900 text-xs tracking-tight">
                               {srv.name[lang] || srv.name.en}
                             </h3>
-                            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                            <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
                               {srv.description[lang] || srv.description.en}
                             </p>
                           </div>
-                          {srv.depositRequired && (
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-blue-100 text-blue-800 shrink-0">
-                              {srv.depositAmountETB} ETB Deposit
+                          <div className="text-right shrink-0">
+                            <span className="font-bold text-xs text-slate-950 font-mono">
+                              {srv.priceETB.toLocaleString()} ETB
                             </span>
-                          )}
+                            <span className="block text-[10px] text-slate-400 font-mono">
+                              {srv.durationMinutes} {t.durationMin}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100/90 text-xs">
-                          <span className="font-mono font-bold text-slate-900">
-                            {srv.priceETB.toLocaleString()} ETB
-                          </span>
-                          <span className="text-slate-400 font-mono text-[11px]">
-                            {srv.durationMinutes} {t.durationMin}
-                          </span>
-                        </div>
+                        {srv.depositRequired && (
+                          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span className="text-[#005A3E] font-medium inline-flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              {srv.depositAmountETB} ETB Deposit via Telebirr
+                            </span>
+                            <span className="text-slate-400">
+                              Credited toward total bill
+                            </span>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
+                <div className="pt-3 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98"
+                    className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.99]"
                   >
                     <span>{t.continueBtn}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -485,15 +672,17 @@ export function PatientBookingPortal({
               </div>
             )}
 
-            {/* STEP 2: SELECT DOCTOR, DATE & TIME (WITH CHAIR CAPACITY CHECK) */}
+            {/* =================================================================== */}
+            {/* STEP 2: SELECT DATE, TIME & DOCTOR                                  */}
+            {/* =================================================================== */}
             {step === 2 && (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    {t.step2Time}
+                  <h2 className="text-base font-bold text-slate-950 tracking-tight">
+                    {cleanStepTitle(t.step2Time)}
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    {selectedService.name[lang] || selectedService.name.en} · {selectedService.priceETB.toLocaleString()} ETB
+                    {t.dentistsTitle}
                   </p>
                 </div>
 
@@ -511,7 +700,7 @@ export function PatientBookingPortal({
                           onClick={() => setSelectedDoctor(doc)}
                           className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-2.5 ${
                             isDocSelected
-                              ? 'bg-blue-50/70 border-blue-600 ring-1 ring-blue-600 shadow-xs'
+                              ? 'bg-[#F0F7FF]/60 border-[#1A4F9E] ring-1 ring-[#1A4F9E]/20 shadow-xs'
                               : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
                           }`}
                         >
@@ -544,10 +733,9 @@ export function PatientBookingPortal({
                   </div>
 
                   {/* 4 Days in Advance Quick Buttons */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {upcomingDays.map((dayObj) => {
                       const isQuickSelected = selectedIsoDate === dayObj.isoDate && !customDateValue;
-                      const quickLabel = lang === 'am' ? dayObj.labelAm : lang === 'om' ? dayObj.labelOm : dayObj.labelEn;
                       return (
                         <button
                           key={dayObj.isoDate}
@@ -559,28 +747,29 @@ export function PatientBookingPortal({
                               : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <span className="block text-xs font-bold truncate">
-                            {quickLabel}
+                          <span className="block text-[11px] font-bold">
+                            {dayObj.displayDay}
+                          </span>
+                          <span className={`block text-[10px] ${isQuickSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                            {dayObj.displayDate}
                           </span>
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Upfront Custom Date Picker */}
+                  {/* Custom Date Picker */}
                   <div className="pt-1">
                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">
                       {t.selectAnyDate}:
                     </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        min={upcomingDays[0].isoDate}
-                        value={customDateValue}
-                        onChange={handleCustomDateChange}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-                      />
-                    </div>
+                    <input
+                      type="date"
+                      min={upcomingDays[0].isoDate}
+                      value={customDateValue}
+                      onChange={handleCustomDateChange}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
+                    />
                   </div>
                 </div>
 
@@ -591,7 +780,7 @@ export function PatientBookingPortal({
                       {t.availableSlots}
                     </label>
                     <span className="text-[10px] text-slate-400 font-mono">
-                      Chair 1 &amp; Chair 2 check
+                      Chair 1 &amp; Chair 2 Check
                     </span>
                   </div>
 
@@ -625,7 +814,7 @@ export function PatientBookingPortal({
                             onClick={() => setSelectedSlot(slot)}
                             className={`py-2 px-2.5 rounded-xl border text-xs font-mono font-semibold transition-all ${
                               isSlotSelected
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                                 : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'
                             }`}
                           >
@@ -666,7 +855,7 @@ export function PatientBookingPortal({
                             onClick={() => setSelectedSlot(slot)}
                             className={`py-2 px-2.5 rounded-xl border text-xs font-mono font-semibold transition-all ${
                               isSlotSelected
-                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                                 : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-50'
                             }`}
                           >
@@ -689,7 +878,7 @@ export function PatientBookingPortal({
                   <button
                     type="button"
                     onClick={() => setStep(3)}
-                    className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98"
+                    className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.99]"
                   >
                     <span>{t.continueBtn}</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -698,41 +887,44 @@ export function PatientBookingPortal({
               </div>
             )}
 
-            {/* STEP 3: PATIENT CONTACT & DEPOSIT */}
+            {/* =================================================================== */}
+            {/* STEP 3: PATIENT CONTACT & LUXURY PAYMENT RAILS                      */}
+            {/* =================================================================== */}
             {step === 3 && (
               <form onSubmit={handleConfirmReservation} className="space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    {t.step3Details}
+                  <h2 className="text-base font-bold text-slate-950 tracking-tight">
+                    {cleanStepTitle(t.step3Details)}
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-0.5">
                     {t.holdTimeNotice}
                   </p>
                 </div>
 
-                {/* Chair Reservation Summary */}
-                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs space-y-1 font-mono">
+                {/* Chair Reservation Summary (Clinical Ledger Card) */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs space-y-1.5 font-sans">
                   <div className="flex justify-between text-slate-600">
-                    <span>Procedure:</span>
-                    <span className="font-bold text-slate-900">{selectedService.name[lang] || selectedService.name.en}</span>
+                    <span className="text-[11px]">Procedure:</span>
+                    <span className="font-bold text-slate-900 text-right">{selectedService.name[lang] || selectedService.name.en}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>Doctor:</span>
+                    <span className="text-[11px]">Attending:</span>
                     <span className="font-bold text-slate-900">{selectedDoctor.name}</span>
                   </div>
                   <div className="flex justify-between text-slate-600">
-                    <span>Slot:</span>
+                    <span className="text-[11px]">Reserved Slot:</span>
                     <span className="font-bold text-slate-900">{selectedDateDisplay} · {selectedSlot}</span>
                   </div>
                   {selectedService.depositRequired && (
-                    <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-200">
-                      <span>Deposit:</span>
-                      <span className="font-bold text-blue-600">{selectedService.depositAmountETB} ETB (Telebirr)</span>
+                    <div className="flex justify-between text-slate-600 pt-1.5 border-t border-slate-200">
+                      <span className="text-[11px] font-semibold text-slate-700">Required Deposit:</span>
+                      <span className="font-bold text-[#005A3E] font-mono">{selectedService.depositAmountETB} ETB</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-3">
+                  {/* Patient Full Name */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       {t.fullNameLabel}
@@ -743,10 +935,11 @@ export function PatientBookingPortal({
                       placeholder={t.fullNamePlaceholder}
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
                     />
                   </div>
 
+                  {/* Patient Phone Number */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       {t.phoneLabel}
@@ -757,43 +950,75 @@ export function PatientBookingPortal({
                       placeholder={t.phonePlaceholder}
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all"
                     />
                     <p className="text-[10px] text-slate-400 mt-1">
                       {t.phoneHelp}
                     </p>
                   </div>
 
+                  {/* DECENT & MINIMALIST PAYMENT RAILS (Telebirr & CBE Birr) */}
                   {selectedService.depositRequired && (
                     <div className="space-y-2 pt-1">
                       <label className="block text-xs font-bold text-slate-700">
                         {t.paymentRail}
                       </label>
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        
+                        {/* Telebirr Rail Card */}
                         <button
                           type="button"
                           onClick={() => setPaymentRail('telebirr')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 ${
+                          className={`p-3 rounded-2xl border text-xs transition-all text-left flex items-start gap-3 ${
                             paymentRail === 'telebirr'
-                              ? 'bg-blue-50 border-blue-600 text-blue-900 ring-1 ring-blue-600'
-                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                              ? 'bg-[#E8F5F1]/40 border-[#008F7E] ring-1 ring-[#008F7E]/30 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
-                          <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
-                          <span>{t.telebirrPay}</span>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            paymentRail === 'telebirr'
+                              ? 'bg-[#008F7E] text-white'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            <Smartphone className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 leading-tight">
+                              Telebirr
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              SuperApp / USSD *127#
+                            </div>
+                          </div>
                         </button>
+
+                        {/* CBE Birr Rail Card */}
                         <button
                           type="button"
                           onClick={() => setPaymentRail('cbe_birr')}
-                          className={`p-2.5 rounded-xl border text-xs font-bold transition-all text-left flex items-center gap-2 ${
+                          className={`p-3 rounded-2xl border text-xs transition-all text-left flex items-start gap-3 ${
                             paymentRail === 'cbe_birr'
-                              ? 'bg-purple-50 border-purple-600 text-purple-900 ring-1 ring-purple-600'
-                              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                              ? 'bg-[#F0F7FF]/50 border-[#1A4F9E] ring-1 ring-[#1A4F9E]/30 shadow-xs'
+                              : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700'
                           }`}
                         >
-                          <CreditCard className="w-4 h-4 text-purple-600 shrink-0" />
-                          <span>{t.cbePay}</span>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                            paymentRail === 'cbe_birr'
+                              ? 'bg-[#1A4F9E] text-white'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            <CreditCard className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-bold text-slate-900 leading-tight">
+                              CBE Birr
+                            </div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">
+                              Commercial Bank of Ethiopia
+                            </div>
+                          </div>
                         </button>
+
                       </div>
                       <p className="text-[10px] text-slate-400">
                         {t.telebirrDepositNote}
@@ -813,13 +1038,16 @@ export function PatientBookingPortal({
                   <button
                     type="submit"
                     disabled={isProcessing || !patientName.trim()}
-                    className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98"
+                    className="flex-1 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-[0.99]"
                   >
                     {isProcessing ? (
-                      <span>{t.verifyingPayment}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>{t.verifyingPayment}</span>
+                      </span>
                     ) : (
                       <>
-                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                         <span>{t.confirmBtn}</span>
                       </>
                     )}
@@ -828,15 +1056,19 @@ export function PatientBookingPortal({
               </form>
             )}
 
-            {/* STEP 4: CONFIRMED RESERVATION */}
+            {/* =================================================================== */}
+            {/* STEP 4: CONFIRMED RESERVATION (CLINICAL VOUCHER PASS)                */}
+            {/* =================================================================== */}
             {step === 4 && confirmedAppointment && (
-              <div className="space-y-4 text-center py-2">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
-                  <CheckCircle2 className="w-6 h-6" />
+              <div className="space-y-4 py-2 text-center">
+                
+                {/* Minimalist Success Icon */}
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-600 flex items-center justify-center mx-auto shadow-2xs">
+                  <CheckCircle2 className="w-6 h-6 stroke-[2.2]" />
                 </div>
 
                 <div className="space-y-1">
-                  <h2 className="text-lg font-bold tracking-tight text-slate-900">
+                  <h2 className="text-lg font-bold tracking-tight text-slate-950">
                     {t.instantBookingSuccess}
                   </h2>
                   <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
@@ -844,52 +1076,85 @@ export function PatientBookingPortal({
                   </p>
                 </div>
 
-                {/* Printable Digital Receipt Card */}
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 text-left space-y-2 text-xs font-mono">
-                  <div className="flex justify-between border-b border-slate-200 pb-1.5">
-                    <span className="text-slate-500">{t.reservationId}:</span>
-                    <span className="font-bold text-slate-900">{confirmedAppointment.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Patient:</span>
-                    <span className="font-bold text-slate-900">{confirmedAppointment.patientName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Phone:</span>
-                    <span className="font-bold text-slate-900">{confirmedAppointment.patientPhone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Doctor:</span>
-                    <span className="font-bold text-slate-900">{confirmedAppointment.doctorName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Procedure:</span>
-                    <span className="font-bold text-slate-900">{confirmedAppointment.serviceName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Slot:</span>
-                    <span className="font-bold text-slate-900">{selectedDateDisplay} · {selectedSlot}</span>
-                  </div>
-                  {confirmedAppointment.depositPaidETB > 0 && (
-                    <div className="flex justify-between border-t border-slate-200 pt-1.5 text-emerald-700">
-                      <span>Deposit Paid:</span>
-                      <span className="font-bold">{confirmedAppointment.depositPaidETB} ETB</span>
+                {/* World-Class Clinical Voucher Pass Card */}
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-card text-left space-y-3 text-xs">
+                  
+                  {/* Top Bar with Reference & Verification Tag */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block">
+                        {t.reservationId}
+                      </span>
+                      <span className="font-mono font-bold text-slate-900 text-xs">
+                        {confirmedAppointment.id}
+                      </span>
                     </div>
-                  )}
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                      <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                      MoR Pass
+                    </span>
+                  </div>
+
+                  {/* Two-Column Clinical Data Grid */}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Patient</span>
+                      <span className="font-semibold text-slate-900 truncate block">
+                        {confirmedAppointment.patientName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Mobile Phone</span>
+                      <span className="font-mono text-slate-900 block">
+                        {confirmedAppointment.patientPhone}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Attending Doctor</span>
+                      <span className="font-semibold text-slate-900 block truncate">
+                        {confirmedAppointment.doctorName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Operatory Slot</span>
+                      <span className="font-semibold text-slate-900 block">
+                        {selectedDateDisplay} · {selectedSlot}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Procedure Details */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block">Procedure</span>
+                      <span className="font-semibold text-slate-900">
+                        {confirmedAppointment.serviceName}
+                      </span>
+                    </div>
+                    {confirmedAppointment.depositPaidETB > 0 && (
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-400 block">Deposit Paid</span>
+                        <span className="font-bold text-[#005A3E] font-mono">
+                          {confirmedAppointment.depositPaidETB} ETB
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex items-center justify-center gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => window.print()}
-                    className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                    className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors"
                   >
-                    <Printer className="w-3.5 h-3.5" />
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
                     <span>Print Receipt</span>
                   </button>
                   <Link
                     href="/"
-                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs"
+                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs transition-colors"
                   >
                     <span>{t.returnHome}</span>
                   </Link>
@@ -899,7 +1164,7 @@ export function PatientBookingPortal({
           </div>
         </div>
 
-        {/* Minimal Clinical Footer */}
+        {/* Minimalist Clinical MoR Footer */}
         <div className="text-center text-[10px] text-slate-400 font-mono py-2 space-y-0.5">
           <p>Ministry of Revenues (MoR) Registered Clinic · TIN: 0049283711</p>
           <p>Bole Medhanialem, Morning Star Mall 3rd Floor · Addis Ababa, Ethiopia</p>

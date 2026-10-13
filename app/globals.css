@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes border-circulate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.sinna-border-beam {
+  position: absolute;
+  inset: -150%;
+  animation: border-circulate 4.5s linear infinite;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 250deg,
+    #1A4F9E 280deg,
+    #00BFFF 310deg,
+    #008F7E 335deg,
+    #4FFFB0 355deg,
+    transparent 360deg
+  );
+}
+
+.sinna-border-beam-glow {
+  position: absolute;
+  inset: -150%;
+  animation: border-circulate 4.5s linear infinite;
+  filter: blur(12px);
+  opacity: 0.6;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    transparent 250deg,
+    #1A4F9E 280deg,
+    #00BFFF 310deg,
+    #008F7E 335deg,
+    #4FFFB0 355deg,
+    transparent 360deg
+  );
+}
+
+.animate-toast-progress {
+  animation: toast-progress 7s linear forwards;
+}
+
+
 @media print {
   /* Hide application shell, sidebars, navigation bars, and buttons */
   aside,
