@@ -26,15 +26,18 @@ import {
   Download,
   CalendarDays,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Loader2,
+  Eye
 } from 'lucide-react';
 import { useSinnaStore, getClinicData } from '@/lib/store';
 import { ZReportModal } from '@/components/z-report-modal';
 import {
   ReportPeriod,
-  getComprehensiveReportHTML,
-  printComprehensiveReport
-} from '@/lib/smart-print';
+  getClinicalReportHTML,
+  downloadClinicalReportPDF,
+  ReportStatsData
+} from '@/lib/pdf-generator';
 
 interface TimeframeData {
   label: string;
@@ -182,88 +185,47 @@ const TIMEFRAMES: Record<ReportPeriod, TimeframeData> = {
     timeAxisLabels: ['April', 'June', 'September'],
     trendPeakLabel: '290,000.00 ETB Peak',
   },
-  year: {
-    label: '1 Year (Annual)',
-    badgeLabel: '365 Days',
-    subLabel: 'Oct 01, 2025 – Sep 30, 2026 · Fiscal Year 2026',
-    collectedETB: 5580000.0,
-    productionETB: 5840000.0,
-    paymentsCount: 1940,
-    treatmentsCount: 4120,
-    patientsCount: 1940,
-    newPatientsCount: 560,
-    noShowRate: '1.2%',
-    cbeTotalETB: 2150000.0,
-    telebirrTotalETB: 1950000.0,
-    cashTotalETB: 725000.0,
-    transferTotalETB: 755000.0,
-    doc1ProductionETB: 4088000.0,
-    doc1Treatments: 2750,
-    doc2ProductionETB: 1752000.0,
-    doc2Treatments: 1370,
-    receivables0_30: 78000.0,
-    receivables31_60: 24000.0,
-    timeAxisLabels: ['Q1 2026', 'Q2 2026', 'Q4 2026'],
-    trendPeakLabel: '580,000.00 ETB Peak',
-  },
 };
 
 export default function ReportsPage() {
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
 
-  // Timeframe selector state (Daily, Weekly, Monthly, 3 Months, 6 Months, 1 Year)
+  // 5 Clean timeframes: Daily, Weekly, Monthly, 3 Months, 6 Months
   const [selectedTimeframe, setSelectedTimeframe] = useState<ReportPeriod>('daily');
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [zModalOpen, setZModalOpen] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
   const [activePaymentMethodHover, setActivePaymentMethodHover] = useState<string | null>(null);
 
   // Current active statistics
   const currentStats = TIMEFRAMES[selectedTimeframe] || TIMEFRAMES.daily;
   const avgCollectedTicketETB = currentStats.collectedETB / Math.max(currentStats.paymentsCount, 1);
 
-  // Prepare synchronized report data matching what is on screen
-  const getReportDataForPeriod = (period: ReportPeriod) => {
-    const stats = TIMEFRAMES[period] || TIMEFRAMES.daily;
-    return {
-      timeframe: period,
-      totalCollectedETB: stats.collectedETB,
-      totalProductionETB: stats.productionETB,
-      patientsCount: stats.patientsCount,
-      newPatientsCount: stats.newPatientsCount,
-      treatmentsCount: stats.treatmentsCount,
-      cashTotalETB: stats.cashTotalETB,
-      telebirrTotalETB: stats.telebirrTotalETB,
-      cbeTotalETB: stats.cbeTotalETB,
-      transferTotalETB: stats.transferTotalETB,
-      doc1ProductionETB: stats.doc1ProductionETB,
-      doc1Treatments: stats.doc1Treatments,
-      doc2ProductionETB: stats.doc2ProductionETB,
-      doc2Treatments: stats.doc2Treatments,
-    };
+  // Direct 1-Click PDF File Download (Does NOT open any print view - saves actual .pdf file directly!)
+  const handleDownloadPDF = async (period: ReportPeriod = selectedTimeframe) => {
+    try {
+      setIsDownloadingPDF(true);
+      const stats = TIMEFRAMES[period] || TIMEFRAMES.daily;
+      await downloadClinicalReportPDF(period, stats, clinic);
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
-  // Direct 1-Click Print/Save as PDF using the clean minimalist A4 HTML template
-  const handleDirectPrintReport = (period: ReportPeriod = selectedTimeframe) => {
-    const data = getReportDataForPeriod(period);
-    printComprehensiveReport(period, data, clinic);
-  };
-
-  // Standalone HTML Download Handler
+  // Standalone HTML Download Handler (for offline archival)
   const handleDownloadHTML = (period: ReportPeriod = selectedTimeframe) => {
-    const data = getReportDataForPeriod(period);
-    const htmlContent = getComprehensiveReportHTML(period, data, clinic);
+    const stats = TIMEFRAMES[period] || TIMEFRAMES.daily;
+    const htmlContent = getClinicalReportHTML(period, stats, clinic);
     const fullDoc = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>BoleDental_Clinical_Audit_${period.toUpperCase()}_${new Date().toISOString().slice(0, 10)}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', -apple-system, sans-serif; padding: 24px; background: #ffffff; margin: 0 auto; max-width: 900px; }
-    @page { size: A4 portrait; margin: 12mm 14mm; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f1f5f9; padding: 20px; display: flex; justify-content: center; }
   </style>
 </head>
 <body>
@@ -275,7 +237,7 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Clinical_Audit_Report_${period.toUpperCase()}_${new Date().toISOString().slice(0, 10)}.html`;
+    a.download = `BoleDental_Clinical_Audit_${period.toUpperCase()}_${new Date().toISOString().slice(0, 10)}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -302,15 +264,20 @@ export default function ReportsPage() {
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-          {/* Main Download PDF Action (1-click prints what the page says) */}
+          {/* Main Direct Download PDF Action */}
           <button
             type="button"
-            onClick={() => handleDirectPrintReport(selectedTimeframe)}
-            className="rounded-xl font-bold inline-flex items-center transition-all px-3.5 py-2 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs"
-            title={`Print or Save ${currentStats.label} as official clean A4 PDF`}
+            onClick={() => handleDownloadPDF(selectedTimeframe)}
+            disabled={isDownloadingPDF}
+            className="rounded-xl font-bold inline-flex items-center transition-all px-4 py-2 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs disabled:opacity-75 disabled:cursor-wait"
+            title={`Download ${currentStats.label} as official A4 PDF`}
           >
-            <Download className="size-3.5" />
-            <span>Download Report (PDF)</span>
+            {isDownloadingPDF ? (
+              <Loader2 className="size-3.5 animate-spin text-slate-300" />
+            ) : (
+              <Download className="size-3.5 text-slate-300" />
+            )}
+            <span>{isDownloadingPDF ? 'Generating PDF...' : 'Download PDF Report'}</span>
           </button>
 
           {/* Preview A4 Sheet Modal */}
@@ -318,10 +285,10 @@ export default function ReportsPage() {
             type="button"
             onClick={() => setIsReportModalOpen(true)}
             className="rounded-xl font-semibold inline-flex items-center transition-colors px-3 py-2 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
-            title="Preview full A4 clinical document before printing"
+            title="Preview A4 document before downloading"
           >
-            <FileText className="size-3.5 text-slate-500" />
-            <span>Preview Template</span>
+            <Eye className="size-3.5 text-slate-500" />
+            <span>Preview</span>
           </button>
 
           {/* Daily Z-Report Cashier Close Trigger */}
@@ -337,7 +304,7 @@ export default function ReportsPage() {
         </div>
       </header>
 
-      {/* 2. SIMPLE, EASY-TO-SELECT TIMEFRAME BAR (Anyone can understand!) */}
+      {/* 2. CLEAN 5-TIMEFRAME SELECTOR BAR */}
       <div className="p-1.5 bg-slate-100/90 border border-slate-200/90 rounded-2xl flex items-center gap-1.5 overflow-x-auto scrollbar-thin shadow-2xs">
         {[
           { id: 'daily', label: 'Today (Daily)', icon: Clock },
@@ -345,7 +312,6 @@ export default function ReportsPage() {
           { id: 'monthly', label: 'This Month (30 Days)', icon: CalendarDays },
           { id: '3month', label: '3 Months (Quarter)', icon: BarChart3 },
           { id: '6month', label: '6 Months (Half Year)', icon: LineChart },
-          { id: 'year', label: '1 Year (Annual)', icon: ShieldCheck },
         ].map((t) => {
           const IconComp = t.icon;
           const isSelected = selectedTimeframe === t.id;
@@ -367,7 +333,7 @@ export default function ReportsPage() {
         })}
       </div>
 
-      {/* 2.5 ACTIVE AUDIT PERIOD BANNER (Crystal Clear & Simple for Anyone) */}
+      {/* 2.5 ACTIVE AUDIT PERIOD BANNER */}
       <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3 min-w-0">
           <div className="size-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
@@ -395,96 +361,15 @@ export default function ReportsPage() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => handleDirectPrintReport(selectedTimeframe)}
-            className="w-full sm:w-auto px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-            title={`Print or Save ${currentStats.label} as official A4 PDF`}
-          >
-            <Download className="size-3.5" />
-            <span>Download {currentStats.label.split(' ')[0]} PDF</span>
-          </button>
-          <button
-            type="button"
             onClick={() => setIsReportModalOpen(true)}
-            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-            title="Preview A4 document in full view"
+            className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            title="Inspect A4 document layout"
           >
-            <FileText className="size-3.5" />
-            <span className="hidden sm:inline">Preview</span>
+            <Eye className="size-3.5 text-slate-500" />
+            <span>Preview Document</span>
           </button>
         </div>
       </div>
-
-      {/* 3. DRILL DOWN NAVIGATION PILLS */}
-      <nav aria-label="Drill down" className="flex gap-2 overflow-x-auto sm:flex-wrap pb-1 scrollbar-thin">
-        <Link
-          href="/invoices"
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
-        >
-          <Receipt className="h-4 w-4 text-sky-600" />
-          <span className="truncate">Billing</span>
-        </Link>
-        <Link
-          href="/quotes"
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
-        >
-          <FileText className="h-4 w-4 text-sky-600" />
-          <span className="truncate">Quotes</span>
-        </Link>
-        <Link
-          href="/schedule"
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
-        >
-          <CalendarCheck className="h-4 w-4 text-sky-600" />
-          <span className="truncate">Schedule</span>
-        </Link>
-        <Link
-          href="/payments"
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:border-sky-500 shadow-xs"
-        >
-          <Wallet className="h-4 w-4 text-sky-600" />
-          <span className="truncate">Payments</span>
-        </Link>
-
-        {/* Quick Report Launchers */}
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedTimeframe('daily');
-            handleDirectPrintReport('daily');
-          }}
-          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-sky-300 bg-sky-50/70 px-3 py-1.5 text-xs font-semibold text-sky-800 transition-colors hover:bg-sky-100 shadow-xs"
-          title="1-Click Print or Save Daily PDF Report"
-        >
-          <Download className="h-3.5 w-3.5 text-sky-700" />
-          <span>Download Daily PDF</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedTimeframe('weekly');
-            handleDirectPrintReport('weekly');
-          }}
-          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-indigo-300 bg-indigo-50/70 px-3 py-1.5 text-xs font-semibold text-indigo-800 transition-colors hover:bg-indigo-100 shadow-xs"
-          title="1-Click Print or Save Weekly PDF Report"
-        >
-          <Download className="h-3.5 w-3.5 text-indigo-700" />
-          <span>Download Weekly PDF</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setSelectedTimeframe('monthly');
-            handleDirectPrintReport('monthly');
-          }}
-          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-emerald-300 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 shadow-xs"
-          title="1-Click Print or Save Monthly PDF Report"
-        >
-          <Download className="h-3.5 w-3.5 text-emerald-700" />
-          <span>Download Monthly PDF</span>
-        </button>
-      </nav>
 
       {/* 4. FOUR PRIMARY SUMMARY CARDS (Dynamic based on selected timeframe) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -972,7 +857,7 @@ export default function ReportsPage() {
             {/* Modal Bar with Timeframe Switchers & Action Buttons */}
             <div className="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between gap-3 shrink-0 flex-wrap">
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
-                {(['daily', 'weekly', 'monthly', '3month', '6month', 'year'] as ReportPeriod[]).map((period) => (
+                {(['daily', 'weekly', 'monthly', '3month', '6month'] as ReportPeriod[]).map((period) => (
                   <button
                     key={period}
                     type="button"
@@ -1001,15 +886,20 @@ export default function ReportsPage() {
                   <span className="hidden sm:inline">Download HTML</span>
                 </button>
 
-                {/* Print / Save as PDF button */}
+                {/* Direct Download PDF button (No print view) */}
                 <button
                   type="button"
-                  onClick={() => handleDirectPrintReport(selectedTimeframe)}
-                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
-                  title="Print or Save as PDF"
+                  onClick={() => handleDownloadPDF(selectedTimeframe)}
+                  disabled={isDownloadingPDF}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-75 disabled:cursor-wait"
+                  title="Directly download genuine A4 PDF"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Print / Save PDF (A4)</span>
+                  {isDownloadingPDF ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isDownloadingPDF ? 'Generating...' : 'Download PDF'}</span>
                 </button>
 
                 <button
@@ -1024,10 +914,10 @@ export default function ReportsPage() {
 
             {/* Document Viewport - Shows the clean, minimalist A4 HTML layout */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/60">
-              <div className="w-full max-w-[820px] bg-white rounded-sm shadow-xl border border-slate-300 p-6 sm:p-10 my-auto">
+              <div className="w-[794px] max-w-full bg-white shadow-xl border border-slate-300 my-auto overflow-hidden">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: getComprehensiveReportHTML(selectedTimeframe, getReportDataForPeriod(selectedTimeframe), clinic)
+                    __html: getClinicalReportHTML(selectedTimeframe, currentStats, clinic)
                   }}
                 />
               </div>
