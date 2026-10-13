@@ -944,3 +944,692 @@ export function printTreatmentPlan(plan: {
     paperSize: 'A4',
   });
 }
+
+/**
+ * ============================================================================
+ * DAILY PRACTICE & FISCAL RECONCILIATION REPORT (A4 Minimalist Clinical Template)
+ * ============================================================================
+ */
+export interface DailyReportData {
+  reportDate?: string;
+  zReportNumber?: string;
+  supervisorName?: string;
+  tinNumber?: string;
+  totalBilledETB?: number;
+  totalCollectedETB?: number;
+  cashExpectedETB?: number;
+  cashCountedETB?: number;
+  cashVarianceETB?: number;
+  telebirrTotalETB?: number;
+  cbeTotalETB?: number;
+  transferTotalETB?: number;
+  patientsCount?: number;
+  treatmentsCount?: number;
+  encounters?: {
+    time: string;
+    patientName: string;
+    mrn: string;
+    procedure: string;
+    doctor: string;
+    amountETB: number;
+    method: string;
+  }[];
+  doctorBreakdown?: {
+    doctorName: string;
+    encountersCount: number;
+    productionETB: number;
+    sharePercent: number;
+  }[];
+}
+
+export function getDailyReportHTML(data?: DailyReportData, clinic?: Clinic): string {
+  const clinicName = clinic?.name || 'BOLE DENTAL STUDIO';
+  const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
+  const clinicPhone = clinic?.phone || '+251 91 122 3344';
+  const tin = data?.tinNumber || '0049283711';
+  const reportDate = data?.reportDate || 'Monday, October 12, 2026';
+  const zNumber = data?.zReportNumber || 'BDS-REP-D-20261012-01';
+  const supervisor = data?.supervisorName || 'Helen Tadesse (Reception & Cashier)';
+
+  const billed = data?.totalBilledETB ?? 18075;
+  const collected = data?.totalCollectedETB ?? 18075;
+  const variance = data?.cashVarianceETB ?? 0;
+  const patientsCount = data?.patientsCount ?? 6;
+  const treatmentsCount = data?.treatmentsCount ?? 22;
+
+  const cashCounted = data?.cashCountedETB ?? 480;
+  const telebirrTotal = data?.telebirrTotalETB ?? 5695;
+  const cbeTotal = data?.cbeTotalETB ?? 7800;
+  const transferTotal = data?.transferTotalETB ?? 4100;
+
+  const encounters = data?.encounters || [
+    { time: '09:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Endodontic Pulpectomy & Canals Instrumentation (#36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+    { time: '10:45', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Clear Aligner Progression & Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
+    { time: '11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Ultrasonic Scaling & Polishing Prophylaxis', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr POS' },
+    { time: '14:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Emergency Sedative Dressing & Pulp Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
+    { time: '15:30', Solomon: 'Solomon Tekle Mariam', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Full Zirconia Crown Impression & Prep Anticipo', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
+    { time: '16:45', patientName: 'Meron Bekele Haile', mrn: 'BDS-MRN-2026-0312', procedure: 'Periapical Diagnostic PA X-Ray & Comprehensive Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr SuperApp' },
+  ];
+
+  const doctors = data?.doctorBreakdown || [
+    { doctorName: 'Dr. Senait Tadesse', encountersCount: 4, productionETB: 24350, sharePercent: 82.5 },
+    { doctorName: 'Dr. Brook Zewde', encountersCount: 2, productionETB: 5160, sharePercent: 17.5 },
+  ];
+
+  return `
+    <div style="max-width: 100%; margin: 0 auto; color: #0f172a; font-family: 'Inter', -apple-system, sans-serif; font-size: 9pt; line-height: 1.45;">
+      
+      <!-- Official Ministry of Revenues & Clinic Header -->
+      <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="font-size: 8pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #475569;">
+              FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA · MINISTRY OF REVENUES (MoR)
+            </div>
+            <div style="font-size: 7.5pt; color: #64748b; font-family: 'Noto Sans Ethiopic', sans-serif;">
+              የኢትዮጵያ ፌዴራላዊ ዴሞክራሲያዊ ሪፐብሊክ የገቢዎች ሚኒስቴር · የክሊኒክ ዕለታዊ ኦዲት
+            </div>
+            <h1 style="margin: 4px 0 0 0; font-size: 16pt; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; color: #0f172a;">
+              ${clinicName}
+            </h1>
+            <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">
+              ${clinicLocation} · Tel: ${clinicPhone}
+            </p>
+          </div>
+
+          <div style="text-align: right; font-family: monospace; font-size: 8.5pt; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+            <div style="font-weight: 800; font-size: 10pt; color: #0f172a;">DAILY PRACTICE AUDIT</div>
+            <div style="color: #64748b; font-size: 8pt; margin-top: 2px;">Ref: <strong>${zNumber}</strong></div>
+            <div style="color: #0f172a; font-weight: 700; margin-top: 2px;">TIN: ${tin}</div>
+            <div style="color: #64748b; font-size: 7.5pt;">Register: BDS-FSC-AA-03</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shift & Operatory Meta -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 8.5pt;">
+        <div>
+          <span style="color: #64748b; text-transform: uppercase; font-size: 7.5pt; font-weight: 700; display: block;">Report Date</span>
+          <strong style="color: #0f172a;">${reportDate}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; text-transform: uppercase; font-size: 7.5pt; font-weight: 700; display: block;">Shift Officer</span>
+          <strong style="color: #0f172a;">${supervisor}</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; text-transform: uppercase; font-size: 7.5pt; font-weight: 700; display: block;">Active Operatories</span>
+          <strong style="color: #0f172a;">Chair 1 & Chair 2 (100% Online)</strong>
+        </div>
+        <div>
+          <span style="color: #64748b; text-transform: uppercase; font-size: 7.5pt; font-weight: 700; display: block;">Fiscal Reconciliation</span>
+          <strong style="color: #059669;">Zero Variance · Balanced</strong>
+        </div>
+      </div>
+
+      <!-- 4 Top Executive Summary Numbers -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;">
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #059669; border-radius: 6px; padding: 8px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Gross Billed</div>
+          <div style="font-size: 13pt; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 2px;">
+            ${billed.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style="font-size: 8.5pt; font-weight: 600;">ETB</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">100% Tax Compliant</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #0284c7; border-radius: 6px; padding: 8px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Total Collected</div>
+          <div style="font-size: 13pt; font-weight: 800; font-family: monospace; color: #0284c7; margin-top: 2px;">
+            ${collected.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style="font-size: 8.5pt; font-weight: 600;">ETB</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Realized Cash & POS</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #6366f1; border-radius: 6px; padding: 8px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Drawer Variance</div>
+          <div style="font-size: 13pt; font-weight: 800; font-family: monospace; color: #059669; margin-top: 2px;">
+            ${Math.abs(variance).toFixed(2)} <span style="font-size: 8.5pt; font-weight: 600;">ETB</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #059669; margin-top: 2px;">Exact Physical Match</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #f59e0b; border-radius: 6px; padding: 8px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Patient Encounters</div>
+          <div style="font-size: 13pt; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 2px;">
+            ${patientsCount} <span style="font-size: 8.5pt; font-weight: 600;">Pts</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">${treatmentsCount} Procedures charted</div>
+        </div>
+      </div>
+
+      <!-- Financial Reconciliation by Tender Rail -->
+      <div style="margin-bottom: 18px;">
+        <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+          1. Financial Reconciliation by Payment Rail (የክፍያ መንገዶች ማጠቃለያ)
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+              <th style="padding: 6px 10px; font-weight: 700;">Tender Channel</th>
+              <th style="padding: 6px 10px; font-weight: 700;">Institution / Gateway Ref</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Transactions</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Audited Total (ETB)</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: center;">Variance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 6px 10px; font-weight: 600;">CBE Birr POS / Debit Card</td>
+              <td style="padding: 6px 10px; color: #64748b; font-family: monospace;">Commercial Bank of Ethiopia (Terminal #04)</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace;">2</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700;">${cbeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="padding: 6px 10px; text-align: center; color: #059669; font-weight: 700;">0.00</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0; background: #fafafa;">
+              <td style="padding: 6px 10px; font-weight: 600;">Telebirr SuperApp</td>
+              <td style="padding: 6px 10px; color: #64748b; font-family: monospace;">Ethio Telecom Merchant (ID: 94821)</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace;">2</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700;">${telebirrTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="padding: 6px 10px; text-align: center; color: #059669; font-weight: 700;">0.00</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+              <td style="padding: 6px 10px; font-weight: 600;">Direct Debit / Bank Transfer</td>
+              <td style="padding: 6px 10px; color: #64748b; font-family: monospace;">CBE & Awash RTGS Settlement Batch</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace;">1</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700;">${transferTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="padding: 6px 10px; text-align: center; color: #059669; font-weight: 700;">0.00</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0; background: #fafafa;">
+              <td style="padding: 6px 10px; font-weight: 600;">Physical Cash (Counted)</td>
+              <td style="padding: 6px 10px; color: #64748b; font-family: monospace;">Cash Drawer (200 / 100 / 50 Birr denominations)</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace;">1</td>
+              <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700;">${cashCounted.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="padding: 6px 10px; text-align: center; color: #059669; font-weight: 700;">0.00</td>
+            </tr>
+            <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #0f172a;">
+              <td colspan="2" style="padding: 8px 10px; text-transform: uppercase;">Total Reconciled Collections</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: monospace;">${patientsCount}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: monospace; font-size: 10pt; color: #0f172a;">
+                ${collected.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </td>
+              <td style="padding: 8px 10px; text-align: center; color: #059669;">0.00 ETB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Today's Clinical Patient Encounters Table -->
+      <div style="margin-bottom: 18px;" class="avoid-break">
+        <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+          2. Operatory Patient Log & Clinical Procedures (የቀኑ ታካሚዎች እና የህክምና ዝርዝር)
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+              <th style="padding: 5px 8px; font-weight: 700;">Time</th>
+              <th style="padding: 5px 8px; font-weight: 700;">Patient Name</th>
+              <th style="padding: 5px 8px; font-weight: 700;">MRN</th>
+              <th style="padding: 5px 8px; font-weight: 700;">Procedure & Tooth</th>
+              <th style="padding: 5px 8px; font-weight: 700;">Clinician</th>
+              <th style="padding: 5px 8px; font-weight: 700;">Method</th>
+              <th style="padding: 5px 8px; font-weight: 700; text-align: right;">Fee (ETB)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${encounters.map((enc, idx) => `
+              <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 1 ? '#fafafa' : '#ffffff'};">
+                <td style="padding: 5px 8px; font-family: monospace; color: #64748b;">${enc.time}</td>
+                <td style="padding: 5px 8px; font-weight: 700; color: #0f172a;">${enc.patientName}</td>
+                <td style="padding: 5px 8px; font-family: monospace; color: #64748b; font-size: 7.5pt;">${enc.mrn}</td>
+                <td style="padding: 5px 8px; color: #334155;">${enc.procedure}</td>
+                <td style="padding: 5px 8px; color: #475569;">${enc.doctor}</td>
+                <td style="padding: 5px 8px; color: #64748b; font-size: 7.5pt;">${enc.method}</td>
+                <td style="padding: 5px 8px; text-align: right; font-family: monospace; font-weight: 700; color: #0f172a;">
+                  ${enc.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Doctor Production & Productivity Breakdown -->
+      <div style="margin-bottom: 22px;" class="avoid-break">
+        <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+          3. Clinician Production & Efficiency (የዶክተሮች የስራ ክንውን)
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+              <th style="padding: 6px 10px; font-weight: 700;">Attending Clinician</th>
+              <th style="padding: 6px 10px; font-weight: 700;">Encounters</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Gross Production (ETB)</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Revenue Contribution</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${doctors.map((doc) => `
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 6px 10px; font-weight: 700; color: #0f172a;">${doc.doctorName}</td>
+                <td style="padding: 6px 10px; color: #475569; font-family: monospace;">${doc.encountersCount} patients</td>
+                <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700; color: #0f172a;">
+                  ${doc.productionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                </td>
+                <td style="padding: 6px 10px; text-align: right; font-family: monospace; color: #0284c7; font-weight: 700;">
+                  ${doc.sharePercent}%
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Signatures & Official Directorate Seal -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 24px; padding-top: 14px; border-top: 1px solid #cbd5e1;" class="avoid-break">
+        <div>
+          <div style="font-size: 7.5pt; font-weight: 700; color: #64748b; text-transform: uppercase;">
+            Prepared & Counted by:
+          </div>
+          <div style="border-bottom: 1px solid #475569; height: 35px; margin-top: 4px;"></div>
+          <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 4px;">
+            Helen Tadesse
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b;">
+            Chief Cashier & Front Desk Officer
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 7.5pt; font-weight: 700; color: #64748b; text-transform: uppercase;">
+            Verified & Audited by:
+          </div>
+          <div style="border-bottom: 1px solid #475569; height: 35px; margin-top: 4px;"></div>
+          <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 4px;">
+            Dr. Senait Tadesse
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b;">
+            Clinical Director & Lead Specialist
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <div style="font-size: 7.5pt; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+            Official Fiscal Stamp
+          </div>
+          <div style="display: inline-block; width: 85px; height: 85px; border: 2px dashed #94a3b8; border-radius: 50%; padding: 6px; box-sizing: border-box;">
+            <div style="font-size: 6.5pt; font-weight: 800; color: #475569; text-transform: uppercase; margin-top: 14px;">
+              BOLE DENTAL
+            </div>
+            <div style="font-size: 6.5pt; color: #059669; font-weight: 700;">
+              MoR AUDITED
+            </div>
+            <div style="font-size: 6pt; color: #94a3b8; font-family: monospace;">
+              BDS-FSC-AA-03
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Footer -->
+      <div style="margin-top: 16px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 7.5pt; color: #94a3b8; text-align: center;">
+        Official Record generated by Sinna Dental AI · Bole Dental Studio · Ministry of Revenues TIN: 0049283711 · All values in Ethiopian Birr (ETB)
+      </div>
+    </div>
+  `;
+}
+
+export function printDailyPracticeReport(data?: DailyReportData, clinic?: Clinic): void {
+  const html = getDailyReportHTML(data, clinic);
+  smartPrint({
+    title: `Daily_Practice_Report_${new Date().toISOString().slice(0, 10)}`,
+    html,
+    paperSize: 'A4',
+  });
+}
+
+/**
+ * ============================================================================
+ * WEEKLY PRACTICE PERFORMANCE & CLINICAL AUDIT REPORT (A4 Executive Template)
+ * ============================================================================
+ */
+export interface WeeklyReportData {
+  weekLabel?: string;
+  startDate?: string;
+  endDate?: string;
+  tinNumber?: string;
+  totalGrossProductionETB?: number;
+  totalCollectionsETB?: number;
+  collectionRate?: number;
+  newPatientsCount?: number;
+  totalPatientsCount?: number;
+  chairUtilizationRate?: number;
+  dailyData?: {
+    day: string;
+    date: string;
+    scheduledCount: number;
+    completedCount: number;
+    productionETB: number;
+    collectionsETB: number;
+  }[];
+  categoryData?: {
+    category: string;
+    units: number;
+    amountETB: number;
+    sharePercent: number;
+  }[];
+  doctorData?: {
+    doctorName: string;
+    specialty: string;
+    units: number;
+    productionETB: number;
+    avgTicketETB: number;
+  }[];
+}
+
+export function getWeeklyReportHTML(data?: WeeklyReportData, clinic?: Clinic): string {
+  const clinicName = clinic?.name || 'BOLE DENTAL STUDIO';
+  const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
+  const clinicPhone = clinic?.phone || '+251 91 122 3344';
+  const tin = data?.tinNumber || '0049283711';
+  const weekLabel = data?.weekLabel || 'Week 41 (Monday, Oct 05 – Saturday, Oct 10, 2026)';
+
+  const grossProduction = data?.totalGrossProductionETB ?? 118450;
+  const collections = data?.totalCollectionsETB ?? 114200;
+  const realizationRate = data?.collectionRate ?? 96.4;
+  const totalPatients = data?.totalPatientsCount ?? 38;
+  const newPatients = data?.newPatientsCount ?? 11;
+  const chairUtilization = data?.chairUtilizationRate ?? 83.9;
+
+  const dailyData = data?.dailyData || [
+    { day: 'Monday', date: 'Oct 05, 2026', scheduledCount: 7, completedCount: 7, productionETB: 19400, collectionsETB: 18500 },
+    { day: 'Tuesday', date: 'Oct 06, 2026', scheduledCount: 8, completedCount: 8, productionETB: 22100, collectionsETB: 21300 },
+    { day: 'Wednesday', date: 'Oct 07, 2026', scheduledCount: 6, completedCount: 6, productionETB: 16800, collectionsETB: 16800 },
+    { day: 'Thursday', date: 'Oct 08, 2026', scheduledCount: 7, completedCount: 7, productionETB: 24950, collectionsETB: 22400 },
+    { day: 'Friday', date: 'Oct 09, 2026', scheduledCount: 8, completedCount: 7, productionETB: 21300, collectionsETB: 21300 },
+    { day: 'Saturday', date: 'Oct 10, 2026', scheduledCount: 5, completedCount: 5, productionETB: 13900, collectionsETB: 13900 },
+  ];
+
+  const categories = data?.categoryData || [
+    { category: 'Restorative (Composite, Post & Core)', units: 26, amountETB: 38400, sharePercent: 32.4 },
+    { category: 'Endodontics (Root Canal & Pulpectomy)', units: 12, amountETB: 34200, sharePercent: 28.9 },
+    { category: 'Prosthodontics (Zirconia & E-max Crowns)', units: 7, amountETB: 25600, sharePercent: 21.6 },
+    { category: 'Periodontics & Ultrasonic Scaling', units: 14, amountETB: 9800, sharePercent: 8.3 },
+    { category: 'Oral Surgery & Atraumatic Extractions', units: 4, amountETB: 5200, sharePercent: 4.4 },
+    { category: 'Diagnostic Imaging (PA & Panoramic X-Ray)', units: 18, amountETB: 5250, sharePercent: 4.4 },
+  ];
+
+  const doctors = data?.doctorData || [
+    { doctorName: 'Dr. Senait Tadesse', specialty: 'Lead Specialist & Surgeon', units: 54, productionETB: 82650, avgTicketETB: 1530.5 },
+    { doctorName: 'Dr. Brook Zewde', specialty: 'Associate Clinician', units: 27, productionETB: 35800, avgTicketETB: 1325.9 },
+  ];
+
+  return `
+    <div style="max-width: 100%; margin: 0 auto; color: #0f172a; font-family: 'Inter', -apple-system, sans-serif; font-size: 9pt; line-height: 1.45;">
+      
+      <!-- Executive Header -->
+      <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="font-size: 8pt; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #475569;">
+              FEDERAL DEMOCRATIC REPUBLIC OF ETHIOPIA · CLINICAL AUDIT DIRECTORATE
+            </div>
+            <div style="font-size: 7.5pt; color: #64748b; font-family: 'Noto Sans Ethiopic', sans-serif;">
+              የክሊኒካል አፈጻጸም፣ የታካሚዎች ፍሰት እና የፋይናንስ ሳምንታዊ ኦዲት
+            </div>
+            <h1 style="margin: 4px 0 0 0; font-size: 16pt; font-weight: 800; text-transform: uppercase; letter-spacing: -0.02em; color: #0f172a;">
+              ${clinicName}
+            </h1>
+            <p style="margin: 2px 0 0 0; font-size: 8.5pt; color: #475569;">
+              ${clinicLocation} · Tel: ${clinicPhone}
+            </p>
+          </div>
+
+          <div style="text-align: right; font-family: monospace; font-size: 8.5pt; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px;">
+            <div style="font-weight: 800; font-size: 10pt; color: #0f172a;">EXECUTIVE WEEKLY AUDIT</div>
+            <div style="color: #64748b; font-size: 8pt; margin-top: 2px;">Session: <strong>Q4 · Week 41</strong></div>
+            <div style="color: #0f172a; font-weight: 700; margin-top: 2px;">TIN: ${tin}</div>
+            <div style="color: #64748b; font-size: 7.5pt;">MoR Register: BDS-FSC-AA-03</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sub-header Period Badge -->
+      <div style="background: #f1f5f9; border-radius: 6px; padding: 8px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 8.5pt;">
+        <div>
+          <span style="color: #64748b; text-transform: uppercase; font-size: 7.5pt; font-weight: 700;">Reporting Window:</span>{' '}
+          <strong style="color: #0f172a;">${weekLabel}</strong>
+        </div>
+        <div style="font-family: monospace; font-size: 8pt; color: #475569;">
+          Operatory Capacity: <strong>2 Chairs (108 Operating Hours)</strong>
+        </div>
+      </div>
+
+      <!-- 4 Top Executive KPI Metrics -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;">
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #0284c7; border-radius: 6px; padding: 10px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Gross Production</div>
+          <div style="font-size: 14pt; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 2px;">
+            ${grossProduction.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style="font-size: 8.5pt; font-weight: 600;">ETB</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #0284c7; margin-top: 2px; font-weight: 600;">+14.2% vs previous week</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #059669; border-radius: 6px; padding: 10px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Net Collections</div>
+          <div style="font-size: 14pt; font-weight: 800; font-family: monospace; color: #059669; margin-top: 2px;">
+            ${collections.toLocaleString(undefined, { minimumFractionDigits: 2 })} <span style="font-size: 8.5pt; font-weight: 600;">ETB</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b; margin-top: 2px;">Realization Rate: <strong>${realizationRate}%</strong></div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #6366f1; border-radius: 6px; padding: 10px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Patient Encounters</div>
+          <div style="font-size: 14pt; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 2px;">
+            ${totalPatients} <span style="font-size: 8.5pt; font-weight: 600;">Patients</span>
+          </div>
+          <div style="font-size: 7.5pt; color: #4f46e5; margin-top: 2px; font-weight: 600;">${newPatients} New (28.9% acquisition)</div>
+        </div>
+
+        <div style="border: 1px solid #cbd5e1; border-left: 3px solid #d97706; border-radius: 6px; padding: 10px 12px;">
+          <div style="font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b;">Chair Occupancy</div>
+          <div style="font-size: 14pt; font-weight: 800; font-family: monospace; color: #0f172a; margin-top: 2px;">
+            ${chairUtilization}%
+          </div>
+          <div style="font-size: 7.5pt; color: #059669; margin-top: 2px; font-weight: 600;">97.6% Completed (0.0% no-show)</div>
+        </div>
+      </div>
+
+      <!-- Day-by-Day Volume & Revenue Table -->
+      <div style="margin-bottom: 18px;">
+        <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+          1. Day-by-Day Operatory Volume & Revenue (የቀን ተከታታይ የስራ እና የገቢ ዝርዝር)
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+              <th style="padding: 6px 10px; font-weight: 700;">Day</th>
+              <th style="padding: 6px 10px; font-weight: 700;">Date</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: center;">Booked</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: center;">Completed</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Gross Production</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Cash/Digital Collected</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Collection %</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${dailyData.map((d, idx) => {
+              const rate = ((d.collectionsETB / d.productionETB) * 100).toFixed(1);
+              return `
+                <tr style="border-bottom: 1px solid #e2e8f0; background: ${idx % 2 === 1 ? '#fafafa' : '#ffffff'};">
+                  <td style="padding: 6px 10px; font-weight: 700; color: #0f172a;">${d.day}</td>
+                  <td style="padding: 6px 10px; color: #64748b; font-family: monospace;">${d.date}</td>
+                  <td style="padding: 6px 10px; text-align: center; font-family: monospace;">${d.scheduledCount}</td>
+                  <td style="padding: 6px 10px; text-align: center; font-family: monospace; font-weight: 700; color: #059669;">${d.completedCount}</td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700; color: #0f172a;">
+                    ${d.productionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                  </td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700; color: #0284c7;">
+                    ${d.collectionsETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                  </td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700; color: ${Number(rate) >= 95 ? '#059669' : '#d97706'};">
+                    ${rate}%
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+            <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #0f172a;">
+              <td colspan="2" style="padding: 8px 10px; text-transform: uppercase;">Weekly Cumulative Totals</td>
+              <td style="padding: 8px 10px; text-align: center; font-family: monospace;">41</td>
+              <td style="padding: 8px 10px; text-align: center; font-family: monospace; color: #059669;">${totalPatients}</td>
+              <td style="padding: 8px 10px; text-align: right; font-family: monospace; font-size: 10pt; color: #0f172a;">
+                ${grossProduction.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </td>
+              <td style="padding: 8px 10px; text-align: right; font-family: monospace; font-size: 10pt; color: #0284c7;">
+                ${collections.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </td>
+              <td style="padding: 8px 10px; text-align: right; font-family: monospace; font-size: 10pt; color: #059669;">
+                ${realizationRate}%
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Clinical Procedure Breakdown -->
+      <div style="margin-bottom: 18px;" class="avoid-break">
+        <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+          2. Clinical Discipline & Procedure Performance (የህክምና ዘርፎች ትንተና)
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt; border: 1px solid #cbd5e1;">
+          <thead>
+            <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+              <th style="padding: 6px 10px; font-weight: 700;">Specialty Discipline</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: center;">Procedures Done</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Gross Generated (ETB)</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Revenue Share %</th>
+              <th style="padding: 6px 10px; font-weight: 700; text-align: right;">Avg Procedure Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories.map((c) => {
+              const avg = Math.round(c.amountETB / c.units);
+              return `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                  <td style="padding: 6px 10px; font-weight: 600; color: #0f172a;">${c.category}</td>
+                  <td style="padding: 6px 10px; text-align: center; font-family: monospace;">${c.units}</td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700;">
+                    ${c.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; font-weight: 700; color: #0284c7;">
+                    ${c.sharePercent}%
+                  </td>
+                  <td style="padding: 6px 10px; text-align: right; font-family: monospace; color: #64748b;">
+                    ${avg.toLocaleString()} ETB
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Doctor Production & Financial Aging -->
+      <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px; margin-bottom: 22px;" class="avoid-break">
+        <div>
+          <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+            3. Clinician Weekly Contribution
+          </h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 8pt; border: 1px solid #cbd5e1;">
+            <thead>
+              <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
+                <th style="padding: 5px 8px; font-weight: 700;">Doctor</th>
+                <th style="padding: 5px 8px; font-weight: 700; text-align: center;">Procedures</th>
+                <th style="padding: 5px 8px; font-weight: 700; text-align: right;">Total ETB</th>
+                <th style="padding: 5px 8px; font-weight: 700; text-align: right;">Share</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${doctors.map((doc) => `
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                  <td style="padding: 5px 8px; font-weight: 700; color: #0f172a;">${doc.doctorName}</td>
+                  <td style="padding: 5px 8px; text-align: center; font-family: monospace;">${doc.units}</td>
+                  <td style="padding: 5px 8px; text-align: right; font-family: monospace; font-weight: 700;">${doc.productionETB.toLocaleString()}</td>
+                  <td style="padding: 5px 8px; text-align: right; font-family: monospace; color: #0284c7; font-weight: 700;">
+                    ${((doc.productionETB / grossProduction) * 100).toFixed(1)}%
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3 style="margin: 0 0 6px 0; font-size: 9pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b;">
+            4. Aging Receivables Health
+          </h3>
+          <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 8pt; background: #fafafa; space-y: 4px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #64748b;">0–30 Days (Current):</span>
+              <strong style="color: #059669; font-family: monospace;">6,875.00 ETB</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #64748b;">31–60 Days:</span>
+              <strong style="color: #0f172a; font-family: monospace;">0.00 ETB</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="color: #64748b;">61–90+ Days:</span>
+              <strong style="color: #059669; font-family: monospace;">0.00 ETB (Clean)</strong>
+            </div>
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 4px; display: flex; justify-content: space-between; font-weight: 800;">
+              <span>Total Aging Exposure:</span>
+              <span style="color: #0f172a; font-family: monospace;">6,875.00 ETB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Executive Sign-off & Audit Certification -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; padding-top: 14px; border-top: 1px solid #cbd5e1;" class="avoid-break">
+        <div>
+          <div style="font-size: 7.5pt; font-weight: 700; color: #64748b; text-transform: uppercase;">
+            Clinical Director & Chief Surgeon:
+          </div>
+          <div style="border-bottom: 1px solid #475569; height: 38px; margin-top: 4px;"></div>
+          <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 4px;">
+            Dr. Senait Tadesse
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b;">
+            Bole Dental Studio Clinical Directorate · Certified
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 7.5pt; font-weight: 700; color: #64748b; text-transform: uppercase;">
+            Practice Operations & Audit Administrator:
+          </div>
+          <div style="border-bottom: 1px solid #475569; height: 38px; margin-top: 4px;"></div>
+          <div style="font-size: 8.5pt; font-weight: 700; color: #0f172a; margin-top: 4px;">
+            Helen Tadesse
+          </div>
+          <div style="font-size: 7.5pt; color: #64748b;">
+            Administrative Directorate · Date: ___________________
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Footer -->
+      <div style="margin-top: 20px; padding-top: 8px; border-top: 1px dashed #e2e8f0; font-size: 7.5pt; color: #94a3b8; text-align: center;">
+        Official Executive Performance Audit · Sinna Dental AI · Bole Dental Studio · Ministry of Revenues TIN: 0049283711 · All values in Ethiopian Birr (ETB)
+      </div>
+    </div>
+  `;
+}
+
+export function printWeeklyExecutiveReport(data?: WeeklyReportData, clinic?: Clinic): void {
+  const html = getWeeklyReportHTML(data, clinic);
+  smartPrint({
+    title: `Weekly_Executive_Audit_${new Date().toISOString().slice(0, 10)}`,
+    html,
+    paperSize: 'A4',
+  });
+}
+

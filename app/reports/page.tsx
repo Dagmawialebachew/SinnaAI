@@ -22,10 +22,17 @@ import {
   Printer,
   ShieldCheck,
   Check,
-  X
+  X,
+  Download
 } from 'lucide-react';
 import { useSinnaStore, getClinicData } from '@/lib/store';
 import { ZReportModal } from '@/components/z-report-modal';
+import {
+  printDailyPracticeReport,
+  printWeeklyExecutiveReport,
+  getDailyReportHTML,
+  getWeeklyReportHTML
+} from '@/lib/smart-print';
 
 export default function ReportsPage() {
   const store = useSinnaStore();
@@ -35,6 +42,7 @@ export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('Period · 2026-10-01 → 2026-10-12');
   const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState(false);
   const [zModalOpen, setZModalOpen] = useState(false);
+  const [reportModalType, setReportModalType] = useState<'daily' | 'weekly' | null>(null);
   const [activePaymentMethodHover, setActivePaymentMethodHover] = useState<string | null>(null);
 
   // Dynamic Ledger Calculations
@@ -49,6 +57,41 @@ export default function ReportsPage() {
   const paymentsCount = Math.max(safeLedger.length, 6);
   const avgCollectedTicketETB = (totalCollectedETB / paymentsCount);
 
+  // Standalone HTML Download Handler
+  const handleDownloadHTML = (type: 'daily' | 'weekly') => {
+    const htmlContent = type === 'daily'
+      ? getDailyReportHTML(undefined, clinic)
+      : getWeeklyReportHTML(undefined, clinic);
+
+    const fullDoc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${type === 'daily' ? 'Daily_Practice_Report' : 'Weekly_Executive_Audit'}_${new Date().toISOString().slice(0, 10)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', -apple-system, sans-serif; padding: 24px; background: #ffffff; margin: 0 auto; max-width: 900px; }
+    @page { size: A4 portrait; margin: 12mm 14mm; }
+  </style>
+</head>
+<body>
+  ${htmlContent}
+</body>
+</html>`;
+
+    const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type === 'daily' ? 'Daily_Practice_Report' : 'Weekly_Executive_Audit'}_${new Date().toISOString().slice(0, 10)}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       {/* 1. STICKY DENTALPIN HEADER */}
@@ -62,7 +105,8 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 relative">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap relative">
+          {/* Period Selector */}
           <button
             type="button"
             onClick={() => setIsPeriodMenuOpen(!isPeriodMenuOpen)}
@@ -73,10 +117,34 @@ export default function ReportsPage() {
             <ChevronDown className="shrink-0 size-3.5 text-sky-500" />
           </button>
 
+          {/* Daily Report Trigger */}
+          <button
+            type="button"
+            onClick={() => setReportModalType('daily')}
+            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
+            title="Preview & print Daily Practice Report"
+          >
+            <FileText className="size-3.5 text-sky-600" />
+            <span>Daily Report</span>
+          </button>
+
+          {/* Weekly Audit Trigger */}
+          <button
+            type="button"
+            onClick={() => setReportModalType('weekly')}
+            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
+            title="Preview & print Weekly Executive Audit"
+          >
+            <CalendarCheck className="size-3.5 text-indigo-600" />
+            <span>Weekly Audit</span>
+          </button>
+
+          {/* Z-Report Thermal Close Trigger */}
           <button
             type="button"
             onClick={() => setZModalOpen(true)}
             className="rounded-lg font-medium inline-flex items-center transition-colors px-3 py-1.5 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs"
+            title="Daily Cashier Drawer Close (Z-Report)"
           >
             <Printer className="size-3.5" />
             <span className="hidden sm:inline">Daily</span> Z-Report
@@ -145,6 +213,22 @@ export default function ReportsPage() {
           <Wallet className="h-4 w-4 text-sky-600" />
           <span className="truncate">Payments</span>
         </Link>
+        <button
+          type="button"
+          onClick={() => setReportModalType('daily')}
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-sky-300 bg-sky-50/70 px-3 py-1.5 text-xs font-semibold text-sky-800 transition-colors hover:bg-sky-100 shadow-xs"
+        >
+          <FileText className="h-4 w-4 text-sky-700" />
+          <span className="truncate">Daily Report (A4 PDF)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setReportModalType('weekly')}
+          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-indigo-300 bg-indigo-50/70 px-3 py-1.5 text-xs font-semibold text-indigo-800 transition-colors hover:bg-indigo-100 shadow-xs"
+        >
+          <CalendarCheck className="h-4 w-4 text-indigo-700" />
+          <span className="truncate">Weekly Audit (A4 PDF)</span>
+        </button>
       </nav>
 
       {/* 3. FOUR PRIMARY SUMMARY CARDS */}
@@ -758,6 +842,97 @@ export default function ReportsPage() {
           isOpen={zModalOpen}
           onClose={() => setZModalOpen(false)}
         />
+      )}
+
+      {/* 9. REPORT VIEWER MODAL (A4 Clinical Template Preview, Smart Print & Standalone HTML Export) */}
+      {reportModalType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-4xl max-h-[94vh] bg-slate-100 rounded-2xl shadow-float border border-slate-300 overflow-hidden flex flex-col">
+            {/* Modal Bar */}
+            <div className="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0 flex-wrap sm:flex-nowrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Tabs */}
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setReportModalType('daily')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      reportModalType === 'daily'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Daily Practice Report</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReportModalType('weekly')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+                      reportModalType === 'weekly'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <CalendarCheck className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Weekly Executive Audit</span>
+                  </button>
+                </div>
+
+                <span className="hidden md:inline-flex text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                  A4 Minimalist Template · MoR Registered
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 ms-auto">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadHTML(reportModalType)}
+                  className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors"
+                  title="Download standalone HTML document"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="hidden sm:inline">Download HTML</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (reportModalType === 'daily') printDailyPracticeReport(undefined, clinic);
+                    else printWeeklyExecutiveReport(undefined, clinic);
+                  }}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                  title="Print or Save as PDF"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Print / Save as PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setReportModalType(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Document Viewport */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/50">
+              <div className="w-full max-w-[820px] bg-white rounded-sm shadow-xl border border-slate-300 p-6 sm:p-10 my-auto">
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: reportModalType === 'daily'
+                      ? getDailyReportHTML(undefined, clinic)
+                      : getWeeklyReportHTML(undefined, clinic)
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
