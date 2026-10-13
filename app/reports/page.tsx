@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   Calendar,
@@ -23,51 +23,241 @@ import {
   ShieldCheck,
   Check,
   X,
-  Download
+  Download,
+  CalendarDays,
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
 import { useSinnaStore, getClinicData } from '@/lib/store';
 import { ZReportModal } from '@/components/z-report-modal';
 import {
-  printDailyPracticeReport,
-  printWeeklyExecutiveReport,
-  getDailyReportHTML,
-  getWeeklyReportHTML
+  ReportPeriod,
+  getComprehensiveReportHTML,
+  printComprehensiveReport
 } from '@/lib/smart-print';
+
+interface TimeframeData {
+  label: string;
+  badgeLabel: string;
+  subLabel: string;
+  collectedETB: number;
+  productionETB: number;
+  paymentsCount: number;
+  treatmentsCount: number;
+  patientsCount: number;
+  newPatientsCount: number;
+  noShowRate: string;
+  cbeTotalETB: number;
+  telebirrTotalETB: number;
+  cashTotalETB: number;
+  transferTotalETB: number;
+  doc1ProductionETB: number;
+  doc1Treatments: number;
+  doc2ProductionETB: number;
+  doc2Treatments: number;
+  receivables0_30: number;
+  receivables31_60: number;
+  timeAxisLabels: [string, string, string];
+  trendPeakLabel: string;
+}
+
+const TIMEFRAMES: Record<ReportPeriod, TimeframeData> = {
+  daily: {
+    label: 'Daily (Today)',
+    badgeLabel: '24h Shift',
+    subLabel: 'Oct 12, 2026 · Active Operating Shift',
+    collectedETB: 18075.0,
+    productionETB: 24950.0,
+    paymentsCount: 6,
+    treatmentsCount: 22,
+    patientsCount: 6,
+    newPatientsCount: 2,
+    noShowRate: '0.0%',
+    cbeTotalETB: 7800.0,
+    telebirrTotalETB: 5695.0,
+    cashTotalETB: 480.0,
+    transferTotalETB: 4100.0,
+    doc1ProductionETB: 24350.0,
+    doc1Treatments: 18,
+    doc2ProductionETB: 5160.0,
+    doc2Treatments: 4,
+    receivables0_30: 6875.0,
+    receivables31_60: 0.0,
+    timeAxisLabels: ['09:00', '13:00', '17:30'],
+    trendPeakLabel: '7,800.00 ETB Peak',
+  },
+  weekly: {
+    label: 'Weekly (7 Days)',
+    badgeLabel: 'Week 41',
+    subLabel: 'Oct 05 – Oct 11, 2026 · 7-Day Clinical Week',
+    collectedETB: 114200.0,
+    productionETB: 118450.0,
+    paymentsCount: 38,
+    treatmentsCount: 81,
+    patientsCount: 38,
+    newPatientsCount: 11,
+    noShowRate: '0.0%',
+    cbeTotalETB: 44200.0,
+    telebirrTotalETB: 38400.0,
+    cashTotalETB: 14800.0,
+    transferTotalETB: 16800.0,
+    doc1ProductionETB: 82650.0,
+    doc1Treatments: 54,
+    doc2ProductionETB: 35800.0,
+    doc2Treatments: 27,
+    receivables0_30: 6875.0,
+    receivables31_60: 0.0,
+    timeAxisLabels: ['Oct 05', 'Oct 08', 'Oct 11'],
+    trendPeakLabel: '24,950.00 ETB Peak',
+  },
+  monthly: {
+    label: 'Monthly (30 Days)',
+    badgeLabel: '30 Days',
+    subLabel: 'Sep 12 – Oct 12, 2026 · Monthly Rolling Cycle',
+    collectedETB: 486500.0,
+    productionETB: 512000.0,
+    paymentsCount: 164,
+    treatmentsCount: 348,
+    patientsCount: 164,
+    newPatientsCount: 47,
+    noShowRate: '0.6%',
+    cbeTotalETB: 189000.0,
+    telebirrTotalETB: 165500.0,
+    cashTotalETB: 62000.0,
+    transferTotalETB: 70000.0,
+    doc1ProductionETB: 358000.0,
+    doc1Treatments: 230,
+    doc2ProductionETB: 154000.0,
+    doc2Treatments: 118,
+    receivables0_30: 18500.0,
+    receivables31_60: 4200.0,
+    timeAxisLabels: ['Sep 15', 'Sep 30', 'Oct 12'],
+    trendPeakLabel: '48,000.00 ETB Peak',
+  },
+  '3month': {
+    label: '3 Months (Quarter)',
+    badgeLabel: '90 Days',
+    subLabel: 'Jul 01 – Sep 30, 2026 · Quarter 3 Performance',
+    collectedETB: 1420800.0,
+    productionETB: 1495000.0,
+    paymentsCount: 492,
+    treatmentsCount: 1040,
+    patientsCount: 492,
+    newPatientsCount: 142,
+    noShowRate: '0.8%',
+    cbeTotalETB: 546800.0,
+    telebirrTotalETB: 498000.0,
+    cashTotalETB: 184000.0,
+    transferTotalETB: 192000.0,
+    doc1ProductionETB: 1046500.0,
+    doc1Treatments: 690,
+    doc2ProductionETB: 448500.0,
+    doc2Treatments: 350,
+    receivables0_30: 34200.0,
+    receivables31_60: 11000.0,
+    timeAxisLabels: ['July', 'August', 'September'],
+    trendPeakLabel: '142,000.00 ETB Peak',
+  },
+  '6month': {
+    label: '6 Months (Half Year)',
+    badgeLabel: '180 Days',
+    subLabel: 'Apr 01 – Sep 30, 2026 · Semi-Annual Practice Review',
+    collectedETB: 2810400.0,
+    productionETB: 2960000.0,
+    paymentsCount: 980,
+    treatmentsCount: 2090,
+    patientsCount: 980,
+    newPatientsCount: 284,
+    noShowRate: '1.1%',
+    cbeTotalETB: 1080000.0,
+    telebirrTotalETB: 984400.0,
+    cashTotalETB: 365000.0,
+    transferTotalETB: 381000.0,
+    doc1ProductionETB: 2072000.0,
+    doc1Treatments: 1380,
+    doc2ProductionETB: 888000.0,
+    doc2Treatments: 710,
+    receivables0_30: 52000.0,
+    receivables31_60: 18500.0,
+    timeAxisLabels: ['April', 'June', 'September'],
+    trendPeakLabel: '290,000.00 ETB Peak',
+  },
+  year: {
+    label: '1 Year (Annual)',
+    badgeLabel: '365 Days',
+    subLabel: 'Oct 01, 2025 – Sep 30, 2026 · Fiscal Year 2026',
+    collectedETB: 5580000.0,
+    productionETB: 5840000.0,
+    paymentsCount: 1940,
+    treatmentsCount: 4120,
+    patientsCount: 1940,
+    newPatientsCount: 560,
+    noShowRate: '1.2%',
+    cbeTotalETB: 2150000.0,
+    telebirrTotalETB: 1950000.0,
+    cashTotalETB: 725000.0,
+    transferTotalETB: 755000.0,
+    doc1ProductionETB: 4088000.0,
+    doc1Treatments: 2750,
+    doc2ProductionETB: 1752000.0,
+    doc2Treatments: 1370,
+    receivables0_30: 78000.0,
+    receivables31_60: 24000.0,
+    timeAxisLabels: ['Q1 2026', 'Q2 2026', 'Q4 2026'],
+    trendPeakLabel: '580,000.00 ETB Peak',
+  },
+};
 
 export default function ReportsPage() {
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
 
-  // Date Period State
-  const [selectedPeriod, setSelectedPeriod] = useState('Period · 2026-10-01 → 2026-10-12');
-  const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState(false);
+  // Timeframe selector state (Daily, Weekly, Monthly, 3 Months, 6 Months, 1 Year)
+  const [selectedTimeframe, setSelectedTimeframe] = useState<ReportPeriod>('daily');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [zModalOpen, setZModalOpen] = useState(false);
-  const [reportModalType, setReportModalType] = useState<'daily' | 'weekly' | null>(null);
   const [activePaymentMethodHover, setActivePaymentMethodHover] = useState<string | null>(null);
 
-  // Dynamic Ledger Calculations
-  const safeLedger = Array.isArray(store.ledger) ? store.ledger : [];
-  const baseCollectedETB = 18075.0;
-  const totalCollectedETB = safeLedger.length > 0 
-    ? safeLedger.reduce((sum, tx) => sum + (tx.amountETB || 0), 0)
-    : baseCollectedETB;
+  // Current active statistics
+  const currentStats = TIMEFRAMES[selectedTimeframe] || TIMEFRAMES.daily;
+  const avgCollectedTicketETB = currentStats.collectedETB / Math.max(currentStats.paymentsCount, 1);
 
-  const totalProductionETB = 24950.0;
-  const completedTreatmentsCount = 22;
-  const paymentsCount = Math.max(safeLedger.length, 6);
-  const avgCollectedTicketETB = (totalCollectedETB / paymentsCount);
+  // Prepare synchronized report data matching what is on screen
+  const getReportDataForPeriod = (period: ReportPeriod) => {
+    const stats = TIMEFRAMES[period] || TIMEFRAMES.daily;
+    return {
+      timeframe: period,
+      totalCollectedETB: stats.collectedETB,
+      totalProductionETB: stats.productionETB,
+      patientsCount: stats.patientsCount,
+      newPatientsCount: stats.newPatientsCount,
+      treatmentsCount: stats.treatmentsCount,
+      cashTotalETB: stats.cashTotalETB,
+      telebirrTotalETB: stats.telebirrTotalETB,
+      cbeTotalETB: stats.cbeTotalETB,
+      transferTotalETB: stats.transferTotalETB,
+      doc1ProductionETB: stats.doc1ProductionETB,
+      doc1Treatments: stats.doc1Treatments,
+      doc2ProductionETB: stats.doc2ProductionETB,
+      doc2Treatments: stats.doc2Treatments,
+    };
+  };
+
+  // Direct 1-Click Print/Save as PDF using the clean minimalist A4 HTML template
+  const handleDirectPrintReport = (period: ReportPeriod = selectedTimeframe) => {
+    const data = getReportDataForPeriod(period);
+    printComprehensiveReport(period, data, clinic);
+  };
 
   // Standalone HTML Download Handler
-  const handleDownloadHTML = (type: 'daily' | 'weekly') => {
-    const htmlContent = type === 'daily'
-      ? getDailyReportHTML(undefined, clinic)
-      : getWeeklyReportHTML(undefined, clinic);
-
+  const handleDownloadHTML = (period: ReportPeriod = selectedTimeframe) => {
+    const data = getReportDataForPeriod(period);
+    const htmlContent = getComprehensiveReportHTML(period, data, clinic);
     const fullDoc = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>${type === 'daily' ? 'Daily_Practice_Report' : 'Weekly_Executive_Audit'}_${new Date().toISOString().slice(0, 10)}</title>
+  <title>BoleDental_Clinical_Audit_${period.toUpperCase()}_${new Date().toISOString().slice(0, 10)}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;600;700&display=swap" rel="stylesheet">
@@ -85,7 +275,7 @@ export default function ReportsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${type === 'daily' ? 'Daily_Practice_Report' : 'Weekly_Executive_Audit'}_${new Date().toISOString().slice(0, 10)}.html`;
+    a.download = `Clinical_Audit_Report_${period.toUpperCase()}_${new Date().toISOString().slice(0, 10)}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -94,96 +284,137 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* 1. STICKY DENTALPIN HEADER */}
+      {/* 1. TOP CLINICAL HEADER */}
       <header className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-sm border-b border-slate-200/90 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between transition-colors">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate">
-            Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 truncate">
-            Your clinic at a glance · {clinic.name}
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 truncate">
+              Practice Analytics
+            </h1>
+            <span className="hidden sm:inline-flex text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+              {currentStats.badgeLabel}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 truncate mt-0.5">
+            {clinic.name} · {currentStats.subLabel}
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap relative">
-          {/* Period Selector */}
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+          {/* Main Download PDF Action (1-click prints what the page says) */}
           <button
             type="button"
-            onClick={() => setIsPeriodMenuOpen(!isPeriodMenuOpen)}
-            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 shadow-xs"
+            onClick={() => handleDirectPrintReport(selectedTimeframe)}
+            className="rounded-xl font-bold inline-flex items-center transition-all px-3.5 py-2 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs"
+            title={`Print or Save ${currentStats.label} as official clean A4 PDF`}
           >
-            <Calendar className="shrink-0 size-4 text-sky-600" />
-            <span>{selectedPeriod}</span>
-            <ChevronDown className="shrink-0 size-3.5 text-sky-500" />
+            <Download className="size-3.5" />
+            <span>Download Report (PDF)</span>
           </button>
 
-          {/* Daily Report Trigger */}
+          {/* Preview A4 Sheet Modal */}
           <button
             type="button"
-            onClick={() => setReportModalType('daily')}
-            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
-            title="Preview & print Daily Practice Report"
+            onClick={() => setIsReportModalOpen(true)}
+            className="rounded-xl font-semibold inline-flex items-center transition-colors px-3 py-2 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
+            title="Preview full A4 clinical document before printing"
           >
-            <FileText className="size-3.5 text-sky-600" />
-            <span>Daily Report</span>
+            <FileText className="size-3.5 text-slate-500" />
+            <span>Preview Template</span>
           </button>
 
-          {/* Weekly Audit Trigger */}
-          <button
-            type="button"
-            onClick={() => setReportModalType('weekly')}
-            className="rounded-lg font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-xs"
-            title="Preview & print Weekly Executive Audit"
-          >
-            <CalendarCheck className="size-3.5 text-indigo-600" />
-            <span>Weekly Audit</span>
-          </button>
-
-          {/* Z-Report Thermal Close Trigger */}
+          {/* Daily Z-Report Cashier Close Trigger */}
           <button
             type="button"
             onClick={() => setZModalOpen(true)}
-            className="rounded-lg font-medium inline-flex items-center transition-colors px-3 py-1.5 text-xs gap-1.5 text-white bg-slate-900 hover:bg-slate-800 shadow-xs"
+            className="rounded-xl font-semibold inline-flex items-center transition-colors px-3 py-2 text-xs gap-1.5 text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
             title="Daily Cashier Drawer Close (Z-Report)"
           >
-            <Printer className="size-3.5" />
+            <ShieldCheck className="size-3.5 text-emerald-600" />
             <span className="hidden sm:inline">Daily</span> Z-Report
           </button>
-
-          {/* Period Selection Popover */}
-          {isPeriodMenuOpen && (
-            <div className="absolute top-full end-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100">
-              <div className="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Select Analytics Window
-              </div>
-              {[
-                'Period · 2026-10-01 → 2026-10-12',
-                'Today · 2026-10-12',
-                'This Week · 2026-10-05 → 2026-10-12',
-                'Last 30 Days · Rolling',
-                'Quarter 4 · 2026'
-              ].map((period) => (
-                <button
-                  key={period}
-                  type="button"
-                  onClick={() => {
-                    setSelectedPeriod(period);
-                    setIsPeriodMenuOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-left text-xs flex items-center justify-between hover:bg-slate-50 ${
-                    selectedPeriod === period ? 'font-bold text-sky-700 bg-sky-50/50' : 'text-slate-700'
-                  }`}
-                >
-                  <span className="truncate">{period}</span>
-                  {selectedPeriod === period && <Check className="w-3.5 h-3.5 text-sky-600 shrink-0" />}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </header>
 
-      {/* 2. DRILL DOWN NAVIGATION PILLS (DentalPin Standard) */}
+      {/* 2. SIMPLE, EASY-TO-SELECT TIMEFRAME BAR (Anyone can understand!) */}
+      <div className="p-1.5 bg-slate-100/90 border border-slate-200/90 rounded-2xl flex items-center gap-1.5 overflow-x-auto scrollbar-thin shadow-2xs">
+        {[
+          { id: 'daily', label: 'Today (Daily)', icon: Clock },
+          { id: 'weekly', label: 'This Week (7 Days)', icon: Calendar },
+          { id: 'monthly', label: 'This Month (30 Days)', icon: CalendarDays },
+          { id: '3month', label: '3 Months (Quarter)', icon: BarChart3 },
+          { id: '6month', label: '6 Months (Half Year)', icon: LineChart },
+          { id: 'year', label: '1 Year (Annual)', icon: ShieldCheck },
+        ].map((t) => {
+          const IconComp = t.icon;
+          const isSelected = selectedTimeframe === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSelectedTimeframe(t.id as ReportPeriod)}
+              className={`flex-1 min-w-[130px] sm:min-w-0 px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                isSelected
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-sky-600' : 'text-slate-400'}`} />
+              <span className="truncate">{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 2.5 ACTIVE AUDIT PERIOD BANNER (Crystal Clear & Simple for Anyone) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="size-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+            <Calendar className="size-5 text-sky-600" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-900 truncate">
+                {currentStats.label} Practice Summary
+              </h2>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 uppercase tracking-wider">
+                Audited
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5 truncate">
+              {currentStats.subLabel} · Total Collected:{' '}
+              <strong className="text-slate-900 font-mono">
+                {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+              </strong>{' '}
+              ({currentStats.patientsCount} patients · {currentStats.treatmentsCount} treatments)
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => handleDirectPrintReport(selectedTimeframe)}
+            className="w-full sm:w-auto px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+            title={`Print or Save ${currentStats.label} as official A4 PDF`}
+          >
+            <Download className="size-3.5" />
+            <span>Download {currentStats.label.split(' ')[0]} PDF</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsReportModalOpen(true)}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            title="Preview A4 document in full view"
+          >
+            <FileText className="size-3.5" />
+            <span className="hidden sm:inline">Preview</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. DRILL DOWN NAVIGATION PILLS */}
       <nav aria-label="Drill down" className="flex gap-2 overflow-x-auto sm:flex-wrap pb-1 scrollbar-thin">
         <Link
           href="/invoices"
@@ -213,29 +444,53 @@ export default function ReportsPage() {
           <Wallet className="h-4 w-4 text-sky-600" />
           <span className="truncate">Payments</span>
         </Link>
+
+        {/* Quick Report Launchers */}
         <button
           type="button"
-          onClick={() => setReportModalType('daily')}
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-sky-300 bg-sky-50/70 px-3 py-1.5 text-xs font-semibold text-sky-800 transition-colors hover:bg-sky-100 shadow-xs"
+          onClick={() => {
+            setSelectedTimeframe('daily');
+            handleDirectPrintReport('daily');
+          }}
+          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-sky-300 bg-sky-50/70 px-3 py-1.5 text-xs font-semibold text-sky-800 transition-colors hover:bg-sky-100 shadow-xs"
+          title="1-Click Print or Save Daily PDF Report"
         >
-          <FileText className="h-4 w-4 text-sky-700" />
-          <span className="truncate">Daily Report (A4 PDF)</span>
+          <Download className="h-3.5 w-3.5 text-sky-700" />
+          <span>Download Daily PDF</span>
         </button>
+
         <button
           type="button"
-          onClick={() => setReportModalType('weekly')}
-          className="inline-flex items-center gap-2 shrink-0 rounded-full border border-indigo-300 bg-indigo-50/70 px-3 py-1.5 text-xs font-semibold text-indigo-800 transition-colors hover:bg-indigo-100 shadow-xs"
+          onClick={() => {
+            setSelectedTimeframe('weekly');
+            handleDirectPrintReport('weekly');
+          }}
+          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-indigo-300 bg-indigo-50/70 px-3 py-1.5 text-xs font-semibold text-indigo-800 transition-colors hover:bg-indigo-100 shadow-xs"
+          title="1-Click Print or Save Weekly PDF Report"
         >
-          <CalendarCheck className="h-4 w-4 text-indigo-700" />
-          <span className="truncate">Weekly Audit (A4 PDF)</span>
+          <Download className="h-3.5 w-3.5 text-indigo-700" />
+          <span>Download Weekly PDF</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedTimeframe('monthly');
+            handleDirectPrintReport('monthly');
+          }}
+          className="inline-flex items-center gap-1.5 shrink-0 rounded-full border border-emerald-300 bg-emerald-50/70 px-3 py-1.5 text-xs font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 shadow-xs"
+          title="1-Click Print or Save Monthly PDF Report"
+        >
+          <Download className="h-3.5 w-3.5 text-emerald-700" />
+          <span>Download Monthly PDF</span>
         </button>
       </nav>
 
-      {/* 3. FOUR PRIMARY SUMMARY CARDS */}
+      {/* 4. FOUR PRIMARY SUMMARY CARDS (Dynamic based on selected timeframe) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Cash Collected */}
-        <Link
-          href="/invoices"
+        <div
+          onClick={() => setIsReportModalOpen(true)}
           className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
         >
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
@@ -247,17 +502,16 @@ export default function ReportsPage() {
           <div className="flex-1 px-4 pb-3.5 min-w-0">
             <div className="flex flex-col gap-1">
               <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
-                {totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">{paymentsCount} payments</div>
+                <div className="text-xs text-slate-500 truncate">{currentStats.paymentsCount} payments received</div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <svg
                   viewBox="0 0 100 32"
                   preserveAspectRatio="none"
                   role="img"
-                  aria-label="Trend 3 points, up 1263"
                   className="w-full h-full overflow-visible"
                 >
                   <path
@@ -277,20 +531,17 @@ export default function ReportsPage() {
               </div>
             </div>
           </div>
-        </Link>
+        </div>
 
-        {/* Card 2: Patient Credit */}
+        {/* Card 2: Patient Credit / Advances */}
         <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-sky-500">
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <PiggyBank className="w-4 h-4 shrink-0 text-sky-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Patient credit
             </span>
-            <span
-              className="ms-auto inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium"
-              title="Today"
-            >
-              <Clock className="w-3 h-3 text-slate-400" /> Today
+            <span className="ms-auto inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium">
+              <Clock className="w-3 h-3 text-slate-400" /> Verified
             </span>
           </header>
           <div className="flex-1 px-4 pb-3.5 min-w-0">
@@ -299,7 +550,7 @@ export default function ReportsPage() {
                 0.00 ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">Unallocated advances</div>
+                <div className="text-xs text-slate-500 truncate">Unallocated advances balance</div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <div className="h-full flex items-end">
@@ -323,11 +574,11 @@ export default function ReportsPage() {
           <div className="flex-1 px-4 pb-3.5 min-w-0">
             <div className="flex flex-col gap-1">
               <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
-                {totalProductionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                {currentStats.productionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
                 <div className="text-xs text-slate-500 truncate">
-                  {completedTreatmentsCount} treatments
+                  {currentStats.treatmentsCount.toLocaleString()} treatments completed
                 </div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
@@ -370,7 +621,7 @@ export default function ReportsPage() {
                 {avgCollectedTicketETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">Over {paymentsCount} payments</div>
+                <div className="text-xs text-slate-500 truncate">Over {currentStats.paymentsCount} payments</div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <div className="h-full flex items-end">
@@ -384,14 +635,14 @@ export default function ReportsPage() {
         </div>
       </section>
 
-      {/* 4. MID SECTION: COLLECTIONS OVER TIME & PAYMENT METHOD DONUT */}
+      {/* 5. MID SECTION: COLLECTIONS OVER TIME & BY PAYMENT METHOD */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Collections Over Time (Matching DentalPin SVG) */}
+        {/* Collections Over Time Chart */}
         <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500">
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <LineChart className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Collections over time
+              Collections over time ({currentStats.label})
             </span>
           </header>
           <div className="flex-1 px-4 pb-4 min-w-0">
@@ -401,16 +652,13 @@ export default function ReportsPage() {
                   viewBox="0 0 800 220"
                   preserveAspectRatio="none"
                   role="img"
-                  aria-label="Trend over 3 points"
                   className="w-full h-full overflow-visible"
                 >
-                  {/* Fill polygon */}
                   <path
                     d="M8.00,190.26 L400.00,140.81 L792.00,8.00 L792.00,200 L8.00,200 Z"
                     fill="#10b981"
                     fillOpacity="0.12"
                   />
-                  {/* Target dashed benchmark line */}
                   <path
                     d="M8.00,200.00 L400.00,200.00 L792.00,200.00"
                     stroke="#f43f5e"
@@ -419,7 +667,6 @@ export default function ReportsPage() {
                     fill="none"
                     opacity="0.6"
                   />
-                  {/* Main spline */}
                   <path
                     d="M8.00,190.26 L400.00,140.81 L792.00,8.00"
                     stroke="#10b981"
@@ -428,7 +675,6 @@ export default function ReportsPage() {
                     strokeLinejoin="round"
                     fill="none"
                   />
-                  {/* Data Point Nodes */}
                   <circle cx="8" cy="190.26" r="4.5" fill="#10b981" />
                   <circle cx="400" cy="140.81" r="4.5" fill="#10b981" />
                   <circle cx="792" cy="8.00" r="5" fill="#10b981" />
@@ -437,38 +683,38 @@ export default function ReportsPage() {
                 {/* Date Axis Badges */}
                 <div
                   className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
-                  style={{ left: '2%', bottom: '0px' }}
+                  style={{ left: '3%', bottom: '0px' }}
                 >
-                  Oct 04
+                  {currentStats.timeAxisLabels[0]}
                 </div>
                 <div
                   className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
                   style={{ left: '50%', bottom: '0px' }}
                 >
-                  Oct 07
+                  {currentStats.timeAxisLabels[1]}
                 </div>
                 <div
                   className="absolute text-xs text-slate-400 font-mono -translate-x-1/2 pointer-events-none"
-                  style={{ left: '98%', bottom: '0px' }}
+                  style={{ left: '96%', bottom: '0px' }}
                 >
-                  Oct 10
+                  {currentStats.timeAxisLabels[2]}
                 </div>
 
-                {/* Top Value Indicator */}
-                <div className="absolute top-0 start-0 text-xs text-slate-500 font-mono font-bold pointer-events-none bg-white/80 px-1.5 py-0.5 rounded border border-slate-200/60">
-                  13,300.00 ETB
+                {/* Peak Label */}
+                <div className="absolute top-0 start-0 text-xs text-slate-600 font-mono font-bold pointer-events-none bg-white/90 px-2 py-0.5 rounded border border-slate-200">
+                  {currentStats.trendPeakLabel}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* By Payment Method (DentalPin Donut SVG) */}
+        {/* By Payment Method Donut Chart */}
         <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-transparent">
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <CreditCard className="w-4 h-4 shrink-0 text-slate-400" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              By payment method
+              By payment method ({currentStats.label})
             </span>
           </header>
           <div className="flex-1 px-4 pb-4 min-w-0">
@@ -480,135 +726,81 @@ export default function ReportsPage() {
                   height="148"
                   viewBox="0 0 148 148"
                   role="img"
-                  aria-label="Donut chart, 4 segments"
+                  aria-label="Donut chart"
                 >
-                  {/* Segment 1: Direct debit (Slate) */}
                   <path
                     d="M 74.000 0.000 A 74 74 0 0 1 104.860 141.258 L 98.188 126.716 A 58 58 0 0 0 74.000 16.000 Z"
                     fill="#64748b"
                     className="cursor-pointer transition-opacity hover:opacity-80"
-                    onMouseEnter={() => setActivePaymentMethodHover('Direct debit')}
-                    onMouseLeave={() => setActivePaymentMethodHover(null)}
-                  >
-                    <title>Direct debit: 7,800.00 ETB</title>
-                  </path>
-                  {/* Segment 2: Card / CBE Birr (Sky) */}
+                  />
                   <path
                     d="M 104.860 141.258 A 74 74 0 0 1 0.017 75.575 L 16.013 75.235 A 58 58 0 0 0 98.188 126.716 Z"
                     fill="#0284c7"
                     className="cursor-pointer transition-opacity hover:opacity-80"
-                    onMouseEnter={() => setActivePaymentMethodHover('Card')}
-                    onMouseLeave={() => setActivePaymentMethodHover(null)}
-                  >
-                    <title>Card / CBE Birr POS: 5,695.00 ETB</title>
-                  </path>
-                  {/* Segment 3: Bank transfer (Indigo) */}
+                  />
                   <path
                     d="M 0.017 75.575 A 74 74 0 0 1 61.710 1.028 L 64.367 16.806 A 58 58 0 0 0 16.013 75.235 Z"
                     fill="#6366f1"
                     className="cursor-pointer transition-opacity hover:opacity-80"
-                    onMouseEnter={() => setActivePaymentMethodHover('Bank transfer')}
-                    onMouseLeave={() => setActivePaymentMethodHover(null)}
-                  >
-                    <title>Bank transfer: 4,100.00 ETB</title>
-                  </path>
-                  {/* Segment 4: Cash (Emerald) */}
+                  />
                   <path
                     d="M 61.710 1.028 A 74 74 0 0 1 74.000 0.000 L 74.000 16.000 A 58 58 0 0 0 64.367 16.806 Z"
                     fill="#10b981"
                     className="cursor-pointer transition-opacity hover:opacity-80"
-                    onMouseEnter={() => setActivePaymentMethodHover('Cash')}
-                    onMouseLeave={() => setActivePaymentMethodHover(null)}
-                  >
-                    <title>Cash: 480.00 ETB</title>
-                  </path>
+                  />
                 </svg>
 
                 {/* Donut Center */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
                   <div className="text-[10px] text-slate-400 uppercase font-semibold">Total</div>
                   <div className="text-xs font-bold text-slate-900 font-mono">
-                    {totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                    {currentStats.collectedETB >= 1000000
+                      ? `${(currentStats.collectedETB / 1000000).toFixed(2)}M ETB`
+                      : `${(currentStats.collectedETB / 1000).toFixed(0)}k ETB`}
                   </div>
                 </div>
               </div>
 
               {/* Legend List */}
               <ul className="flex-1 min-w-0 space-y-2">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setActivePaymentMethodHover('Direct debit')}
-                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
-                      activePaymentMethodHover === 'Direct debit' ? 'bg-slate-100' : 'hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-500" />
-                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-slate-900">
-                      Direct debit
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
-                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
-                      7,800.00 ETB
-                    </span>
-                  </button>
-                </li>
-
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setActivePaymentMethodHover('Card')}
-                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
-                      activePaymentMethodHover === 'Card' ? 'bg-sky-50' : 'hover:bg-slate-50'
-                    }`}
-                  >
+                <li className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-sky-600" />
-                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-sky-700">
-                      Card / CBE Birr
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono shrink-0">3 payments</span>
-                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
-                      5,695.00 ETB
-                    </span>
-                  </button>
+                    <span className="text-slate-700">CBE Birr POS / Card</span>
+                  </div>
+                  <span className="font-mono font-bold text-slate-900">
+                    {currentStats.cbeTotalETB.toLocaleString()} ETB
+                  </span>
                 </li>
 
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setActivePaymentMethodHover('Bank transfer')}
-                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
-                      activePaymentMethodHover === 'Bank transfer' ? 'bg-indigo-50' : 'hover:bg-slate-50'
-                    }`}
-                  >
+                <li className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-slate-500" />
+                    <span className="text-slate-700">Telebirr SuperApp</span>
+                  </div>
+                  <span className="font-mono font-bold text-slate-900">
+                    {currentStats.telebirrTotalETB.toLocaleString()} ETB
+                  </span>
+                </li>
+
+                <li className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-indigo-500" />
-                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-indigo-700">
-                      Bank transfer
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
-                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
-                      4,100.00 ETB
-                    </span>
-                  </button>
+                    <span className="text-slate-700">Bank Transfer</span>
+                  </div>
+                  <span className="font-mono font-bold text-slate-900">
+                    {currentStats.transferTotalETB.toLocaleString()} ETB
+                  </span>
                 </li>
 
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setActivePaymentMethodHover('Cash')}
-                    className={`w-full flex items-center gap-2 text-start group cursor-pointer rounded-lg p-1 transition-colors ${
-                      activePaymentMethodHover === 'Cash' ? 'bg-emerald-50' : 'hover:bg-slate-50'
-                    }`}
-                  >
+                <li className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500" />
-                    <span className="text-xs text-slate-700 truncate flex-1 group-hover:text-emerald-700">
-                      Cash
-                    </span>
-                    <span className="text-xs text-slate-400 font-mono shrink-0">1 payments</span>
-                    <span className="text-xs text-slate-900 font-semibold font-mono shrink-0">
-                      480.00 ETB
-                    </span>
-                  </button>
+                    <span className="text-slate-700">Physical Cash</span>
+                  </div>
+                  <span className="font-mono font-bold text-slate-900">
+                    {currentStats.cashTotalETB.toLocaleString()} ETB
+                  </span>
                 </li>
               </ul>
             </div>
@@ -616,12 +808,12 @@ export default function ReportsPage() {
         </div>
       </section>
 
-      {/* 5. PRODUCTION BY DOCTOR */}
+      {/* 6. PRODUCTION BY DOCTOR */}
       <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-sky-500">
         <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
           <Stethoscope className="w-4 h-4 shrink-0 text-sky-600" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Production by doctor
+            Production by doctor ({currentStats.label})
           </span>
         </header>
         <div className="flex-1 px-4 pb-4 min-w-0">
@@ -634,16 +826,16 @@ export default function ReportsPage() {
                     <div className="text-sm font-semibold text-slate-900 truncate">
                       Dr. Senait Tadesse <span className="text-xs text-slate-400 font-normal">ዶ/ር ሰናይት ታደሰ</span>
                     </div>
-                    <div className="text-xs text-slate-500 truncate">21 treatments</div>
+                    <div className="text-xs text-slate-500 truncate">{currentStats.doc1Treatments} treatments completed</div>
                   </div>
                   <div className="text-sm font-bold font-mono text-slate-900 shrink-0">
-                    24,350.00 ETB
+                    {currentStats.doc1ProductionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                   </div>
                 </div>
                 <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
                   <div
                     className="h-full rounded-full transition-all duration-300 ease-out bg-sky-500"
-                    style={{ width: '100%' }}
+                    style={{ width: `${((currentStats.doc1ProductionETB / currentStats.productionETB) * 100).toFixed(0)}%` }}
                   />
                 </div>
               </div>
@@ -657,16 +849,16 @@ export default function ReportsPage() {
                     <div className="text-sm font-semibold text-slate-900 truncate">
                       Dr. Brook Zewde <span className="text-xs text-slate-400 font-normal">ዶ/ር ብሩክ ዘውዴ</span>
                     </div>
-                    <div className="text-xs text-slate-500 truncate">1 treatments</div>
+                    <div className="text-xs text-slate-500 truncate">{currentStats.doc2Treatments} treatments completed</div>
                   </div>
                   <div className="text-sm font-bold font-mono text-slate-900 shrink-0">
-                    600.00 ETB
+                    {currentStats.doc2ProductionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                   </div>
                 </div>
                 <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
                   <div
                     className="h-full rounded-full transition-all duration-300 ease-out bg-sky-500"
-                    style={{ width: '2.5%' }}
+                    style={{ width: `${((currentStats.doc2ProductionETB / currentStats.productionETB) * 100).toFixed(0)}%` }}
                   />
                 </div>
               </div>
@@ -675,13 +867,9 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* 6. NEW PATIENTS & NO-SHOW RATE CARDS */}
+      {/* 7. NEW PATIENTS & NO-SHOW RATE */}
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* New patients */}
-        <Link
-          href="/schedule"
-          className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
-        >
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500">
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <UserPlus className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -691,22 +879,16 @@ export default function ReportsPage() {
           <div className="flex-1 px-4 pb-3.5 min-w-0">
             <div className="flex flex-col gap-1">
               <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
-                11
+                {currentStats.newPatientsCount}
               </div>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">
-                  68.8% of total appointments
-                </div>
+              <div className="text-xs text-slate-500 truncate">
+                {((currentStats.newPatientsCount / Math.max(currentStats.patientsCount, 1)) * 100).toFixed(1)}% of total appointments
               </div>
             </div>
           </div>
-        </Link>
+        </div>
 
-        {/* No-show rate */}
-        <Link
-          href="/schedule"
-          className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500"
-        >
+        <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-emerald-500">
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <CalendarX className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -716,127 +898,66 @@ export default function ReportsPage() {
           <div className="flex-1 px-4 pb-3.5 min-w-0">
             <div className="flex flex-col gap-1">
               <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
-                0.0%
+                {currentStats.noShowRate}
               </div>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">
-                  100.0% completed
-                </div>
+              <div className="text-xs text-slate-500 truncate">
+                100% adherence on confirmed reminders
               </div>
             </div>
           </div>
-        </Link>
+        </div>
       </section>
 
-      {/* 7. AGING RECEIVABLES CARD */}
-      <Link
-        href="/invoices"
-        className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-amber-500"
-      >
+      {/* 8. AGING RECEIVABLES */}
+      <div className="relative flex flex-col rounded-xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1 before:bg-amber-500">
         <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
           <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-            Aging receivables
+            Aging receivables ({currentStats.label})
           </span>
           <span className="ms-auto inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-            <Clock className="w-3 h-3 text-slate-400" /> Today
+            <Clock className="w-3 h-3 text-slate-400" /> MoR Ledger
           </span>
         </header>
         <div className="flex-1 px-4 pb-4 min-w-0">
           <div className="space-y-3.5">
             <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono">
-              6,875.00 ETB
+              {(currentStats.receivables0_30 + currentStats.receivables31_60).toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <ul className="space-y-3">
-              {/* 0-30 days */}
               <li>
-                <div className="block w-full text-start group">
+                <div className="block w-full text-start">
                   <div className="flex items-baseline justify-between gap-3 mb-1">
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-800 truncate">0-30 days</div>
-                      <div className="text-[11px] text-slate-500 truncate">6 patients</div>
-                    </div>
-                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
-                      6,875.00 ETB
+                    <div className="text-xs font-semibold text-slate-800">0-30 days (Current)</div>
+                    <div className="text-xs font-bold font-mono text-slate-900">
+                      {currentStats.receivables0_30.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                     </div>
                   </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
-                    <div
-                      className="h-full rounded-full transition-all duration-300 ease-out bg-emerald-500"
-                      style={{ width: '100%' }}
-                    />
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: '100%' }} />
                   </div>
                 </div>
               </li>
 
-              {/* 31-60 days */}
               <li>
-                <div className="block w-full text-start group">
+                <div className="block w-full text-start">
                   <div className="flex items-baseline justify-between gap-3 mb-1">
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-800 truncate">31-60 days</div>
-                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
-                    </div>
-                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
-                      0.00 ETB
+                    <div className="text-xs font-semibold text-slate-800">31-60 days</div>
+                    <div className="text-xs font-bold font-mono text-slate-900">
+                      {currentStats.receivables31_60.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                     </div>
                   </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
-                    <div
-                      className="h-full rounded-full transition-all duration-300 ease-out bg-amber-500"
-                      style={{ width: '0%' }}
-                    />
-                  </div>
-                </div>
-              </li>
-
-              {/* 61-90 days */}
-              <li>
-                <div className="block w-full text-start group">
-                  <div className="flex items-baseline justify-between gap-3 mb-1">
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-800 truncate">61-90 days</div>
-                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
-                    </div>
-                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
-                      0.00 ETB
-                    </div>
-                  </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
-                    <div
-                      className="h-full rounded-full transition-all duration-300 ease-out bg-rose-500"
-                      style={{ width: '0%' }}
-                    />
-                  </div>
-                </div>
-              </li>
-
-              {/* 90+ days */}
-              <li>
-                <div className="block w-full text-start group">
-                  <div className="flex items-baseline justify-between gap-3 mb-1">
-                    <div className="min-w-0">
-                      <div className="text-xs font-semibold text-slate-800 truncate">90+ days</div>
-                      <div className="text-[11px] text-slate-500 truncate">0 patients</div>
-                    </div>
-                    <div className="text-xs font-bold font-mono text-slate-900 shrink-0">
-                      0.00 ETB
-                    </div>
-                  </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100" aria-hidden="true">
-                    <div
-                      className="h-full rounded-full transition-all duration-300 ease-out bg-rose-500"
-                      style={{ width: '0%' }}
-                    />
+                  <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100">
+                    <div className="h-full rounded-full bg-amber-500" style={{ width: currentStats.receivables31_60 > 0 ? '20%' : '0%' }} />
                   </div>
                 </div>
               </li>
             </ul>
           </div>
         </div>
-      </Link>
+      </div>
 
-      {/* 8. MODAL FOR DAILY FISCAL Z-REPORT */}
+      {/* 9. MODAL FOR DAILY FISCAL Z-REPORT */}
       {zModalOpen && (
         <ZReportModal
           isOpen={zModalOpen}
@@ -844,74 +965,56 @@ export default function ReportsPage() {
         />
       )}
 
-      {/* 9. REPORT VIEWER MODAL (A4 Clinical Template Preview, Smart Print & Standalone HTML Export) */}
-      {reportModalType && (
+      {/* 10. UNIFIED A4 CLINICAL AUDIT REPORT MODAL (Supports Daily, Weekly, Monthly, 3M, 6M, 1Y) */}
+      {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="relative w-full max-w-4xl max-h-[94vh] bg-slate-100 rounded-2xl shadow-float border border-slate-300 overflow-hidden flex flex-col">
-            {/* Modal Bar */}
-            <div className="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0 flex-wrap sm:flex-nowrap">
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Tabs */}
-                <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+            {/* Modal Bar with Timeframe Switchers & Action Buttons */}
+            <div className="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between gap-3 shrink-0 flex-wrap">
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-thin">
+                {(['daily', 'weekly', 'monthly', '3month', '6month', 'year'] as ReportPeriod[]).map((period) => (
                   <button
+                    key={period}
                     type="button"
-                    onClick={() => setReportModalType('daily')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                      reportModalType === 'daily'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
+                    onClick={() => setSelectedTimeframe(period)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      selectedTimeframe === period
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
-                    <FileText className="w-3.5 h-3.5 text-sky-600" />
-                    <span>Daily Practice Report</span>
+                    {TIMEFRAMES[period].label.split(' ')[0]}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setReportModalType('weekly')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                      reportModalType === 'weekly'
-                        ? 'bg-white text-slate-900 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <CalendarCheck className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Weekly Executive Audit</span>
-                  </button>
-                </div>
-
-                <span className="hidden md:inline-flex text-[11px] font-mono text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-                  A4 Minimalist Template · MoR Registered
-                </span>
+                ))}
               </div>
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2 ms-auto">
+                {/* Download Standalone HTML button */}
                 <button
                   type="button"
-                  onClick={() => handleDownloadHTML(reportModalType)}
+                  onClick={() => handleDownloadHTML(selectedTimeframe)}
                   className="px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition-colors"
-                  title="Download standalone HTML document"
+                  title="Download clean standalone HTML report file"
                 >
                   <Download className="w-3.5 h-3.5 text-slate-500" />
                   <span className="hidden sm:inline">Download HTML</span>
                 </button>
 
+                {/* Print / Save as PDF button */}
                 <button
                   type="button"
-                  onClick={() => {
-                    if (reportModalType === 'daily') printDailyPracticeReport(undefined, clinic);
-                    else printWeeklyExecutiveReport(undefined, clinic);
-                  }}
+                  onClick={() => handleDirectPrintReport(selectedTimeframe)}
                   className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
                   title="Print or Save as PDF"
                 >
                   <Printer className="w-3.5 h-3.5" />
-                  <span>Print / Save as PDF</span>
+                  <span>Print / Save PDF (A4)</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setReportModalType(null)}
+                  onClick={() => setIsReportModalOpen(false)}
                   className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -919,14 +1022,12 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Document Viewport */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/50">
+            {/* Document Viewport - Shows the clean, minimalist A4 HTML layout */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-slate-200/60">
               <div className="w-full max-w-[820px] bg-white rounded-sm shadow-xl border border-slate-300 p-6 sm:p-10 my-auto">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: reportModalType === 'daily'
-                      ? getDailyReportHTML(undefined, clinic)
-                      : getWeeklyReportHTML(undefined, clinic)
+                    __html: getComprehensiveReportHTML(selectedTimeframe, getReportDataForPeriod(selectedTimeframe), clinic)
                   }}
                 />
               </div>
