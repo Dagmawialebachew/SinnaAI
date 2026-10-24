@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, CheckCircle2, Radio, Clock, ShieldCheck } from 'lucide-react';
 import { SmsToastNotification } from '@/lib/types';
-import { useSinnaStore, sinnaStore } from '@/lib/store';
+import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 
 interface SmsToastProps {
   notification?: SmsToastNotification | null;
@@ -12,6 +12,7 @@ interface SmsToastProps {
 
 export function SmsToast({ notification: propNotification, onClose: propOnClose }: SmsToastProps = {}) {
   const store = useSinnaStore();
+  const clinic = getClinicData(store.activeClinicSlug);
   const notification = propNotification !== undefined ? propNotification : store.activeNotification;
   const onClose = propOnClose || (() => sinnaStore.clearNotification());
   const [secondsRemaining, setSecondsRemaining] = useState<number>(30);
@@ -96,7 +97,7 @@ export function SmsToast({ notification: propNotification, onClose: propOnClose 
                 Official Telecom Confirmation · AfroMessage
               </span>
               <h3 className="font-extrabold text-slate-950 text-base sm:text-lg tracking-tight">
-                Bole Dental Studio
+                {clinic.name}
               </h3>
             </div>
 

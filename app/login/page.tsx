@@ -70,7 +70,7 @@ export default function LoginPage() {
           stationName: data.user.stationName || 'Workstation',
         });
 
-        const targetRoute = '/';
+        const targetRoute = data.user.role === 'admin' ? '/admin' : '/';
         setTimeout(() => {
           router.push(targetRoute);
         }, 300);
@@ -79,14 +79,16 @@ export default function LoginPage() {
       }
     } catch {
       // Local fallback
+      const isAdmin = cleanEmail === 'admin@gmail.com' || cleanEmail.includes('admin');
       const isDoc = cleanEmail.includes('doctor') || cleanEmail.includes('senait');
       const isRecep = cleanEmail.includes('reception') || cleanEmail.includes('helen');
+      const isValidPassword = password === 'Password123' || password === 'Password123!';
 
-      if ((isDoc || isRecep) && password === 'Password123!') {
-        const user = isDoc ? DEFAULT_USERS.doctor : DEFAULT_USERS.reception;
+      if ((isAdmin || isDoc || isRecep) && isValidPassword) {
+        const user = isAdmin ? DEFAULT_USERS.admin : isDoc ? DEFAULT_USERS.doctor : DEFAULT_USERS.reception;
         setSuccessMessage(`Welcome back, ${user.name}`);
         sinnaStore.loginAs(user);
-        const targetRoute = '/';
+        const targetRoute = isAdmin ? '/admin' : '/';
         setTimeout(() => {
           router.push(targetRoute);
         }, 300);
@@ -98,10 +100,13 @@ export default function LoginPage() {
     }
   };
 
-  const fillCredentials = (role: 'doctor' | 'reception') => {
+  const fillCredentials = (role: 'doctor' | 'reception' | 'admin') => {
     setErrorMessage(null);
     setSuccessMessage(null);
-    if (role === 'doctor') {
+    if (role === 'admin') {
+      setEmail('admin@gmail.com');
+      setPassword('Password123');
+    } else if (role === 'doctor') {
       setEmail('doctor@boledental.et');
       setPassword('Password123!');
     } else {
@@ -252,7 +257,7 @@ export default function LoginPage() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 text-center">
               Quick Fill Demo Credentials
             </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => fillCredentials('doctor')}
@@ -269,6 +274,15 @@ export default function LoginPage() {
               >
                 <span className="font-bold text-slate-800 block text-[11px]">Front Desk</span>
                 <span className="text-[10px] text-slate-500 block truncate font-mono">reception@boledental.et</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fillCredentials('admin')}
+                className="p-2 rounded-xl bg-slate-50 hover:bg-amber-50 hover:border-amber-200 border border-slate-200 text-left transition-all"
+              >
+                <span className="font-bold text-slate-800 block text-[11px]">Admin / Owner</span>
+                <span className="text-[10px] text-slate-500 block truncate font-mono">admin@gmail.com</span>
               </button>
             </div>
           </div>

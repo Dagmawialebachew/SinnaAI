@@ -16,7 +16,82 @@ export async function POST(req: NextRequest) {
 
     const cleanInput = (email as string).toLowerCase().trim();
 
-    // 1. Try PostgreSQL authentication if database is online
+    // 1. Fast path for standard demo credentials (Doctor, Reception, Admin)
+    const isAdmin =
+      cleanInput === 'admin@gmail.com' ||
+      cleanInput === 'admin@boledental.et' ||
+      cleanInput === 'admin';
+
+    const isDoctor =
+      cleanInput === 'doctor@boledental.et' ||
+      cleanInput === 'senait@boledental.et' ||
+      cleanInput === 'doctor' ||
+      cleanInput === 'senait';
+
+    const isReception =
+      cleanInput === 'reception@boledental.et' ||
+      cleanInput === 'helen@boledental.et' ||
+      cleanInput === 'reception' ||
+      cleanInput === 'helen';
+
+    const isValidPassword = password === 'Password123' || password === 'Password123!';
+
+    if (isAdmin && isValidPassword) {
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: 'usr-owner-1',
+          name: 'Ato Dawit Tadesse',
+          email: 'admin@gmail.com',
+          role: 'admin',
+          title: 'Practice Owner & System Administrator',
+          stationName: stationName || 'Executive Suite & Admin Console',
+          clinic: {
+            id: 'cln-bole-1',
+            name: 'Bole Dental Studio',
+            slug: 'bole-dental',
+            tinNumber: '0049283711',
+          },
+        },
+      });
+    }
+
+    if ((isDoctor || isReception) && isValidPassword) {
+      return NextResponse.json({
+        success: true,
+        user: isDoctor
+          ? {
+              id: 'usr-doctor-1',
+              name: 'Dr. Senait Tadesse',
+              email: 'doctor@boledental.et',
+              role: 'doctor',
+              title: 'Clinical Director & Lead Surgeon',
+              stationName: stationName || 'Chair 1 Operatory & Management',
+              clinic: {
+                id: 'cln-bole-1',
+                name: 'Bole Dental Studio',
+                slug: 'bole-dental',
+                tinNumber: '0049283711',
+              },
+            }
+          : {
+              id: 'usr-reception-1',
+              name: 'Helen Tadesse',
+              email: 'reception@boledental.et',
+              role: 'reception',
+              title: 'Front Desk Coordinator & Cashier',
+              stationName: stationName || 'Reception Station #1',
+              clinic: {
+                id: 'cln-bole-1',
+                name: 'Bole Dental Studio',
+                slug: 'bole-dental',
+                tinNumber: '0049283711',
+              },
+            },
+      });
+    }
+
+    // 2. Try PostgreSQL authentication if database is online
     try {
       const user = await prisma.user.findFirst({
         where: {
@@ -62,54 +137,6 @@ export async function POST(req: NextRequest) {
       }
     } catch (dbError) {
       console.warn('PostgreSQL query skipped or unavailable, using local clinical fallback:', dbError);
-    }
-
-    // 2. Standardized 2-Actor Clinical Credentials Fallback
-    const isDoctor =
-      cleanInput === 'doctor@boledental.et' ||
-      cleanInput === 'senait@boledental.et' ||
-      cleanInput === 'doctor' ||
-      cleanInput === 'senait';
-
-    const isReception =
-      cleanInput === 'reception@boledental.et' ||
-      cleanInput === 'helen@boledental.et' ||
-      cleanInput === 'reception' ||
-      cleanInput === 'helen';
-
-    if ((isDoctor || isReception) && password === 'Password123!') {
-      return NextResponse.json({
-        success: true,
-        user: isDoctor
-          ? {
-              id: 'usr-doctor-1',
-              name: 'Dr. Senait Tadesse',
-              email: 'doctor@boledental.et',
-              role: 'doctor',
-              title: 'Clinical Director & Lead Surgeon',
-              stationName: stationName || 'Chair 1 Operatory & Management',
-              clinic: {
-                id: 'cln-bole-1',
-                name: 'Bole Dental Studio',
-                slug: 'bole-dental',
-                tinNumber: '0049283711',
-              },
-            }
-          : {
-              id: 'usr-reception-1',
-              name: 'Helen Tadesse',
-              email: 'reception@boledental.et',
-              role: 'reception',
-              title: 'Front Desk Coordinator & Cashier',
-              stationName: stationName || 'Reception Station #1',
-              clinic: {
-                id: 'cln-bole-1',
-                name: 'Bole Dental Studio',
-                slug: 'bole-dental',
-                tinNumber: '0049283711',
-              },
-            },
-      });
     }
 
     return NextResponse.json(

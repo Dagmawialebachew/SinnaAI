@@ -3,6 +3,7 @@ export type UserRole = 'reception' | 'doctor' | 'admin';
 export interface UserProfile {
   id: string;
   name: string;
+  email?: string;
   role: UserRole;
   title: string;
   stationName: string;
@@ -63,6 +64,10 @@ export interface Clinic {
   services: ServiceItem[];
   doctors: Doctor[];
   depositPolicyETB: number;
+  mrrPrefix?: string;
+  tinNumber?: string;
+  telebirrMerchant?: string;
+  accountName?: string;
 }
 
 export interface MedicalAlert {

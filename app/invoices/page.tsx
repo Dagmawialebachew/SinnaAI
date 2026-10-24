@@ -279,7 +279,7 @@ export default function InvoicesPage() {
               Invoices
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Bole Dental Studio · Ministry of Revenues (MoR) TIN 0049283711 Fiscal Tax Invoices
+              {clinic.name} · Ministry of Revenues (MoR) TIN {clinic.tinNumber || '0049283711'} Fiscal Tax Invoices
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -646,7 +646,7 @@ export default function InvoicesPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Tax Invoice Format:</span>
-                  <span className="font-medium text-slate-700">Official Bole Dental Studio Receipt</span>
+                  <span className="font-medium text-slate-700">Official {clinic.name} Receipt</span>
                 </div>
               </div>
 
@@ -679,9 +679,9 @@ export default function InvoicesPage() {
                 <Receipt className="size-5 text-emerald-600" />
                 <div>
                   <h3 className="font-bold text-slate-900 text-base">
-                    Bole Dental Studio · Official MoR Tax Receipt
+                    {clinic.name} · Official MoR Tax Receipt
                   </h3>
-                  <p className="text-xs text-slate-400 font-mono">TIN: 0049283711 · Addis Ababa, Ethiopia</p>
+                  <p className="text-xs text-slate-400 font-mono">TIN: {clinic.tinNumber || '0049283711'} · {clinic.location}</p>
                 </div>
               </div>
               <button

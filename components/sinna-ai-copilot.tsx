@@ -817,7 +817,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
     return {
       en:
         mode === 'patient'
-          ? `Hello! Welcome to **Bole Dental Studio**. I am your clinical reception assistant.\n\nI can answer questions regarding our **dental procedures**, **ETB pricing**, **300 ETB deposit policy**, and help you book with **Dr. Senait Tadesse** or **Dr. Dawit Bekele**.\n\nHow can I help you today?`
+          ? `Hello! Welcome to **${clinic.name}**. I am your clinical reception assistant.\n\nI can answer questions regarding our **dental procedures**, **ETB pricing**, **${clinic.depositPolicyETB} ETB deposit policy**, and help you book with our dental specialists.\n\nHow can I help you today?`
           : isDoctor
           ? `Hello ${userName}! Sinna Clinical Assistant online.\n\n- **Chair 1:** ${chair1Status}\n- **Chair 2:** ${chair2Status}\n- **Waiting in Reception:** ${snapshot.waitingCount}\n\nAsk for patient medical alerts, 32-tooth procedure codes, or post-extraction guidelines.`
           : isOwner
@@ -825,7 +825,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
           : `Hello ${userName}! Sinna Front Desk Assistant online.\n\n- **Waiting in Reception:** ${snapshot.waitingCount} patient${snapshot.waitingCount === 1 ? '' : 's'}\n- **Appointments Today:** ${snapshot.todayAppointmentsCount}\n- **Chairs in Use:** ${snapshot.occupiedChairsCount}/2\n\nAsk about patient queue, phone recalls, or cash/Telebirr balancing.`,
       am:
         mode === 'patient'
-          ? `ጤና ይስጥልኝ! ወደ **ቦሌ ዴንታል ስቱዲዮ** እንኳን በደህና መጡ። እኔ የክሊኒኩ ረዳት ነኝ።\n\nስለ **የጥርስ ህክምና አይነቶች**፣ **የዋጋ ዝርዝር**፣ **የ 300 ብር ቅድመ ክፍያ ደንብ**፣ ወይም ከ **ዶ/ር ሰናይት ታደሰ** ጋር ቀጠሮ ለመያዝ መጠየቅ ይችላሉ።\n\nበምን ላገልግልዎት?`
+          ? `ጤና ይስጥልኝ! ወደ **${clinic.name}** እንኳን በደህና መጡ። እኔ የክሊኒኩ ረዳት ነኝ።\n\nስለ **የጥርስ ህክምና አይነቶች**፣ **የዋጋ ዝርዝር**፣ **የ ${clinic.depositPolicyETB} ብር ቅድመ ክፍያ ደንብ**፣ ወይም ከሀኪሞቻችን ጋር ቀጠሮ ለመያዝ መጠየቅ ይችላሉ።\n\nበምን ላገልግልዎት?`
           : isDoctor
           ? `ሰላም ${userName}! የህክምና ረዳትዎ ዝግጁ ነው።\n\n- **ወንበር 1:** ${chair1Am}\n- **ወንበር 2:** ${chair2Am}\n- **በመጠባበቂያ ላይ:** ${snapshot.waitingCount}\n\nስለ ታካሚ የጤና ማስጠንቀቂያዎች፣ የህክምና ሂደቶች ወይም የድህረ ህክምና መመሪያዎች ይጠይቁኝ።`
           : isOwner
@@ -833,10 +833,10 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
           : `ሰላም ${userName}! የመቀበያ ክፍል ረዳትዎ ዝግጁ ነው።\n\n- **በመጠባበቂያ ክፍል ያሉ:** ${snapshot.waitingCount} ታካሚዎች\n- **የዛሬ ቀጠሮዎች:** ${snapshot.todayAppointmentsCount}\n- **የተያዙ ወንበሮች:** ${snapshot.occupiedChairsCount}/2\n\nስለ ታካሚዎች ወረፋ፣ ስልክ ጥሪዎች ወይም የገንዘብ ክፍያዎች ይጠይቁኝ።`,
       om:
         mode === 'patient'
-          ? `Akkam jirtu! Baga gara **Bole Dental Studio** nagaan dhuftan.\n\nWaa'ee **gatii yaala ilkaanii**, **kaffaltii duraa 300 ETB**, fi beellama qabachuu na gaafachuu dandeessu.\n\nAkkamiin isin gargaaru?`
-          : `Gargaaraan Sinna Dental AI qophiidha. Galmee **Bole Dental Studio** wajjin walqabateera.\n\n- **Beellama Har'aa:** ${snapshot.todayAppointmentsCount}\n- **Kan eegaa jiran:** ${snapshot.waitingCount}\n\nWanta barbaaddan na gaafadhaa.`,
+          ? `Akkam jirtu! Baga gara **${clinic.name}** nagaan dhuftan.\n\nWaa'ee **gatii yaala ilkaanii**, **kaffaltii duraa ${clinic.depositPolicyETB} ETB**, fi beellama qabachuu na gaafachuu dandeessu.\n\nAkkamiin isin gargaaru?`
+          : `Gargaaraan Sinna Dental AI qophiidha. Galmee **${clinic.name}** wajjin walqabateera.\n\n- **Beellama Har'aa:** ${snapshot.todayAppointmentsCount}\n- **Kan eegaa jiran:** ${snapshot.waitingCount}\n\nWanta barbaaddan na gaafadhaa.`,
     };
-  }, [mode, isDoctor, isOwner, store.currentUser?.name, snapshot]);
+  }, [mode, isDoctor, isOwner, store.currentUser?.name, snapshot, clinic.name, clinic.depositPolicyETB]);
 
   // Helper to re-localize all chat messages (welcome seed, express booking instructions, confirmations)
   const updateMessagesForLanguage = (prevMessages: ChatMessage[], newLang: ChatLanguage) => {
@@ -847,7 +847,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
           role: 'assistant' as const,
           content: welcomeMap[newLang],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          sources: ['Bole Dental Studio Clinical Knowledge Base'],
+          sources: [`${clinic.name} Clinical Knowledge Base`],
         },
       ];
     }
@@ -911,7 +911,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
           role: 'assistant',
           content: welcomeMap[lang],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          sources: ['Bole Dental Studio Clinical Knowledge Base'],
+          sources: [`${clinic.name} Clinical Knowledge Base`],
         },
       ]);
     }
@@ -1232,7 +1232,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 truncate">
-                    Bole Dental Studio · {mode === 'patient' ? (lang === 'am' ? 'ኦፊሴላዊ የክሊኒክ ረዳት' : lang === 'om' ? 'Ogeessa Yaalaa Dijitaalaa' : 'Official Clinical Assistant') : snapshot.pageTitle}
+                    {clinic.name} · {mode === 'patient' ? (lang === 'am' ? 'ኦፊሴላዊ የክሊኒክ ረዳት' : lang === 'om' ? 'Ogeessa Yaalaa Dijitaalaa' : 'Official Clinical Assistant') : snapshot.pageTitle}
                   </p>
                 </div>
               </div>

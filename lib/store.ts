@@ -38,6 +38,7 @@ export const DEFAULT_USERS: Record<string, UserProfile> = {
   doctor: {
     id: 'usr-doctor-1',
     name: 'Dr. Senait Tadesse',
+    email: 'doctor@boledental.et',
     role: 'doctor',
     title: 'Clinical Director & Lead Surgeon',
     stationName: 'Chair 1 Operatory & Management',
@@ -45,6 +46,7 @@ export const DEFAULT_USERS: Record<string, UserProfile> = {
   reception: {
     id: 'usr-reception-1',
     name: 'Helen Tadesse',
+    email: 'reception@boledental.et',
     role: 'reception',
     title: 'Front Desk Coordinator & Cashier',
     stationName: 'Reception Station #1',
@@ -52,8 +54,9 @@ export const DEFAULT_USERS: Record<string, UserProfile> = {
   admin: {
     id: 'usr-owner-1',
     name: 'Ato Dawit Tadesse',
+    email: 'admin@gmail.com',
     role: 'admin',
-    title: 'Practice Owner & Managing Director',
+    title: 'Practice Owner & System Administrator',
     stationName: 'Executive Suite',
   },
 };
@@ -255,11 +258,72 @@ export const sinnaStore = {
 
   // Actions
   setActiveClinic(slug: string) {
+    const clinic = currentState.clinics[slug] || INITIAL_CLINICS[slug];
     currentState = {
       ...currentState,
       activeClinicSlug: slug,
+      clinics: {
+        ...currentState.clinics,
+        [slug]: clinic || currentState.clinics[slug] || INITIAL_CLINICS['bole-dental'],
+      },
     };
     emitChange();
+    if (clinic) {
+      this.toastSuccess('Clinic Switched', `Active practice is now ${clinic.name}`);
+    }
+  },
+
+  updateClinicProfile(slug: string, updates: Partial<Clinic>) {
+    const existing = currentState.clinics[slug] || INITIAL_CLINICS[slug] || INITIAL_CLINICS['bole-dental'];
+    const updated = {
+      ...existing,
+      ...updates,
+    };
+    currentState = {
+      ...currentState,
+      clinics: {
+        ...currentState.clinics,
+        [slug]: updated,
+      },
+    };
+    emitChange();
+    this.toastSuccess('Branding Updated', `Practice brand saved for ${updated.name}`);
+  },
+
+  setCustomClinicBrand(custom: {
+    name: string;
+    location?: string;
+    phone?: string;
+    mrrPrefix?: string;
+    tinNumber?: string;
+    telebirrMerchant?: string;
+    accountName?: string;
+    taglineEn?: string;
+    taglineAm?: string;
+  }) {
+    const currentSlug = currentState.activeClinicSlug || 'bole-dental';
+    const existing = currentState.clinics[currentSlug] || INITIAL_CLINICS[currentSlug] || INITIAL_CLINICS['bole-dental'];
+    const updated: Clinic = {
+      ...existing,
+      name: custom.name.trim() || existing.name,
+      location: custom.location?.trim() || existing.location,
+      phone: custom.phone?.trim() || existing.phone,
+      mrrPrefix: custom.mrrPrefix?.trim().toUpperCase() || existing.mrrPrefix || 'BDS',
+      tinNumber: custom.tinNumber?.trim() || existing.tinNumber || '0049283711',
+      telebirrMerchant: custom.telebirrMerchant?.trim() || existing.telebirrMerchant || '0911223344',
+      accountName: custom.accountName?.trim() || `${custom.name.trim() || existing.name} PLC`,
+      taglineEn: custom.taglineEn || existing.taglineEn,
+      taglineAm: custom.taglineAm || existing.taglineAm,
+    };
+    currentState = {
+      ...currentState,
+      clinics: {
+        ...currentState.clinics,
+        [currentSlug]: updated,
+      },
+    };
+    emitChange();
+    this.toastSuccess('Clinic Re-Branded', `Entire hospital now operating as ${updated.name}`);
   },
 
   setActivePersona(persona: 'patient' | 'reception' | 'doctor' | 'manager') {
@@ -317,10 +381,6 @@ export const sinnaStore = {
     };
     emitChange();
     this.toastSuccess('Demo State Reset', 'Clinic restored to pristine opening-day state.');
-  },
-
-  resetToToday() {
-    this.resetDemoState();
   },
 
   createAppointment(
@@ -1420,20 +1480,6 @@ export const sinnaStore = {
     emitChange();
   },
 
-  updateClinicProfile(slug: string, updates: Partial<Clinic>) {
-    const target = currentState.clinics[slug] || INITIAL_CLINICS[slug] || INITIAL_CLINICS['bole-dental'];
-    currentState = {
-      ...currentState,
-      clinics: {
-        ...currentState.clinics,
-        [slug]: {
-          ...target,
-          ...updates,
-        },
-      },
-    };
-    emitChange();
-  },
 
   updateDoctor(slug: string, doctorId: string, updates: Partial<Doctor>) {
     const targetClinic = currentState.clinics[slug] || INITIAL_CLINICS[slug] || INITIAL_CLINICS['bole-dental'];

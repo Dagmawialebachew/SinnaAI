@@ -216,8 +216,8 @@ export default function RecallsPage() {
       recipientName: patient.name,
       recipientPhone: patient.phone,
       templateType: 'reminder',
-      contentEn: `Hello ${patient.name}, this is Bole Dental Studio. It is time for your dental recall: ${patient.description}. Please reply or call +251 91 122 3344 to confirm.`,
-      contentAm: `ሰላም ${patient.name}፣ ከ ቦሌ ዴንታል ስቱዲዮ ነው። የቀጠሮ ማስታወሻ ደርሶዎታል። እባክዎ በ +251 91 122 3344 ያግኙን።`,
+      contentEn: `Hello ${patient.name}, this is ${clinic.name}. It is time for your dental recall: ${patient.description}. Please reply or call ${clinic.phone} to confirm.`,
+      contentAm: `ሰላም ${patient.name}፣ ከ ${clinic.name} ነው። የቀጠሮ ማስታወሻ ደርሶዎታል። እባክዎ በ ${clinic.phone} ያግኙን።`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
 
@@ -278,8 +278,8 @@ export default function RecallsPage() {
       recipientName: smsModalPatient.name,
       recipientPhone: smsModalPatient.phone,
       templateType: 'reminder',
-      contentEn: `Bole Dental Studio: Dear ${smsModalPatient.name}, your routine clinical recall (${smsModalPatient.tags.category}) is due. Contact +251 91 122 3344 or visit us in Bole to book.`,
-      contentAm: `ቦሌ ዴንታል ስቱዲዮ፡ ውድ ${smsModalPatient.name}፣ የጥርስ ምርመራና ክትትል ቀጠሮዎ ደርሷል። በ +251 91 122 3344 ይደውሉልን።`,
+      contentEn: `${clinic.name}: Dear ${smsModalPatient.name}, your routine clinical recall (${smsModalPatient.tags.category}) is due. Contact ${clinic.phone} to book.`,
+      contentAm: `${clinic.name}፡ ውድ ${smsModalPatient.name}፣ የጥርስ ምርመራና ክትትል ቀጠሮዎ ደርሷል። በ ${clinic.phone} ይደውሉልን።`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     });
 
@@ -322,7 +322,7 @@ export default function RecallsPage() {
             Call list
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Bole Dental Studio · Ethiopian Patient Recall & Hygiene Follow-up
+            {clinic.name} · Ethiopian Patient Recall & Hygiene Follow-up
           </p>
         </div>
 
@@ -839,7 +839,7 @@ export default function RecallsPage() {
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">English Payload</label>
                 <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs leading-relaxed">
-                  Bole Dental Studio: Dear {smsModalPatient.name}, your routine clinical recall ({smsModalPatient.tags.category}) is due. Contact +251 91 122 3344 to book your slot in Bole.
+                  {clinic.name}: Dear {smsModalPatient.name}, your routine clinical recall ({smsModalPatient.tags.category}) is due. Contact {clinic.phone} to book.
                 </div>
               </div>
             </div>
@@ -847,7 +847,7 @@ export default function RecallsPage() {
             <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
               <span className="text-[11px] text-slate-400 flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                AfroMessage API Connected (Bole Dental)
+                AfroMessage API Connected ({clinic.name})
               </span>
 
               <div className="flex items-center gap-2">

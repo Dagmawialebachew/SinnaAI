@@ -16,6 +16,10 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
     reviewCount: 148,
     openHours: 'Mon - Sat: 8:30 AM - 7:00 PM',
     depositPolicyETB: 300,
+    mrrPrefix: 'BDS',
+    tinNumber: '0049283711',
+    telebirrMerchant: '0911223344',
+    accountName: 'Bole Dental Studio PLC',
     doctors: [
       {
         id: 'doc-senait',
@@ -115,6 +119,150 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
         depositRequired: true,
         depositAmountETB: 200,
         description: 'Complete ultrasonic scaling and plaque removal.'
+      }
+    ]
+  },
+  'smile-dental': {
+    id: 'clinic-smile-003',
+    slug: 'smile-dental',
+    name: 'Smile Dental Clinic',
+    taglineEn: 'Advanced Aesthetic Dentistry & Oral Care in Sarbet',
+    taglineAm: 'ዘመናዊ የጥርስ ውበት እና አጠቃላይ የህክምና ማዕከል — ሳርቤት',
+    location: 'Sarbet, Near Canadian Embassy, Addis Ababa',
+    phone: '+251 91 234 5678',
+    telegramChannel: 'smiledental_et',
+    instagramHandle: 'smiledental_addis',
+    googleMapsUrl: 'https://maps.google.com/?q=Sarbet+Addis+Ababa',
+    rating: 4.9,
+    reviewCount: 164,
+    openHours: 'Mon - Sat: 8:30 AM - 7:00 PM',
+    depositPolicyETB: 300,
+    mrrPrefix: 'SDC',
+    tinNumber: '0049283711',
+    telebirrMerchant: '0912345678',
+    accountName: 'Smile Dental Clinic PLC',
+    doctors: [
+      {
+        id: 'doc-senait',
+        name: 'Dr. Senait Tadesse',
+        titleEn: 'Lead Specialist & Orthodontist (DDS, 11 yrs exp)',
+        titleAm: 'ዋና የጥርስ ህክምና ስፔሻሊስት (11 ዓመት ልምድ)',
+        photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80',
+        specialty: 'Orthodontics & Aesthetic Dentistry',
+        availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      },
+      {
+        id: 'doc-dawit',
+        name: 'Dr. Dawit Bekele',
+        titleEn: 'Oral Surgeon & Implantologist (9 yrs exp)',
+        titleAm: 'የአፍ እና የጥርስ ቀዶ ጥገና ስፔሻሊስት (9 ዓመት ልምድ)',
+        photoUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&auto=format&fit=crop&q=80',
+        specialty: 'Dental Implants & Surgery',
+        availableDays: ['Mon', 'Wed', 'Fri'],
+      }
+    ],
+    services: [
+      {
+        id: 'srv-cleaning',
+        nameEn: 'Routine Cleaning & Scaling',
+        nameAm: 'መደበኛ የጥርስ ማጽዳት እና ፖሊሽ',
+        durationMinutes: 45,
+        priceETB: 1500,
+        depositRequired: true,
+        depositAmountETB: 300,
+        description: 'Ultrasonic calculus removal, stain polishing, and gum health inspection.'
+      },
+      {
+        id: 'srv-emergency',
+        nameEn: 'Emergency Pain Relief & Exam',
+        nameAm: 'አስቸኳይ የጥርስ ህመም ማስታገሻ እና ምርመራ',
+        durationMinutes: 30,
+        priceETB: 1200,
+        depositRequired: false,
+        depositAmountETB: 0,
+        description: 'Immediate diagnostic assessment and acute pulpal pain management.'
+      },
+      {
+        id: 'srv-rootcanal',
+        nameEn: 'Single-Visit Root Canal Treatment',
+        nameAm: 'የጥርስ ስር ህክምና (Root Canal)',
+        durationMinutes: 90,
+        priceETB: 6000,
+        depositRequired: true,
+        depositAmountETB: 1000,
+        description: 'Advanced rotary endodontics preserving infected teeth with biocompatible sealing.'
+      },
+      {
+        id: 'srv-whitening',
+        nameEn: 'In-Office Laser Teeth Whitening',
+        nameAm: 'በሌዘር ጥርስ ማንጣት',
+        durationMinutes: 60,
+        priceETB: 8500,
+        depositRequired: true,
+        depositAmountETB: 1500,
+        description: 'Cosmetic whitening achieving up to 6 shades lighter in a single chair session.'
+      }
+    ]
+  },
+  'st-george': {
+    id: 'clinic-george-004',
+    slug: 'st-george',
+    name: 'St. George Dental Specialty',
+    taglineEn: 'Specialized Oral Surgery & Implant Center in Kazanchis',
+    taglineAm: 'የተሟላ የጥርስ ቀዶ ጥገና እና ተከላ ማዕከል — ካዛንቺስ',
+    location: 'Kazanchis, Guinea Conakry St, Addis Ababa',
+    phone: '+251 91 345 6789',
+    telegramChannel: 'stgeorgedental',
+    instagramHandle: 'stgeorgedental_et',
+    googleMapsUrl: 'https://maps.google.com/?q=Kazanchis+Addis+Ababa',
+    rating: 4.9,
+    reviewCount: 135,
+    openHours: 'Mon - Sat: 8:00 AM - 7:30 PM',
+    depositPolicyETB: 300,
+    mrrPrefix: 'SGD',
+    tinNumber: '0049283711',
+    telebirrMerchant: '0913456789',
+    accountName: 'St. George Dental Specialty PLC',
+    doctors: [
+      {
+        id: 'doc-senait',
+        name: 'Dr. Senait Tadesse',
+        titleEn: 'Lead Specialist & Orthodontist (DDS, 11 yrs exp)',
+        titleAm: 'ዋና የጥርስ ህክምና ስፔሻሊስት (11 ዓመት ልምድ)',
+        photoUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&auto=format&fit=crop&q=80',
+        specialty: 'Orthodontics & Aesthetic Dentistry',
+        availableDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      },
+      {
+        id: 'doc-dawit',
+        name: 'Dr. Dawit Bekele',
+        titleEn: 'Oral Surgeon & Implantologist (9 yrs exp)',
+        titleAm: 'የአፍ እና የጥርስ ቀዶ ጥገና ስፔሻሊስት (9 ዓመት ልምድ)',
+        photoUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=300&auto=format&fit=crop&q=80',
+        specialty: 'Dental Implants & Surgery',
+        availableDays: ['Mon', 'Wed', 'Fri'],
+      }
+    ],
+    services: [
+      {
+        id: 'srv-cleaning',
+        nameEn: 'Routine Cleaning & Scaling',
+        nameAm: 'መደበኛ የጥርስ ማጽዳት እና ፖሊሽ',
+        durationMinutes: 45,
+        priceETB: 1500,
+        depositRequired: true,
+        depositAmountETB: 300,
+        description: 'Ultrasonic calculus removal, stain polishing, and gum health inspection.'
+      },
+      {
+        id: 'srv-rootcanal',
+        nameEn: 'Single-Visit Root Canal Treatment',
+        nameAm: 'የጥርስ ስር ህክምና (Root Canal)',
+        durationMinutes: 90,
+        priceETB: 6000,
+        depositRequired: true,
+        depositAmountETB: 1000,
+        description: 'Advanced rotary endodontics preserving infected teeth with biocompatible sealing.'
       }
     ]
   }

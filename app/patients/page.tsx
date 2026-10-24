@@ -2633,7 +2633,7 @@ export default function PatientsPage() {
                       <Calendar className="w-4 h-4 text-indigo-600" />
                       <span>Appointments & Operatory Visits</span>
                     </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Bole Dental Studio Chair Scheduling Record</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{clinic.name} Chair Scheduling Record</p>
                   </div>
                   <button
                     type="button"
@@ -2705,7 +2705,7 @@ export default function PatientsPage() {
                       <HistoryIcon className="w-4 h-4 text-amber-600" />
                       <span>Clinical Dental Chart History & Diagnostic Findings</span>
                     </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Bole Dental Studio Clinical Archive</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{clinic.name} Clinical Archive</p>
                   </div>
                 </div>
 

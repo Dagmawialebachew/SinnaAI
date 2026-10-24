@@ -325,7 +325,7 @@ export default function QuotesPage() {
               Quotes
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Bole Dental Studio · Ethiopian Treatment Cost Estimates & Formal Patient Quotes
+              {clinic.name} · Ethiopian Treatment Cost Estimates & Formal Patient Quotes
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -563,7 +563,7 @@ export default function QuotesPage() {
 
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs text-slate-400 font-mono">
             <span>{filteredQuotes.length} of {quotes.length} treatment quotes</span>
-            <span>Bole Dental Studio · Addis Ababa</span>
+            <span>{clinic.name} · Addis Ababa</span>
           </div>
         </div>
       </div>
@@ -689,9 +689,9 @@ export default function QuotesPage() {
                 <Building2 className="size-5 text-sky-600" />
                 <div>
                   <h3 className="font-bold text-slate-900 text-base">
-                    Bole Dental Studio · Treatment Estimate
+                    {clinic.name} · Treatment Estimate
                   </h3>
-                  <p className="text-xs text-slate-400 font-mono">TIN: 0049283711 · Addis Ababa, Ethiopia</p>
+                  <p className="text-xs text-slate-400 font-mono">TIN: {clinic.tinNumber || '0049283711'} · {clinic.location}</p>
                 </div>
               </div>
               <button
