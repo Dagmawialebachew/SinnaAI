@@ -1003,12 +1003,12 @@ export function getDailyReportHTML(data?: DailyReportData, clinic?: Clinic): str
   const transferTotal = data?.transferTotalETB ?? 4100;
 
   const encounters = data?.encounters || [
-    { time: '09:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Endodontic Pulpectomy & Canals Instrumentation (#36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
-    { time: '10:45', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Clear Aligner Progression & Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
-    { time: '11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Ultrasonic Scaling & Polishing Prophylaxis', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr POS' },
-    { time: '14:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Emergency Sedative Dressing & Pulp Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
-    { time: '15:30', Solomon: 'Solomon Tekle Mariam', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Full Zirconia Crown Impression & Prep Anticipo', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
-    { time: '16:45', patientName: 'Meron Bekele Haile', mrn: 'BDS-MRN-2026-0312', procedure: 'Periapical Diagnostic PA X-Ray & Comprehensive Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr SuperApp' },
+    { time: '09:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-00089', procedure: 'Endodontic Pulpectomy & Canals Instrumentation (#36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+    { time: '10:45', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-00155', procedure: 'Clear Aligner Progression & Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
+    { time: '11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-00041', procedure: 'Ultrasonic Scaling & Polishing Prophylaxis', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr POS' },
+    { time: '14:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-00210', procedure: 'Emergency Sedative Dressing & Pulp Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
+    { time: '15:30', Solomon: 'Solomon Tekle Mariam', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-00094', procedure: 'Full Zirconia Crown Impression & Prep Anticipo', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
+    { time: '16:45', patientName: 'Meron Bekele Haile', mrn: 'BDS-00312', procedure: 'Periapical Diagnostic PA X-Ray & Comprehensive Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr SuperApp' },
   ];
 
   const doctors = data?.doctorBreakdown || [
@@ -1876,33 +1876,33 @@ export function getComprehensiveReportHTML(
   // Period-adaptive representative patient log
   const encounters = customData?.encounters || (
     period === 'weekly' ? [
-      { time: 'Mon Oct 05 · 10:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Root Canal Pulpectomy (Tooth #36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
-      { time: 'Tue Oct 06 · 11:30', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Clear Aligner Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
-      { time: 'Wed Oct 07 · 14:00', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Ultrasonic Scaling & Polishing', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
-      { time: 'Thu Oct 08 · 09:45', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Sedative Dressing & Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
-      { time: 'Fri Oct 09 · 15:30', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Zirconia Crown Prep Advance', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
-      { time: 'Sat Oct 10 · 11:00', patientName: 'Meron Bekele Haile', mrn: 'BDS-MRN-2026-0312', procedure: 'Periapical X-Ray & Clinical Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr POS' },
+      { time: 'Mon Oct 05 · 10:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-00089', procedure: 'Root Canal Pulpectomy (Tooth #36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+      { time: 'Tue Oct 06 · 11:30', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-00155', procedure: 'Clear Aligner Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
+      { time: 'Wed Oct 07 · 14:00', patientName: 'Tigist Alemu Desta', mrn: 'BDS-00041', procedure: 'Ultrasonic Scaling & Polishing', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
+      { time: 'Thu Oct 08 · 09:45', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-00210', procedure: 'Sedative Dressing & Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
+      { time: 'Fri Oct 09 · 15:30', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-00094', procedure: 'Zirconia Crown Prep Advance', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
+      { time: 'Sat Oct 10 · 11:00', patientName: 'Meron Bekele Haile', mrn: 'BDS-00312', procedure: 'Periapical X-Ray & Clinical Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr POS' },
     ] : period === 'monthly' ? [
-      { time: 'Sep 15 · 09:30', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Root Canal Therapy Stage 1', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
-      { time: 'Sep 22 · 14:15', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Aligner Follow-up & Retainer', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
-      { time: 'Sep 29 · 10:00', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Zirconia Crown Delivery #16', doctor: 'Dr. Senait Tadesse', amountETB: 6400, method: 'CBE Transfer' },
-      { time: 'Oct 04 · 11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Ultrasonic Scaling Prophylaxis', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
-      { time: 'Oct 09 · 16:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Restorative Composite Filling', doctor: 'Dr. Brook Zewde', amountETB: 1250, method: 'Physical Cash' },
-      { time: 'Oct 12 · 11:15', patientName: 'Meron Bekele Haile', mrn: 'BDS-MRN-2026-0312', procedure: 'Full Mouth Diagnostics & Exam', doctor: 'Dr. Senait Tadesse', amountETB: 950, method: 'Telebirr POS' },
+      { time: 'Sep 15 · 09:30', patientName: 'Dawit Haile Gebre', mrn: 'BDS-00089', procedure: 'Root Canal Therapy Stage 1', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+      { time: 'Sep 22 · 14:15', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-00155', procedure: 'Aligner Follow-up & Retainer', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
+      { time: 'Sep 29 · 10:00', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-00094', procedure: 'Zirconia Crown Delivery #16', doctor: 'Dr. Senait Tadesse', amountETB: 6400, method: 'CBE Transfer' },
+      { time: 'Oct 04 · 11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-00041', procedure: 'Ultrasonic Scaling Prophylaxis', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
+      { time: 'Oct 09 · 16:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-00210', procedure: 'Restorative Composite Filling', doctor: 'Dr. Brook Zewde', amountETB: 1250, method: 'Physical Cash' },
+      { time: 'Oct 12 · 11:15', patientName: 'Meron Bekele Haile', mrn: 'BDS-00312', procedure: 'Full Mouth Diagnostics & Exam', doctor: 'Dr. Senait Tadesse', amountETB: 950, method: 'Telebirr POS' },
     ] : period === '3month' || period === '6month' || period === 'year' ? [
-      { time: 'Key Encounter', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Molar Endodontic Rehabilitation', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
-      { time: 'Key Encounter', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Fixed Prosthodontic Bridge', doctor: 'Dr. Senait Tadesse', amountETB: 12400, method: 'CBE Transfer' },
-      { time: 'Key Encounter', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Comprehensive Clear Aligners', doctor: 'Dr. Brook Zewde', amountETB: 18500, method: 'CBE Birr POS' },
-      { time: 'Key Encounter', patientName: 'Bethlehem Assefa', mrn: 'BDS-MRN-2026-0188', procedure: 'Implant Consultation & Staging', doctor: 'Dr. Senait Tadesse', amountETB: 8500, method: 'Direct debit' },
-      { time: 'Key Encounter', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Periodontal Maintenance Phase II', doctor: 'Dr. Senait Tadesse', amountETB: 1400, method: 'Telebirr SuperApp' },
-      { time: 'Key Encounter', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Anterior Composite Restoration', doctor: 'Dr. Brook Zewde', amountETB: 2400, method: 'Physical Cash' },
+      { time: 'Key Encounter', patientName: 'Dawit Haile Gebre', mrn: 'BDS-00089', procedure: 'Molar Endodontic Rehabilitation', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+      { time: 'Key Encounter', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-00094', procedure: 'Fixed Prosthodontic Bridge', doctor: 'Dr. Senait Tadesse', amountETB: 12400, method: 'CBE Transfer' },
+      { time: 'Key Encounter', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-00155', procedure: 'Comprehensive Clear Aligners', doctor: 'Dr. Brook Zewde', amountETB: 18500, method: 'CBE Birr POS' },
+      { time: 'Key Encounter', patientName: 'Bethlehem Assefa', mrn: 'BDS-00188', procedure: 'Implant Consultation & Staging', doctor: 'Dr. Senait Tadesse', amountETB: 8500, method: 'Direct debit' },
+      { time: 'Key Encounter', patientName: 'Tigist Alemu Desta', mrn: 'BDS-00041', procedure: 'Periodontal Maintenance Phase II', doctor: 'Dr. Senait Tadesse', amountETB: 1400, method: 'Telebirr SuperApp' },
+      { time: 'Key Encounter', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-00210', procedure: 'Anterior Composite Restoration', doctor: 'Dr. Brook Zewde', amountETB: 2400, method: 'Physical Cash' },
     ] : [
-      { time: '09:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-MRN-2026-0089', procedure: 'Root Canal Pulpectomy (Tooth #36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
-      { time: '10:45', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-MRN-2026-0155', procedure: 'Clear Aligner Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
-      { time: '11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-MRN-2026-0041', procedure: 'Ultrasonic Scaling & Polishing', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
-      { time: '14:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-MRN-2026-0210', procedure: 'Sedative Dressing & Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
-      { time: '15:30', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-MRN-2026-0094', procedure: 'Zirconia Crown Prep Advance', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
-      { time: '16:45', patientName: 'Meron Bekele Haile', mrn: 'BDS-MRN-2026-0312', procedure: 'Periapical X-Ray & Clinical Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr POS' },
+      { time: '09:15', patientName: 'Dawit Haile Gebre', mrn: 'BDS-00089', procedure: 'Root Canal Pulpectomy (Tooth #36)', doctor: 'Dr. Senait Tadesse', amountETB: 7800, method: 'Direct debit' },
+      { time: '10:45', patientName: 'Sara Mengistu Tadesse', mrn: 'BDS-00155', procedure: 'Clear Aligner Retainer Advance', doctor: 'Dr. Brook Zewde', amountETB: 4300, method: 'CBE Birr POS' },
+      { time: '11:30', patientName: 'Tigist Alemu Desta', mrn: 'BDS-00041', procedure: 'Ultrasonic Scaling & Polishing', doctor: 'Dr. Senait Tadesse', amountETB: 720, method: 'Telebirr SuperApp' },
+      { time: '14:00', patientName: 'Abebe Kebede Wolde', mrn: 'BDS-00210', procedure: 'Sedative Dressing & Sedation', doctor: 'Dr. Brook Zewde', amountETB: 480, method: 'Physical Cash' },
+      { time: '15:30', patientName: 'Solomon Tekle Mariam', mrn: 'BDS-00094', procedure: 'Zirconia Crown Prep Advance', doctor: 'Dr. Senait Tadesse', amountETB: 4100, method: 'CBE Transfer' },
+      { time: '16:45', patientName: 'Meron Bekele Haile', mrn: 'BDS-00312', procedure: 'Periapical X-Ray & Clinical Exam', doctor: 'Dr. Senait Tadesse', amountETB: 675, method: 'Telebirr POS' },
     ]
   );
 
@@ -2152,7 +2152,7 @@ export function getComprehensiveReportHTML(
             <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left;">
               <th style="padding: 5px 8px; font-weight: 700;">Time</th>
               <th style="padding: 5px 8px; font-weight: 700;">Patient Name</th>
-              <th style="padding: 5px 8px; font-weight: 700;">BDS-MRN</th>
+              <th style="padding: 5px 8px; font-weight: 700;">Card No</th>
               <th style="padding: 5px 8px; font-weight: 700;">Procedure</th>
               <th style="padding: 5px 8px; font-weight: 700;">Doctor</th>
               <th style="padding: 5px 8px; font-weight: 700;">Method</th>

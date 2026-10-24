@@ -70,7 +70,7 @@ export default function LoginPage() {
           stationName: data.user.stationName || 'Workstation',
         });
 
-        const targetRoute = data.user.role === 'doctor' || data.user.role === 'admin' ? '/doctor' : '/reception';
+        const targetRoute = '/';
         setTimeout(() => {
           router.push(targetRoute);
         }, 300);
@@ -86,7 +86,7 @@ export default function LoginPage() {
         const user = isDoc ? DEFAULT_USERS.doctor : DEFAULT_USERS.reception;
         setSuccessMessage(`Welcome back, ${user.name}`);
         sinnaStore.loginAs(user);
-        const targetRoute = isDoc ? '/doctor' : '/reception';
+        const targetRoute = '/';
         setTimeout(() => {
           router.push(targetRoute);
         }, 300);
@@ -132,7 +132,7 @@ export default function LoginPage() {
 
         <div>
           <Link
-            href="/"
+            href="/book"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors shadow-2xs"
           >
             <span>Public Booking</span>

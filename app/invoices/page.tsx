@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Receipt,
   Plus,
@@ -54,7 +55,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0007',
     patientName: 'Dawit Haile Gebre',
     patientNameAmharic: 'ዳዊት ኃይሌ ገብረ',
-    patientMrn: 'BDS-MRN-2026-0089',
+    patientMrn: 'BDS-00089',
     status: 'Issued',
     isOverdue: true,
     overdueDays: 15,
@@ -72,7 +73,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0006',
     patientName: 'Tigist Alemu Desta',
     patientNameAmharic: 'ትዕግስት አለሙ ደስታ',
-    patientMrn: 'BDS-MRN-2026-0041',
+    patientMrn: 'BDS-00041',
     status: 'Paid',
     isOverdue: false,
     issueDate: '10/7/2026',
@@ -89,7 +90,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0005',
     patientName: 'Sara Mengistu Tadesse',
     patientNameAmharic: 'ሳራ መንግስቱ ታደሰ',
-    patientMrn: 'BDS-MRN-2026-0155',
+    patientMrn: 'BDS-00155',
     status: 'Paid',
     isOverdue: false,
     issueDate: '10/7/2026',
@@ -106,7 +107,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0004',
     patientName: 'Abebe Kebede Worku',
     patientNameAmharic: 'አበበ ከበደ ወርቁ',
-    patientMrn: 'BDS-MRN-2026-0012',
+    patientMrn: 'BDS-00012',
     status: 'Paid',
     isOverdue: false,
     issueDate: '10/7/2026',
@@ -123,7 +124,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0003',
     patientName: 'Yonas Bekele Tefera',
     patientNameAmharic: 'ዮናስ በቀለ ተፈራ',
-    patientMrn: 'BDS-MRN-2026-0244',
+    patientMrn: 'BDS-00244',
     status: 'Paid',
     isOverdue: false,
     issueDate: '10/4/2026',
@@ -140,7 +141,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0002',
     patientName: 'Almaz Wolde Gebre',
     patientNameAmharic: 'አልማዝ ወልዴ ገብረ',
-    patientMrn: 'BDS-MRN-2026-0312',
+    patientMrn: 'BDS-00312',
     status: 'Partially paid',
     isOverdue: false,
     issueDate: '10/1/2026',
@@ -157,7 +158,7 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
     invoiceNumber: 'BDS-INV-2026-0001',
     patientName: 'Binyam Girma Tsegaye',
     patientNameAmharic: 'ቢንያም ግርማ ፀጋዬ',
-    patientMrn: 'BDS-MRN-2026-0701',
+    patientMrn: 'BDS-00701',
     status: 'Draft',
     isOverdue: false,
     issueDate: '—',
@@ -172,8 +173,18 @@ const INITIAL_INVOICES: FiscalInvoice[] = [
 ];
 
 export default function InvoicesPage() {
+  const router = useRouter();
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
+
+  const isDoctor = store.currentUser?.role === 'doctor' || store.activePersona === 'doctor';
+  const handleOpenPatient = (mrnOrName: string) => {
+    if (isDoctor) {
+      router.push(`/patients?patientId=${encodeURIComponent(mrnOrName)}`);
+    } else {
+      sinnaStore.openPatientDrawer(mrnOrName);
+    }
+  };
 
   const [invoices, setInvoices] = useState<FiscalInvoice[]>(INITIAL_INVOICES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,7 +198,7 @@ export default function InvoicesPage() {
 
   // New Invoice form state
   const [newPatientName, setNewPatientName] = useState('');
-  const [newPatientMrn, setNewPatientMrn] = useState('BDS-MRN-2026-');
+  const [newPatientMrn, setNewPatientMrn] = useState('BDS-');
   const [newDoctor, setNewDoctor] = useState('Dr. Senait Tadesse');
   const [newService, setNewService] = useState('Dental Consultation & Restoration');
   const [newTotal, setNewTotal] = useState('2500');
@@ -231,7 +242,7 @@ export default function InvoicesPage() {
       invoiceNumber: `BDS-INV-2026-00${invoices.length + 8}`,
       patientName: newPatientName,
       patientNameAmharic: 'ደንበኛ',
-      patientMrn: newPatientMrn.trim() || `BDS-MRN-2026-0${Math.floor(100 + Math.random() * 900)}`,
+      patientMrn: newPatientMrn.trim() || `BDS-0${Math.floor(100 + Math.random() * 900)}`,
       status: 'Paid',
       isOverdue: false,
       issueDate: '10/12/2026',
@@ -399,10 +410,28 @@ export default function InvoicesPage() {
                             <span className="text-xs text-slate-500 font-medium">via {invoice.paymentMethod}</span>
                           </div>
                           <div className="text-xs text-slate-600 truncate mt-0.5 flex items-center gap-2">
-                            <span className="font-medium text-slate-900">{invoice.patientName}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenPatient(invoice.patientMrn || invoice.patientName);
+                              }}
+                              className="font-medium text-slate-900 hover:text-sky-600 hover:underline text-left cursor-pointer transition-colors"
+                            >
+                              {invoice.patientName}
+                            </button>
                             <span className="text-slate-400 font-amharic">({invoice.patientNameAmharic})</span>
                             <span className="text-slate-300">•</span>
-                            <span className="text-[11px] text-slate-400 font-mono">{invoice.patientMrn}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenPatient(invoice.patientMrn);
+                              }}
+                              className="text-[11px] text-slate-400 hover:text-sky-600 font-mono hover:underline cursor-pointer transition-colors"
+                            >
+                              {invoice.patientMrn}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -467,7 +496,16 @@ export default function InvoicesPage() {
                               {invoice.status}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-700 truncate mt-0.5 font-medium">{invoice.patientName}</div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenPatient(invoice.patientMrn || invoice.patientName);
+                            }}
+                            className="text-xs text-slate-700 truncate mt-0.5 font-medium hover:text-sky-600 text-left cursor-pointer"
+                          >
+                            {invoice.patientName}
+                          </button>
                         </div>
                         <div className="text-end shrink-0">
                           <span className="font-mono font-bold text-slate-900 text-xs block">

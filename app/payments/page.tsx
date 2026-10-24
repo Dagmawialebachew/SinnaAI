@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { printThermalReceipt } from '@/lib/smart-print';
-import PatientRecordDrawer from '@/components/patient-record-drawer';
+import { useRouter } from 'next/navigation';
 import { LedgerTransaction } from '@/lib/types';
 
 export type PaymentMethodType =
@@ -72,7 +72,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0006',
     patientName: 'Dawit Haile Gebre',
     patientNameAmharic: 'ዳዊት ኃይሌ ገብረ',
-    patientMrn: 'BDS-MRN-2026-0089',
+    patientMrn: 'BDS-00089',
     patientInitial: 'D',
     date: '10/10/2026',
     rawDate: '2026-10-10',
@@ -90,7 +90,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0005',
     patientName: 'Sara Mengistu Tadesse',
     patientNameAmharic: 'ሳራ መንግስቱ ታደሰ',
-    patientMrn: 'BDS-MRN-2026-0155',
+    patientMrn: 'BDS-00155',
     patientInitial: 'S',
     date: '10/10/2026',
     rawDate: '2026-10-10',
@@ -108,7 +108,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0004',
     patientName: 'Tigist Alemu Desta',
     patientNameAmharic: 'ትዕግስት አለሙ ደስታ',
-    patientMrn: 'BDS-MRN-2026-0041',
+    patientMrn: 'BDS-00041',
     patientInitial: 'T',
     date: '10/10/2026',
     rawDate: '2026-10-10',
@@ -126,7 +126,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0003',
     patientName: 'Abebe Kebede Wolde',
     patientNameAmharic: 'አበበ ከበደ ወልደ',
-    patientMrn: 'BDS-MRN-2026-0210',
+    patientMrn: 'BDS-00210',
     patientInitial: 'A',
     date: '10/10/2026',
     rawDate: '2026-10-10',
@@ -144,7 +144,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0002',
     patientName: 'Solomon Tekle Mariam',
     patientNameAmharic: 'ሰለሞን ተክሌ ማርያም',
-    patientMrn: 'BDS-MRN-2026-0094',
+    patientMrn: 'BDS-00094',
     patientInitial: 'S',
     date: '10/7/2026',
     rawDate: '2026-10-07',
@@ -162,7 +162,7 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
     reference: 'REF-0001',
     patientName: 'Meron Bekele Haile',
     patientNameAmharic: 'መሮን በቀለ ኃይሌ',
-    patientMrn: 'BDS-MRN-2026-0312',
+    patientMrn: 'BDS-00312',
     patientInitial: 'M',
     date: '10/4/2026',
     rawDate: '2026-10-04',
@@ -178,8 +178,18 @@ const INITIAL_PAYMENTS: PaymentItem[] = [
 ];
 
 export default function PaymentsPage() {
+  const router = useRouter();
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
+
+  const isDoctor = store.currentUser?.role === 'doctor' || store.activePersona === 'doctor';
+  const handleOpenPatient = (mrnOrName: string) => {
+    if (isDoctor) {
+      router.push(`/patients?patientId=${encodeURIComponent(mrnOrName)}`);
+    } else {
+      sinnaStore.openPatientDrawer(mrnOrName);
+    }
+  };
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -202,11 +212,10 @@ export default function PaymentsPage() {
   const [selectedPaymentForRefund, setSelectedPaymentForRefund] = useState<PaymentItem | null>(null);
   const [refundAmount, setRefundAmount] = useState<number>(0);
   const [refundReason, setRefundReason] = useState<string>('Patient requested schedule alteration');
-  const [selectedPatientForDrawer, setSelectedPatientForDrawer] = useState<string | null>(null);
 
   // New Payment Form State
   const [newPatientName, setNewPatientName] = useState('Tigist Alemu Desta');
-  const [newPatientMrn, setNewPatientMrn] = useState('BDS-MRN-2026-0041');
+  const [newPatientMrn, setNewPatientMrn] = useState('BDS-00041');
   const [newMethod, setNewMethod] = useState<PaymentMethodType>('Telebirr');
   const [newAmountETB, setNewAmountETB] = useState<number>(1500);
   const [newAllocation, setNewAllocation] = useState<'On account' | 'Treatment plan' | 'Consultation'>('On account');
@@ -264,7 +273,7 @@ export default function PaymentsPage() {
           id: tx.id,
           reference: tx.receiptNumber || `REF-000${Math.floor(100 + Math.random() * 900)}`,
           patientName: tx.patientName,
-          patientMrn: tx.patientMrn || 'BDS-MRN-2026-0041',
+          patientMrn: tx.patientMrn || 'BDS-00041',
           patientInitial: tx.patientName.charAt(0).toUpperCase() || 'P',
           date: formattedDate,
           rawDate: tx.timestamp || '2026-10-12',
@@ -865,9 +874,9 @@ export default function PaymentsPage() {
                       <div className="text-sm text-slate-900 flex items-center gap-2 flex-wrap font-medium">
                         <button
                           type="button"
-                          onClick={() => setSelectedPatientForDrawer(item.patientMrn)}
-                          className="hover:text-sky-600 transition-colors text-left"
-                          title="View clinical chart"
+                          onClick={() => handleOpenPatient(item.patientMrn)}
+                          className="hover:text-sky-600 transition-colors text-left cursor-pointer"
+                          title="View clinical chart & profile"
                         >
                           {item.patientName}
                         </button>
@@ -945,8 +954,9 @@ export default function PaymentsPage() {
                         <div className="font-medium text-slate-900 truncate flex items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => setSelectedPatientForDrawer(item.patientMrn)}
-                            className="hover:text-sky-600 transition-colors text-left truncate"
+                            onClick={() => handleOpenPatient(item.patientMrn)}
+                            className="hover:text-sky-600 transition-colors text-left truncate cursor-pointer"
+                            title="View clinical chart & profile"
                           >
                             {item.patientName}
                           </button>
@@ -1047,21 +1057,21 @@ export default function PaymentsPage() {
                   value={newPatientName}
                   onChange={(e) => {
                     setNewPatientName(e.target.value);
-                    if (e.target.value === 'Tigist Alemu Desta') setNewPatientMrn('BDS-MRN-2026-0041');
-                    else if (e.target.value === 'Dawit Haile Gebre') setNewPatientMrn('BDS-MRN-2026-0089');
-                    else if (e.target.value === 'Sara Mengistu Tadesse') setNewPatientMrn('BDS-MRN-2026-0155');
-                    else if (e.target.value === 'Abebe Kebede Wolde') setNewPatientMrn('BDS-MRN-2026-0210');
-                    else if (e.target.value === 'Solomon Tekle Mariam') setNewPatientMrn('BDS-MRN-2026-0094');
-                    else if (e.target.value === 'Meron Bekele Haile') setNewPatientMrn('BDS-MRN-2026-0312');
+                    if (e.target.value === 'Tigist Alemu Desta') setNewPatientMrn('BDS-00041');
+                    else if (e.target.value === 'Dawit Haile Gebre') setNewPatientMrn('BDS-00089');
+                    else if (e.target.value === 'Sara Mengistu Tadesse') setNewPatientMrn('BDS-00155');
+                    else if (e.target.value === 'Abebe Kebede Wolde') setNewPatientMrn('BDS-00210');
+                    else if (e.target.value === 'Solomon Tekle Mariam') setNewPatientMrn('BDS-00094');
+                    else if (e.target.value === 'Meron Bekele Haile') setNewPatientMrn('BDS-00312');
                   }}
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-sky-500"
                 >
-                  <option value="Tigist Alemu Desta">Tigist Alemu Desta (BDS-MRN-2026-0041)</option>
-                  <option value="Dawit Haile Gebre">Dawit Haile Gebre (BDS-MRN-2026-0089)</option>
-                  <option value="Sara Mengistu Tadesse">Sara Mengistu Tadesse (BDS-MRN-2026-0155)</option>
-                  <option value="Abebe Kebede Wolde">Abebe Kebede Wolde (BDS-MRN-2026-0210)</option>
-                  <option value="Solomon Tekle Mariam">Solomon Tekle Mariam (BDS-MRN-2026-0094)</option>
-                  <option value="Meron Bekele Haile">Meron Bekele Haile (BDS-MRN-2026-0312)</option>
+                  <option value="Tigist Alemu Desta">Tigist Alemu Desta (BDS-00041)</option>
+                  <option value="Dawit Haile Gebre">Dawit Haile Gebre (BDS-00089)</option>
+                  <option value="Sara Mengistu Tadesse">Sara Mengistu Tadesse (BDS-00155)</option>
+                  <option value="Abebe Kebede Wolde">Abebe Kebede Wolde (BDS-00210)</option>
+                  <option value="Solomon Tekle Mariam">Solomon Tekle Mariam (BDS-00094)</option>
+                  <option value="Meron Bekele Haile">Meron Bekele Haile (BDS-00312)</option>
                 </select>
               </div>
 
@@ -1287,19 +1297,6 @@ export default function PaymentsPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Patient Record Drawer when MRN is clicked */}
-      {selectedPatientForDrawer && (
-        <PatientRecordDrawer
-          appointmentId={
-            store.appointments.find((a) => a.patientChart?.cardNo === selectedPatientForDrawer || a.patientChart?.medicalRecordNumber === selectedPatientForDrawer)?.id ||
-            store.appointments[0]?.id ||
-            'apt-001'
-          }
-          isOpen={!!selectedPatientForDrawer}
-          onClose={() => setSelectedPatientForDrawer(null)}
-        />
       )}
     </div>
   );

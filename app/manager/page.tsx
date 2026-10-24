@@ -398,63 +398,112 @@ export default function DayCloseManagerPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
-                <th className="py-3 px-4 sm:px-6">Receipt #</th>
-                <th className="py-3 px-4">Patient</th>
-                <th className="py-3 px-4">Method</th>
-                <th className="py-3 px-4">Amount</th>
-                <th className="py-3 px-4 hidden sm:table-cell">Time</th>
-                <th className="py-3 px-4 sm:px-6 text-right">Action</th>
+              <tr className="border-b border-slate-200/90 bg-slate-100/70 text-slate-500 font-bold text-[11px] uppercase tracking-wider select-none">
+                <th className="py-3 px-4 sm:px-6">RECEIPT &amp; FISCAL TIN</th>
+                <th className="py-3 px-4">PATIENT</th>
+                <th className="py-3 px-4">PAYMENT METHOD</th>
+                <th className="py-3 px-4">COLLECTED AMOUNT</th>
+                <th className="py-3 px-4 hidden sm:table-cell">TIME</th>
+                <th className="py-3 px-4 sm:px-6 text-right">MoR FISCAL ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredLedger.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                    No transactions found for this filter.
+                  <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                    <CheckCircle2 className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                    <p className="font-semibold text-slate-600">No transactions found for this filter</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Try selecting another payment rail or clear filters.</p>
                   </td>
                 </tr>
               ) : (
-                filteredLedger.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-3.5 px-4 sm:px-6 font-mono font-medium text-slate-900 whitespace-nowrap">
-                      {tx.receiptNumber}
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-900">
-                      {tx.patientName}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {tx.method === 'cash' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200">
-                          Cash Drawer
-                        </span>
-                      ) : tx.method === 'telebirr_manual' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs border border-blue-200">
-                          Telebirr
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-semibold text-xs border border-purple-200">
-                          CBE Birr
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-900 tabular-nums">
-                      {tx.amountETB.toLocaleString()} ETB
-                    </td>
-                    <td className="py-3.5 px-4 text-xs text-slate-500 font-mono hidden sm:table-cell">
-                      {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
-                      <button
-                        onClick={() => handleViewReceipt(tx)}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
-                      >
-                        <Printer className="w-3.5 h-3.5 text-slate-400" />
-                        Receipt
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredLedger.map((tx) => {
+                  const initials = tx.patientName
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase();
+
+                  const borderClass =
+                    tx.method === 'telebirr_manual'
+                      ? 'border-l-blue-600 bg-blue-50/15 hover:bg-blue-50/30'
+                      : tx.method === 'cbe_manual'
+                      ? 'border-l-purple-600 bg-purple-50/15 hover:bg-purple-50/30'
+                      : 'border-l-slate-400 hover:bg-slate-50/80';
+
+                  return (
+                    <tr key={tx.id} className={`transition-colors border-l-[4px] ${borderClass}`}>
+                      {/* Receipt & Fiscal TIN */}
+                      <td className="py-3.5 px-4 sm:px-6 whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <span className="font-mono text-xs font-bold text-slate-800 bg-white border border-slate-200/90 px-2 py-0.5 rounded-lg shadow-2xs">
+                            {tx.receiptNumber}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            MoR TIN: 0049283711
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Patient Monogram & Name */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900">{tx.patientName}</p>
+                            <p className="text-[10px] text-slate-400 font-mono">Bole Dental Operatory</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Payment Method Badge */}
+                      <td className="py-3.5 px-4">
+                        {tx.method === 'cash' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-semibold text-xs border border-slate-200 shadow-2xs">
+                            <Banknote className="w-3 h-3 text-slate-600" />
+                            <span>Cash Drawer</span>
+                          </span>
+                        ) : tx.method === 'telebirr_manual' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs border border-blue-200 shadow-2xs">
+                            <Smartphone className="w-3 h-3 text-blue-600" />
+                            <span>Telebirr</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 font-semibold text-xs border border-purple-200 shadow-2xs">
+                            <Building2 className="w-3 h-3 text-purple-600" />
+                            <span>CBE Birr</span>
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Collected Amount */}
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 tabular-nums">
+                        <span className="text-sm font-black">{tx.amountETB.toLocaleString()}</span>
+                        <span className="text-xs text-slate-500 font-sans ml-1">ETB</span>
+                      </td>
+
+                      {/* Time */}
+                      <td className="py-3.5 px-4 text-xs text-slate-500 font-mono hidden sm:table-cell">
+                        {new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </td>
+
+                      {/* MoR Fiscal Receipt Action */}
+                      <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => handleViewReceipt(tx)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-98"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-slate-500" />
+                          <span>MoR Receipt</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

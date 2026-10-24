@@ -108,7 +108,7 @@ export interface EthiopianPatientChart {
   age: number;
   gender: 'Female' | 'Male';
   occupation?: string;
-  subcityWoreda: string;
+  subcityWoreda?: string;
   emergencyContact: {
     name: string;
     relationship: string;
@@ -158,9 +158,18 @@ export interface Appointment {
   recallMonths?: number;
   receiptNumber?: string;
   chairNumber?: number;
+  seatingStatus?: 'none' | 'requested' | 'accepted' | 'cancelled_by_doctor' | 'sent_to_cashier' | 'settled_at_cashier';
+  seatingCancelledAt?: string;
+  seatingCancelledReason?: string;
+  cashierSettled?: boolean;
+  cashierSettledAt?: string;
   medicalAlerts?: MedicalAlert[];
   toothChart?: Record<number, ToothStatus>;
   patientChart?: EthiopianPatientChart;
+  source?: 'online' | 'walkin' | 'phone' | 'copilot';
+  isOnlineBooking?: boolean;
+  depositMethod?: 'telebirr' | 'cbe' | 'cash' | 'chapa_online' | string;
+  bookedVia?: string;
 }
 
 export interface LedgerTransaction {
@@ -237,7 +246,7 @@ export type TreatmentPlanStatus =
 export interface PlanProcedureItem {
   id: string;
   name: string;
-  category: 'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'whole_mouth';
+  category: 'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'addons' | 'whole_mouth';
   toothNumber?: number | 'whole_mouth' | string | null;
   feeETB: number;
   assignedDoctorCode: string;
@@ -311,4 +320,16 @@ export interface TreatmentContract {
   startDate: string;
   nextDueVisitDate?: string;
   installments: ContractInstallment[];
+}
+
+export interface ChairSeatingRequest {
+  id: string;
+  appointmentId: string;
+  patientName: string;
+  serviceName: string;
+  doctorName: string;
+  chairNumber: number;
+  requestedBy: string;
+  timestamp: string;
+  status: 'pending' | 'accepted' | 'declined';
 }

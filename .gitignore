@@ -18,8 +18,12 @@ yarn-error.log*
 *.log
 
 # Environment Files
+.env
 .env*.local
 
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Executables & Binaries
+ngrok.exe

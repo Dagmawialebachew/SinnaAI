@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FileText,
   Plus,
@@ -57,7 +58,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Tigist Alemu Desta',
     patientNameAmharic: 'ትዕግስት አለሙ ደስታ',
-    patientMrn: 'BDS-MRN-2026-0041',
+    patientMrn: 'BDS-00041',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -74,7 +75,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Dawit Haile Gebre',
     patientNameAmharic: 'ዳዊት ኃይሌ ገብረ',
-    patientMrn: 'BDS-MRN-2026-0089',
+    patientMrn: 'BDS-00089',
     status: 'Completed',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -91,7 +92,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Sara Mengistu Tadesse',
     patientNameAmharic: 'ሳራ መንግስቱ ታደሰ',
-    patientMrn: 'BDS-MRN-2026-0155',
+    patientMrn: 'BDS-00155',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -107,7 +108,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Abebe Kebede Worku',
     patientNameAmharic: 'አበበ ከበደ ወርቁ',
-    patientMrn: 'BDS-MRN-2026-0012',
+    patientMrn: 'BDS-00012',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -123,7 +124,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Almaz Wolde Gebre',
     patientNameAmharic: 'አልማዝ ወልዴ ገብረ',
-    patientMrn: 'BDS-MRN-2026-0312',
+    patientMrn: 'BDS-00312',
     status: 'Rejected',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -139,7 +140,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Yonas Bekele Tefera',
     patientNameAmharic: 'ዮናስ በቀለ ተፈራ',
-    patientMrn: 'BDS-MRN-2026-0244',
+    patientMrn: 'BDS-00244',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -156,7 +157,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Hanan Mohammed Ali',
     patientNameAmharic: 'ሐናን መሀመድ አሊ',
-    patientMrn: 'BDS-MRN-2026-0418',
+    patientMrn: 'BDS-00418',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -172,7 +173,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Kiros Tesfaye Berhe',
     patientNameAmharic: 'ኪሮስ ተስፋዬ በርሀ',
-    patientMrn: 'BDS-MRN-2026-0520',
+    patientMrn: 'BDS-00520',
     status: 'Accepted',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -189,7 +190,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Marta Desta Wondimu',
     patientNameAmharic: 'ማርታ ደስታ ወንድሙ',
-    patientMrn: 'BDS-MRN-2026-0610',
+    patientMrn: 'BDS-00610',
     status: 'Sent',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -205,7 +206,7 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
     version: 'v1',
     patientName: 'Binyam Girma Tsegaye',
     patientNameAmharic: 'ቢንያም ግርማ ፀጋዬ',
-    patientMrn: 'BDS-MRN-2026-0701',
+    patientMrn: 'BDS-00701',
     status: 'Draft',
     date: '10/12/2026',
     validUntil: '11/12/2026',
@@ -218,8 +219,18 @@ const INITIAL_QUOTES: TreatmentQuote[] = [
 ];
 
 export default function QuotesPage() {
+  const router = useRouter();
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
+
+  const isDoctor = store.currentUser?.role === 'doctor' || store.activePersona === 'doctor';
+  const handleOpenPatient = (mrnOrName: string) => {
+    if (isDoctor) {
+      router.push(`/patients?patientId=${encodeURIComponent(mrnOrName)}`);
+    } else {
+      sinnaStore.openPatientDrawer(mrnOrName);
+    }
+  };
 
   const [quotes, setQuotes] = useState<TreatmentQuote[]>(INITIAL_QUOTES);
   const [searchQuery, setSearchQuery] = useState('');
@@ -233,7 +244,7 @@ export default function QuotesPage() {
 
   // New quote form state
   const [newPatientName, setNewPatientName] = useState('');
-  const [newPatientMrn, setNewPatientMrn] = useState('BDS-MRN-2026-');
+  const [newPatientMrn, setNewPatientMrn] = useState('BDS-');
   const [newDoctor, setNewDoctor] = useState('Dr. Senait Tadesse');
   const [newProcedure, setNewProcedure] = useState('Comprehensive Restoration & Scaling');
   const [newFee, setNewFee] = useState('3500');
@@ -276,7 +287,7 @@ export default function QuotesPage() {
       version: 'v1',
       patientName: newPatientName,
       patientNameAmharic: 'ደንበኛ',
-      patientMrn: newPatientMrn.trim() || `BDS-MRN-2026-0${Math.floor(100 + Math.random() * 900)}`,
+      patientMrn: newPatientMrn.trim() || `BDS-0${Math.floor(100 + Math.random() * 900)}`,
       status: 'Draft',
       date: '10/12/2026',
       validUntil: '11/12/2026',
@@ -443,10 +454,28 @@ export default function QuotesPage() {
                             <span className="text-xs text-slate-500 font-medium">{quote.doctorName}</span>
                           </div>
                           <div className="text-xs text-slate-600 truncate mt-0.5 flex items-center gap-2">
-                            <span className="font-medium text-slate-900">{quote.patientName}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenPatient(quote.patientMrn || quote.patientName);
+                              }}
+                              className="font-medium text-slate-900 hover:text-sky-600 hover:underline text-left cursor-pointer transition-colors"
+                            >
+                              {quote.patientName}
+                            </button>
                             <span className="text-slate-400 font-amharic">({quote.patientNameAmharic})</span>
                             <span className="text-slate-300">•</span>
-                            <span className="text-[11px] text-slate-400 font-mono">{quote.patientMrn}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenPatient(quote.patientMrn);
+                              }}
+                              className="text-[11px] text-slate-400 hover:text-sky-600 font-mono hover:underline cursor-pointer transition-colors"
+                            >
+                              {quote.patientMrn}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -497,7 +526,16 @@ export default function QuotesPage() {
                               {quote.status}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-700 truncate mt-0.5 font-medium">{quote.patientName}</div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenPatient(quote.patientMrn || quote.patientName);
+                            }}
+                            className="text-xs text-slate-700 truncate mt-0.5 font-medium hover:text-sky-600 text-left cursor-pointer"
+                          >
+                            {quote.patientName}
+                          </button>
                         </div>
                         <span className="font-mono font-bold text-slate-900 text-xs shrink-0">
                           {quote.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB

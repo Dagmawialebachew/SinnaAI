@@ -238,7 +238,7 @@ export function getClinicalReportHTML(
               ${totalReceivables.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <div style="font-size: 7.5pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Outstanding Receivables (0-30 Days)
+              Overdue / Unsettled Payments
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
   Calendar, 
@@ -24,16 +24,33 @@ interface BookingModalProps {
   onClose: () => void;
   onBookingSuccess?: (appointment: Appointment, smsPayload?: { am: string; en: string }) => void;
   initialServiceId?: string | null;
+  initialDate?: string | null;
+  initialSlot?: string | null;
+  initialChairNumber?: number | null;
 }
 
-const AVAILABLE_DATES = [
-  { value: '2026-10-11', label: 'Today (Sun, Oct 11)' },
-  { value: '2026-10-12', label: 'Tomorrow (Mon, Oct 12)' },
-  { value: '2026-10-13', label: 'Tuesday (Oct 13)' },
-  { value: '2026-10-14', label: 'Wednesday (Oct 14)' },
-  { value: '2026-10-15', label: 'Thursday (Oct 15)' },
-  { value: '2026-10-16', label: 'Friday (Oct 16)' },
-];
+function generateAvailableDates(): { value: string; label: string }[] {
+  const dates = [];
+  const base = new Date();
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const val = `${yyyy}-${mm}-${dd}`;
+    const dayName = dayNames[d.getDay()];
+    const mon = monthNames[d.getMonth()];
+    const label = i === 0 ? `Today (${dayName}, ${mon} ${d.getDate()})` :
+                  i === 1 ? `Tomorrow (${dayName}, ${mon} ${d.getDate()})` :
+                  `${dayName} (${mon} ${d.getDate()})`;
+    dates.push({ value: val, label });
+  }
+  return dates;
+}
 
 const TIME_SLOTS = [
   '09:00 AM',
@@ -58,10 +75,15 @@ export function BookingModal({
   isOpen, 
   onClose, 
   onBookingSuccess,
-  initialServiceId 
+  initialServiceId,
+  initialDate,
+  initialSlot,
+  initialChairNumber
 }: BookingModalProps) {
   const store = useSinnaStore();
   const clinic = clinicProp || getClinicData(store.activeClinicSlug) || Object.values(store.clinics)[0];
+
+  const availableDates = useMemo(() => generateAvailableDates(), []);
 
   // Form State: Patient Information
   const [patientMode, setPatientMode] = useState<'existing' | 'new'>('new');
@@ -76,11 +98,17 @@ export function BookingModal({
 
   // Form State: Doctor & Chair Assignment
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>('doc-senait');
-  const [selectedChairNumber, setSelectedChairNumber] = useState<number>(1);
+  const [selectedChairNumber, setSelectedChairNumber] = useState<number>(initialChairNumber || 1);
 
   // Form State: Date & Time
-  const [selectedDate, setSelectedDate] = useState<string>('2026-10-11');
-  const [selectedSlot, setSelectedSlot] = useState<string>('10:30 AM');
+  const [selectedDate, setSelectedDate] = useState<string>(initialDate || availableDates[0]?.value || new Date().toISOString().split('T')[0]);
+  const [selectedSlot, setSelectedSlot] = useState<string>(initialSlot || '10:00 AM');
+
+  useEffect(() => {
+    if (initialDate) setSelectedDate(initialDate);
+    if (initialSlot) setSelectedSlot(initialSlot);
+    if (initialChairNumber) setSelectedChairNumber(initialChairNumber);
+  }, [initialDate, initialSlot, initialChairNumber, isOpen]);
 
   // Form State: Financials (Desk Editable)
   const [paymentRail, setPaymentRail] = useState<'none' | 'cash' | 'telebirr' | 'cbe_birr' | 'chapa'>('none');
@@ -177,7 +205,8 @@ export function BookingModal({
     const durationMins = service ? service.durationMinutes : 30;
     const endsAt = new Date(new Date(startsAt).getTime() + durationMins * 60000).toISOString();
 
-    const appointmentId = `apt-${Date.now()}`;
+    const fiveDigits = Math.floor(10000 + Math.random() * 90000);
+    const appointmentId = `BDS-${fiveDigits}`;
     const receiptNum = amountCollectedETB > 0 ? `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}` : undefined;
 
     const newAppointment: Appointment = {
@@ -492,7 +521,7 @@ export function BookingModal({
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
-                  {AVAILABLE_DATES.map((d) => (
+                  {availableDates.map((d: { value: string; label: string }) => (
                     <option key={d.value} value={d.value}>
                       {d.label}
                     </option>

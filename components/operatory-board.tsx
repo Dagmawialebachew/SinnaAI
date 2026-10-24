@@ -178,18 +178,21 @@ export function OperatoryBoard({
                             if (onSeatPatient) {
                               onSeatPatient(aptId, chair.chairNumber);
                             } else {
-                              sinnaStore.assignPatientToChair(aptId, chair.chairNumber);
+                              sinnaStore.requestSeatInChair(aptId, chair.chairNumber);
                             }
                           }
                         }}
                         defaultValue=""
                       >
                         <option value="" disabled>Select patient...</option>
-                        {safeWaiting.map((apt) => (
-                          <option key={apt.id} value={apt.id}>
-                            {apt.patientName} ({apt.doctorName.split(' ')[1] || 'Doctor'})
-                          </option>
-                        ))}
+                        {safeWaiting.map((apt) => {
+                          const isCancelled = apt.seatingStatus === 'cancelled_by_doctor';
+                          return (
+                            <option key={apt.id} value={apt.id}>
+                              {isCancelled ? `[Cancelled · Waiting] ` : ''}{apt.patientName} ({apt.doctorName.split(' ')[1] || 'Doctor'})
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                   </div>

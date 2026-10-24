@@ -26,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full bg-slate-50 antialiased">
       <head>
+        <meta charSet="utf-8" />
         {/* Modern Typography: SF / Inter + Noto Sans Ethiopic for authentic Amharic */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

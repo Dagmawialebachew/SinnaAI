@@ -107,12 +107,7 @@ export default function ReceptionDeskPage() {
   };
 
   const handleSeatInChair = (aptId: string, chairNumber?: number) => {
-    if (chairNumber) {
-      sinnaStore.assignPatientToChair(aptId, chairNumber);
-      return;
-    }
-    const available = chairs.find((c) => c.status === 'available');
-    sinnaStore.assignPatientToChair(aptId, available ? available.chairNumber : 1);
+    sinnaStore.requestSeatInChair(aptId, chairNumber);
   };
 
   const handleOpenCheckout = (apt: Appointment) => {
@@ -371,19 +366,21 @@ export default function ReceptionDeskPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
-                <th className="py-3 px-4 sm:px-6">Time</th>
-                <th className="py-3 px-4">Patient</th>
-                <th className="py-3 px-4 hidden md:table-cell">Doctor & Service</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 sm:px-6 text-right">Front Desk Action</th>
+              <tr className="border-b border-slate-200/90 bg-slate-100/70 text-slate-500 font-bold text-[11px] uppercase tracking-wider select-none">
+                <th className="py-3 px-4 sm:px-6">TIME &amp; OPERATORY</th>
+                <th className="py-3 px-4">PATIENT &amp; MRN</th>
+                <th className="py-3 px-4 hidden md:table-cell">DOCTOR &amp; PROCEDURE</th>
+                <th className="py-3 px-4">STATUS &amp; BILLING</th>
+                <th className="py-3 px-4 sm:px-6 text-right">FRONT DESK ACTION</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredAppointments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-400 text-xs">
-                    No patients match this filter.
+                  <td colSpan={5} className="py-12 text-center text-slate-400 text-xs">
+                    <CheckCircle2 className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                    <p className="font-semibold text-slate-600">No patients match this filter</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Try selecting another filter tab or search query.</p>
                   </td>
                 </tr>
               ) : (
@@ -393,6 +390,7 @@ export default function ReceptionDeskPage() {
                   const isInChair = apt.status === 'in_progress';
                   const isWaiting = apt.status === 'checked_in';
                   const isConfirmed = apt.status === 'confirmed';
+                  const isCancelled = apt.seatingStatus === 'cancelled_by_doctor';
 
                   const aptContract = contracts.find(
                     (c) =>
@@ -400,36 +398,90 @@ export default function ReceptionDeskPage() {
                       c.patientName.toLowerCase() === apt.patientName.toLowerCase()
                   );
 
+                  const initials = apt.patientName
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase();
+
+                  const mrn =
+                    apt.patientChart?.medicalRecordNumber ||
+                    apt.patientChart?.cardNo ||
+                    `BDS-${String(apt.id.replace(/\D/g, '') || '042').padStart(4, '0')}`;
+
+                  const borderLeftClass = isCancelled
+                    ? 'border-l-rose-500 bg-rose-50/30 hover:bg-rose-50/50'
+                    : isInChair
+                    ? 'border-l-blue-600 bg-blue-50/15 hover:bg-blue-50/30'
+                    : isWaiting
+                    ? 'border-l-amber-500 bg-amber-50/10 hover:bg-amber-50/25'
+                    : isPaid
+                    ? 'border-l-emerald-500 hover:bg-slate-50/80'
+                    : isDone
+                    ? 'border-l-amber-600 hover:bg-slate-50/80'
+                    : 'border-l-slate-300 hover:bg-slate-50/80';
+
                   return (
-                    <tr key={apt.id} className="hover:bg-slate-50/60 transition-colors">
-                      {/* Time Slot */}
-                      <td className="py-3.5 px-4 sm:px-6 font-mono text-slate-600 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          <span>
+                    <tr
+                      key={apt.id}
+                      className={`transition-colors border-l-[4px] ${borderLeftClass}`}
+                    >
+                      {/* Time & Operatory */}
+                      <td className="py-3.5 px-4 sm:px-6 whitespace-nowrap">
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className="px-2.5 py-1 text-xs font-bold font-mono text-slate-800 bg-white border border-slate-200/90 rounded-lg shadow-2xs">
                             {new Date(apt.startsAt).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
                           </span>
+                          <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                            (apt.chairNumber || 1) === 1
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : 'bg-purple-50 text-purple-700 border-purple-200'
+                          }`}>
+                            Chair #{apt.chairNumber || 1}
+                          </span>
                         </div>
                       </td>
 
-                      {/* Patient Name & Phone */}
-                      <td className="py-3.5 px-4">
-                        <div>
-                          <p className="font-semibold text-slate-900">{apt.patientName}</p>
-                          <p className="text-xs text-slate-500 font-mono">{apt.patientPhone}</p>
+                      {/* Patient Name & MRN & Monogram */}
+                      <td
+                        className="py-3.5 px-4 cursor-pointer"
+                        onClick={() => sinnaStore.openPatientDrawer(apt.id)}
+                        title="Click to view and edit patient profile & reschedule"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-2xs">
+                            {initials}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                              {apt.patientName}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              <span className="text-xs text-slate-500 font-mono">{apt.patientPhone}</span>
+                              <span className="text-slate-300">·</span>
+                              <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                                {mrn}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
                       {/* Doctor & Service */}
                       <td className="py-3.5 px-4 hidden md:table-cell">
                         <div>
-                          <p className="font-medium text-slate-800">{apt.serviceName}</p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <p className="text-xs text-slate-500">{apt.doctorName}</p>
-                            {aptContract && (
+                          <p className="font-semibold text-slate-800">{apt.serviceName}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="text-xs text-slate-500">{apt.doctorName}</span>
+                            {isCancelled ? (
+                              <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-mono font-bold border border-rose-300">
+                                Doctor Busy ({apt.seatingCancelledAt || 'recent'})
+                              </span>
+                            ) : aptContract && (
                               <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-mono font-bold border border-indigo-200">
                                 M{aptContract.completedVisitsCount}/{aptContract.estimatedVisits}
                               </span>
@@ -438,95 +490,118 @@ export default function ReceptionDeskPage() {
                         </div>
                       </td>
 
-                      {/* Status Badge */}
+                      {/* Status & Payment Badge */}
                       <td className="py-3.5 px-4">
-                        {isPaid ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            Paid & Settled
-                          </span>
-                        ) : isDone ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200">
-                            {aptContract ? (
-                              aptContract.prepaidCreditETB >= aptContract.installmentPerVisitETB ? (
-                                <>Prepaid Covered (0 ETB)</>
+                        <div className="flex flex-col gap-1 items-start">
+                          {isPaid ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200 shadow-2xs">
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              Paid &amp; Settled
+                            </span>
+                          ) : isDone ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200 shadow-2xs">
+                              {aptContract ? (
+                                aptContract.prepaidCreditETB >= aptContract.installmentPerVisitETB ? (
+                                  <>Prepaid Covered (0 ETB)</>
+                                ) : (
+                                  <>Installment Due ({aptContract.installmentPerVisitETB.toLocaleString()} ETB)</>
+                                )
                               ) : (
-                                <>Installment Due ({aptContract.installmentPerVisitETB.toLocaleString()} ETB)</>
-                              )
+                                <>Ready to Pay ({apt.totalDueETB - apt.depositPaidETB} ETB)</>
+                              )}
+                            </span>
+                          ) : isInChair ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200 shadow-2xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                              In Chair #{apt.chairNumber || 1}
+                            </span>
+                          ) : isWaiting ? (
+                            isCancelled ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-xs font-bold border border-rose-300 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                                Cancelled Seating
+                              </span>
                             ) : (
-                              <>Ready to Pay ({apt.totalDueETB - apt.depositPaidETB} ETB)</>
-                            )}
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                In Waiting Lounge
+                              </span>
+                            )
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+                              Confirmed
+                            </span>
+                          )}
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {isPaid ? 'MoR TIN Fiscal Receipt' : `Total: ${apt.totalDueETB.toLocaleString()} ETB`}
                           </span>
-                        ) : isInChair ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Chair #{apt.chairNumber || 1}
-                          </span>
-                        ) : isWaiting ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200">
-                            In Waiting Lounge
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold border border-blue-200">
-                            Scheduled
-                          </span>
-                        )}
+                        </div>
                       </td>
 
                       {/* 1-Tap Action */}
                       <td className="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
-                        {isConfirmed && (
-                          <button
-                            onClick={() => handleCheckIn(apt.id)}
-                            className="px-3 py-1.5 text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-xl"
-                          >
-                            Check In
-                          </button>
-                        )}
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isConfirmed && (
+                            <button
+                              type="button"
+                              onClick={() => handleCheckIn(apt.id)}
+                              className="px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 rounded-xl transition-all shadow-2xs active:scale-98"
+                            >
+                              Check In
+                            </button>
+                          )}
 
-                        {isWaiting && (
-                          <button
-                            onClick={() => handleSeatInChair(apt.id)}
-                            className="px-3 py-1.5 text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-xl shadow-2xs"
-                          >
-                            Seat in Chair →
-                          </button>
-                        )}
+                          {isWaiting && (
+                            <button
+                              type="button"
+                              onClick={() => handleSeatInChair(apt.id)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl shadow-2xs transition-all active:scale-98 ${
+                                isCancelled
+                                  ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              }`}
+                            >
+                              {isCancelled ? 'Re-Seat in Chair →' : 'Seat in Chair →'}
+                            </button>
+                          )}
 
-                        {isInChair && (
-                          <Link
-                            href="/doctor"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl shadow-2xs"
-                          >
-                            <Stethoscope className="w-3.5 h-3.5" />
-                            Open Chart
-                          </Link>
-                        )}
+                          {isInChair && (
+                            <Link
+                              href="/doctor"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-xl shadow-2xs transition-all"
+                            >
+                              <Stethoscope className="w-3.5 h-3.5 text-blue-600" />
+                              <span>Clinical Chart</span>
+                            </Link>
+                          )}
 
-                        {isDone && !isPaid && (
-                          <button
-                            onClick={() => handleOpenCheckout(apt)}
-                            className="px-3 py-1.5 text-xs font-semibold bg-amber-600 text-white hover:bg-amber-700 rounded-xl shadow-2xs"
-                          >
-                            {aptContract ? (
-                              aptContract.prepaidCreditETB >= aptContract.installmentPerVisitETB
-                                ? 'Covered by Credit (0 ETB)'
-                                : `Collect ${aptContract.installmentPerVisitETB.toLocaleString()} ETB (M${aptContract.completedVisitsCount})`
-                            ) : (
-                              `Collect ${apt.totalDueETB - apt.depositPaidETB} ETB`
-                            )}
-                          </button>
-                        )}
+                          {isDone && !isPaid && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCheckout(apt)}
+                              className="px-3 py-1.5 text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 rounded-xl shadow-2xs transition-all active:scale-98"
+                            >
+                              {aptContract ? (
+                                aptContract.prepaidCreditETB >= aptContract.installmentPerVisitETB
+                                  ? 'Covered by Credit'
+                                  : `Collect ${aptContract.installmentPerVisitETB.toLocaleString()} ETB`
+                              ) : (
+                                `Collect ${apt.totalDueETB - apt.depositPaidETB} ETB`
+                              )}
+                            </button>
+                          )}
 
-                        {isPaid && (
-                          <button
-                            onClick={() => handleViewReceipt(apt)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl"
-                          >
-                            <Printer className="w-3.5 h-3.5 text-slate-500" />
-                            Receipt
-                          </button>
-                        )}
+                          {isPaid && (
+                            <button
+                              type="button"
+                              onClick={() => handleViewReceipt(apt)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-2xs transition-colors"
+                            >
+                              <Printer className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Receipt</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

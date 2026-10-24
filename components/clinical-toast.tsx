@@ -14,26 +14,28 @@ function ToastItem({ toast, onDismiss }: ToastItemProps) {
   const duration = toast.durationMs || 4500;
   const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
+  const onDismissRef = React.useRef(onDismiss);
+  onDismissRef.current = onDismiss;
 
   useEffect(() => {
     if (isPaused) return;
 
-    const intervalTime = 25; // update every 25ms
+    const intervalTime = 30; // 30ms progress tick
     const decrement = (intervalTime / duration) * 100;
 
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev <= decrement) {
-          clearInterval(timer);
-          onDismiss(toast.id);
-          return 0;
-        }
-        return prev - decrement;
-      });
+    const progressTimer = setInterval(() => {
+      setProgress((prev) => Math.max(0, prev - decrement));
     }, intervalTime);
 
-    return () => clearInterval(timer);
-  }, [toast.id, duration, isPaused, onDismiss]);
+    const dismissTimer = setTimeout(() => {
+      onDismissRef.current(toast.id);
+    }, duration);
+
+    return () => {
+      clearInterval(progressTimer);
+      clearTimeout(dismissTimer);
+    };
+  }, [toast.id, duration, isPaused]);
 
   const barColor =
     toast.type === 'error'
@@ -89,6 +91,12 @@ export function ClinicalToastContainer() {
   const store = useSinnaStore();
   const toasts = Array.isArray(store.toasts) ? store.toasts : [];
 
+  const handleDismiss = React.useCallback((id: string) => {
+    setTimeout(() => {
+      sinnaStore.dismissToast(id);
+    }, 0);
+  }, []);
+
   if (toasts.length === 0) return null;
 
   return (
@@ -97,7 +105,7 @@ export function ClinicalToastContainer() {
         <ToastItem
           key={toast.id}
           toast={toast}
-          onDismiss={(id) => sinnaStore.dismissToast(id)}
+          onDismiss={handleDismiss}
         />
       ))}
     </div>

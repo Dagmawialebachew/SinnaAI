@@ -126,7 +126,7 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
             <div className="flex justify-between text-[11px] text-slate-500">
               <span>PAYMENT METHOD:</span>
               <span className="uppercase font-semibold text-slate-700">
-                {transaction?.method.replace('_', ' ') || 'CASH IN CLINIC'}
+                {(transaction?.method || 'cash').replace('_', ' ')}
               </span>
             </div>
             <div className="flex justify-between text-[11px] text-slate-500">

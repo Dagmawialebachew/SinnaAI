@@ -17,7 +17,7 @@ import { ToothStatus } from '@/lib/types';
 export interface ProcedureDefinition {
   id: string;
   name: string;
-  category: 'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'whole_mouth';
+  category: 'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'addons' | 'whole_mouth';
   feeETB: number;
   color: string;
   iconSvg: React.ReactNode;
@@ -26,7 +26,7 @@ export interface ProcedureDefinition {
 }
 
 const PROCEDURES_DATA: Record<
-  'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'whole_mouth',
+  'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'addons' | 'whole_mouth',
   ProcedureDefinition[]
 > = {
   restorative: [
@@ -645,6 +645,249 @@ const PROCEDURES_DATA: Record<
       ),
     },
   ],
+  addons: [
+    {
+      id: 'add-iopa',
+      name: 'Digital Periapical X-Ray (IOPA)',
+      category: 'addons',
+      feeETB: 400,
+      color: 'rgb(2, 132, 199)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+          <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-bitewing',
+      name: 'Bitewing Radiograph (Bite-Wing)',
+      category: 'addons',
+      feeETB: 450,
+      color: 'rgb(2, 132, 199)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 2" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-opg',
+      name: 'Panoramic OPG Radiograph',
+      category: 'addons',
+      feeETB: 800,
+      color: 'rgb(2, 132, 199)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M2 12C2 7 6 3 12 3s10 4 10 9-4 9-10 9S2 17 2 12z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.4" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-vitality',
+      name: 'Thermal Cold & Electric Pulp Test',
+      category: 'addons',
+      feeETB: 200,
+      color: 'rgb(99, 102, 241)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-lido-epi',
+      name: 'Infiltration Lidocaine 2% + Epinephrine',
+      category: 'addons',
+      feeETB: 300,
+      color: 'rgb(16, 185, 129)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M18 2l4 4-2 2-4-4 2-2zM15 5l4 4-8 8-4-4 8-8zM7 13l4 4-7 5 3-9z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-mepiv-plain',
+      name: 'Mepivacaine 3% Plain (Epi-Free)',
+      category: 'addons',
+      feeETB: 350,
+      color: 'rgb(16, 185, 129)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-articaine',
+      name: 'Articaine 4% Mandibular Nerve Block',
+      category: 'addons',
+      feeETB: 450,
+      color: 'rgb(16, 185, 129)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-rubber-dam',
+      name: 'Rubber Dam Quadrant Isolation',
+      category: 'addons',
+      feeETB: 400,
+      color: 'rgb(139, 92, 246)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="4" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-dycal',
+      name: 'Calcium Hydroxide Pulp Cap (Dycal)',
+      category: 'addons',
+      feeETB: 500,
+      color: 'rgb(245, 158, 11)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="3" fill="currentColor" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-gic-liner',
+      name: 'Glass Ionomer (GIC) Base & Pulp Liner',
+      category: 'addons',
+      feeETB: 600,
+      color: 'rgb(245, 158, 11)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="4" y="6" width="16" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-retraction-cord',
+      name: 'Gingival Retraction Cord Placement',
+      category: 'addons',
+      feeETB: 250,
+      color: 'rgb(139, 92, 246)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M4 12c2-4 6-4 8 0s6 4 8 0" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-fiber-post',
+      name: 'Fiber-Reinforced Glass Post Placement',
+      category: 'addons',
+      feeETB: 1200,
+      color: 'rgb(59, 130, 246)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="10" y="3" width="4" height="18" rx="1" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-fluoride-varnish',
+      name: 'Fluoride Enamel Varnish (Bifluorid)',
+      category: 'addons',
+      feeETB: 500,
+      color: 'rgb(16, 185, 129)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-chx-irrig',
+      name: 'Subgingival Chlorhexidine Irrigation',
+      category: 'addons',
+      feeETB: 300,
+      color: 'rgb(16, 185, 129)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-surgicel',
+      name: 'Hemostatic Surgicel Sponge Pack',
+      category: 'addons',
+      feeETB: 350,
+      color: 'rgb(220, 38, 38)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="5" y="5" width="14" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-alvogyl',
+      name: 'Alvogyl Dry Socket Antiseptic Paste',
+      category: 'addons',
+      feeETB: 600,
+      color: 'rgb(220, 38, 38)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-vicryl-suture',
+      name: 'Resorbable Vicryl Surgical Suture (3-0)',
+      category: 'addons',
+      feeETB: 450,
+      color: 'rgb(220, 38, 38)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M6 3v18M18 3v18M6 8l12 8M6 16l12-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-abscess-drain',
+      name: 'Intraoral Abscess Incision & Drainage',
+      category: 'addons',
+      feeETB: 1500,
+      color: 'rgb(220, 38, 38)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: 'add-bracket-repair',
+      name: 'Emergency Broken Bracket Rebond',
+      category: 'addons',
+      feeETB: 400,
+      color: 'rgb(99, 102, 241)',
+      iconSvg: (
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <rect x="7" y="7" width="10" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M4 12h3M17 12h3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ],
 };
 
 export interface TreatmentProcedureGridProps {
@@ -659,7 +902,7 @@ export function TreatmentProcedureGrid({
   onApplyProcedure,
 }: TreatmentProcedureGridProps) {
   const [activeCategory, setActiveCategory] = useState<
-    'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'whole_mouth'
+    'restorative' | 'surgery' | 'endodontics' | 'orthodontics' | 'addons' | 'whole_mouth'
   >('restorative');
   const [searchQuery, setSearchQuery] = useState('');
   const [legendOpen, setLegendOpen] = useState(true);
@@ -669,6 +912,7 @@ export function TreatmentProcedureGrid({
     { key: 'surgery', label: 'Surgery' },
     { key: 'endodontics', label: 'Endodontics' },
     { key: 'orthodontics', label: 'Orthodontics' },
+    { key: 'addons', label: 'Add-Ons & Imaging' },
     { key: 'whole_mouth', label: 'Whole mouth' },
   ] as const;
 
@@ -797,7 +1041,7 @@ export function TreatmentProcedureGrid({
                   {/* Category Pill when searching across all catalog */}
                   {searchQuery && (
                     <span className="absolute top-1.5 left-2 text-[8px] uppercase font-bold text-slate-400 tracking-wider">
-                      {proc.category.replace('_', ' ')}
+                      {(proc.category || '').replace('_', ' ')}
                     </span>
                   )}
 

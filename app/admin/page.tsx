@@ -21,7 +21,8 @@ import {
   KeyRound,
   ArrowRight,
   Sparkles,
-  Info
+  Info,
+  Database
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { Doctor, ServiceItem, OperatoryChair } from '@/lib/types';
@@ -30,7 +31,7 @@ export default function AdminPage() {
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
 
-  const [activeTab, setActiveTab] = useState<'clinic' | 'doctors' | 'services' | 'chairs'>('clinic');
+  const [activeTab, setActiveTab] = useState<'clinic' | 'doctors' | 'services' | 'chairs' | 'ai'>('clinic');
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   // Clinic profile form state
@@ -372,6 +373,18 @@ export default function AdminPage() {
         >
           <Layers className="w-4 h-4" />
           <span>Operatory Chairs ({store.chairs.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('ai')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
+            activeTab === 'ai'
+              ? 'border-blue-600 text-blue-600 bg-white'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-sky-500" />
+          <span>Sinna AI Copilot (Gemini & RAG)</span>
         </button>
       </div>
 
@@ -756,6 +769,120 @@ export default function AdminPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB E: SINNA AI COPILOT & GEMINI RAG SETTINGS */}
+      {activeTab === 'ai' && (
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-7 shadow-2xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-900">
+                  Sinna AI Clinical Copilot & RAG System
+                </h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-100 text-sky-800 border border-sky-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Gemini 3.8 Flash Active
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Clinical intelligence for patient bookings and front-desk reception, grounded with zero hallucinations in Ethiopian dental records and live database snapshots.
+              </p>
+            </div>
+          </div>
+
+          {/* AI Architecture Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 mb-1">
+                <Sparkles className="w-4 h-4 text-sky-600" />
+                <span>Gemini API Integration</span>
+              </div>
+              <p className="text-xs text-slate-600 mb-2">
+                Powered by official <code className="text-sky-700 font-mono text-[11px] font-semibold">gemini-3.8-flash</code> with temperature locked at <code className="text-sky-700 font-mono text-[11px]">0.15</code> for strict clinical truthfulness.
+              </p>
+              <div className="text-[11px] text-slate-500 font-mono bg-white p-2 rounded-lg border border-slate-200">
+                ENV: GEMINI_API_KEY
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 mb-1">
+                <Database className="w-4 h-4 text-emerald-600" />
+                <span>Live Database Grounding</span>
+              </div>
+              <p className="text-xs text-slate-600">
+                AI dynamically inspects today's <strong>{store.appointments.length} appointments</strong>, <strong>{store.chairs.filter(c => c.status === 'occupied').length} active chairs</strong>, and current cashier balances to guarantee zero hallucinated numbers.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 mb-1">
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Trilingual Localization</span>
+              </div>
+              <p className="text-xs text-slate-600">
+                Native clinical fluency in <strong>English</strong>, <strong>አማርኛ (Amharic)</strong>, and <strong>Afaan Oromoo</strong> with contextual starter chips for patients and staff.
+              </p>
+            </div>
+          </div>
+
+          {/* Knowledge Base Document Manifest */}
+          <div className="pt-2">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3">
+              Active Grounding Documents (Clinical Knowledge Base)
+            </h3>
+            <div className="space-y-2">
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">1. Bole Dental Studio Profile & Hours</span>
+                  <p className="text-[11px] text-slate-500">Morning Star Mall 3rd Floor, Bole Medhanialem · Mon-Sat 8:30 AM - 7:00 PM · MoR TIN: 0049283711</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">2. Official Ethiopian Birr (ETB) Fee Schedule</span>
+                  <p className="text-[11px] text-slate-500">Cleaning (1,500 ETB), Emergency (1,200 ETB), RCT (4,500 - 6,800 ETB), Braces (45k - 95k ETB), Implants (28k ETB)</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">3. 300 ETB Reservation Deposit & AfroMessage SMS Policy</span>
+                  <p className="text-[11px] text-slate-500">100% credited toward bill upon arrival · Telebirr SuperApp & CBE Birr verification · Automated SMS confirmations</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">4. Attending Specialists Register</span>
+                  <p className="text-[11px] text-slate-500">Dr. Senait Tadesse (Lead Orthodontist & Director) · Dr. Dawit Bekele (Oral Surgeon & Implantologist)</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">5. FDI World Dental Federation 32-Tooth Standard</span>
+                  <p className="text-[11px] text-slate-500">Full 11-48 two-digit tooth chart mapping with root anatomy & quadrant restorative staging</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+
+              <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-semibold text-slate-800">6. Post-Operative Emergency Care Protocols</span>
+                  <p className="text-[11px] text-slate-500">Post-extraction dry socket prevention · Acute pulpal pain management · Chemical burn warnings</p>
+                </div>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-mono font-semibold">Indexed</span>
+              </div>
+            </div>
           </div>
         </div>
       )}

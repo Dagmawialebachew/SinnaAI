@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Users,
@@ -49,507 +49,21 @@ import {
   ShieldCheck,
   CreditCard,
   ClipboardList,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Globe,
+  Armchair
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { printPatientChart } from '@/lib/smart-print';
 import { BookingModal } from '@/components/booking-modal';
 import { TreatmentOdontogramChart } from '@/components/treatment-odontogram-chart';
+import { TreatmentPlanWorkspace } from '@/components/treatment-plan-workspace';
 import { ToothStatus } from '@/lib/types';
-
-export interface PatientActivityNote {
-  id: string;
-  authorName: string;
-  authorInitials: string;
-  category: 'administrative' | 'diagnosis' | 'treatment' | 'plan' | 'clinical';
-  procedureTag?: string;
-  date: string;
-  content: string;
-}
-
-export interface FullPatientProfile {
-  id: string;
-  mrn: string;
-  name: string;
-  nameAmharic: string;
-  phone: string;
-  email: string;
-  age: number;
-  gender: 'Female' | 'Male';
-  dob: string;
-  status: 'active' | 'archived';
-  doNotContact: boolean;
-  subcity: string;
-  notes: string;
-  // Medical
-  allergies: string[];
-  systemicDiseases: string[];
-  currentMedications: string[];
-  specialConditions: string[];
-  // Emergency Contact
-  emergencyContact: {
-    name: string;
-    relationship: string;
-    phone: string;
-    email: string;
-  };
-  // Administrative
-  billingName: string;
-  tin: string;
-  billingEmail: string;
-  billingAddress: string;
-  // Clinical / Financial Summary
-  activePlanTitle?: string;
-  activePlanProgress?: { completed: number; total: number; percent: number };
-  nextAppointment?: { date: string; time: string; doctor: string; service: string };
-  lastVisit?: { date: string; doctor: string; procedure: string };
-  balanceETB: number;
-  totalPaidETB: number;
-  diagnosesUntreated: string[];
-  chartNotation?: Record<number, ToothStatus>;
-  // Activity Feed
-  activityNotes: PatientActivityNote[];
-}
-
-const INITIAL_PATIENTS: FullPatientProfile[] = [
-  {
-    id: 'apt-001',
-    mrn: 'BDS-MRN-2026-0041',
-    name: 'Tigist Alemu',
-    nameAmharic: 'ትዕግስት አለሙ ደስታ',
-    phone: '+251 91 144 5566',
-    email: 'tigist.alemu@gmail.com',
-    age: 32,
-    gender: 'Female',
-    dob: '05/14/1994 (32 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Bole Subcity, Woreda 03, House #142 (Brass Hospital Area)',
-    notes: 'Orthodontic client on 18-month fixed metallic appliance. Compliant with hygiene instructions.',
-    allergies: ['No known drug allergies (NKDA)'],
-    systemicDiseases: ['Hypertension Stage 2 (Current BP 145/95 mmHg) — Epinephrine restriction in LA'],
-    currentMedications: ['Amlodipine 5mg PO daily'],
-    specialConditions: ['Regular oral hygiene recalls every 4 weeks'],
-    emergencyContact: {
-      name: 'Ato Alemu Desta',
-      relationship: 'Father',
-      phone: '+251 91 133 9988',
-      email: 'alemu.desta@email.com',
-    },
-    billingName: 'Tigist Alemu Desta',
-    tin: '0049283711',
-    billingEmail: 'tigist.alemu@gmail.com',
-    billingAddress: 'Bole Subcity, Woreda 03, House #142, Addis Ababa',
-    activePlanTitle: 'Comprehensive Fixed Metallic Braces (Dual Arch)',
-    activePlanProgress: { completed: 5, total: 18, percent: 28 },
-    nextAppointment: {
-      date: 'Sun, Oct 11, 2026',
-      time: '11:00 AM',
-      doctor: 'Dr. Senait Tadesse',
-      service: 'Fixed Metallic Braces Adjustment (Visit 5)',
-    },
-    lastVisit: {
-      date: 'Oct 07, 2026 11:30 AM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Routine Cleaning & Periodontal Scaling',
-    },
-    balanceETB: 27500,
-    totalPaidETB: 17500,
-    diagnosesUntreated: ['Generalized Plaque-Induced Gingivitis', 'Angle Class I Malocclusion'],
-    chartNotation: { 11: 'crown', 21: 'crown', 26: 'rct', 46: 'filled', 47: 'filled' },
-    activityNotes: [
-      {
-        id: 'act-1',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'ortho_wire_progression (upper arch)',
-        date: '10/11/2026',
-        content: 'Upgraded upper archwire to 0.016 NiTi. Tightened ligature brackets. Patient reported comfortable adaptation with no soft tissue ulceration.',
-      },
-      {
-        id: 'act-2',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'scaling_prophylaxis (whole mouth)',
-        date: '10/07/2026',
-        content: 'Ultrasonic supra/subgingival scaling completed. 0.2% Chlorhexidine irrigation applied. Bleeding on probing reduced.',
-      },
-      {
-        id: 'act-3',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'plan',
-        procedureTag: 'contract_established',
-        date: '9/15/2026',
-        content: 'Formal 18-month orthodontic course-of-care contract ORT-2026-0001 confirmed. 2,500 ETB monthly installment schedule agreed.',
-      },
-      {
-        id: 'act-4',
-        authorName: 'Helen Tadesse',
-        authorInitials: 'HT',
-        category: 'administrative',
-        date: '9/01/2026',
-        content: 'Patient requested bilingual AfroMessage SMS appointment alerts 24 hours prior to scheduled chair visits.',
-      },
-    ],
-  },
-  {
-    id: 'apt-002',
-    mrn: 'BDS-MRN-2026-0089',
-    name: 'Abebe Kebede',
-    nameAmharic: 'አበበ ከበደ ወልደማሪያም',
-    phone: '+251 91 122 3344',
-    email: 'abebe.kebede@yahoo.com',
-    age: 41,
-    gender: 'Male',
-    dob: '08/21/1985 (41 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Kirkos Subcity, Woreda 02, House #884 (Kazanchis)',
-    notes: 'Severe Penicillin allergy on file. Undergoing single-visit rotary endodontic therapy on Tooth #36.',
-    allergies: ['Penicillin / Amoxicillin Allergy (Severe anaphylactoid rash and facial edema in 2021) — STRICT CONTRAINDICATION'],
-    systemicDiseases: ['None reported'],
-    currentMedications: ['Clindamycin 300mg PO TID (Non-penicillin alternative)', 'Ibuprofen 400mg PO PRN'],
-    specialConditions: ['Avoid all Beta-lactam and Cephalosporin antibiotics'],
-    emergencyContact: {
-      name: 'W/ro Selamawit Hailu',
-      relationship: 'Spouse',
-      phone: '+251 91 166 4433',
-      email: 'selam.hailu@email.com',
-    },
-    billingName: 'Abebe Kebede Woldemariam',
-    tin: '0049283711',
-    billingEmail: 'abebe.kebede@yahoo.com',
-    billingAddress: 'Kirkos Subcity, Woreda 02, Kazanchis, Addis Ababa',
-    activePlanTitle: 'Endodontic Pulpectomy & Zirconia Crown (#36)',
-    activePlanProgress: { completed: 1, total: 3, percent: 33 },
-    nextAppointment: {
-      date: 'Sun, Oct 11, 2026',
-      time: '09:30 AM',
-      doctor: 'Dr. Senait Tadesse',
-      service: 'Single-Visit Rotary Root Canal Therapy (#36)',
-    },
-    lastVisit: {
-      date: 'Oct 08, 2026 10:00 AM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Emergency Pulpectomy & Canal Debridement',
-    },
-    balanceETB: 6000,
-    totalPaidETB: 1500,
-    diagnosesUntreated: ['Pulpal Necrosis with Symptomatic Apical Periodontitis on #36'],
-    chartNotation: { 16: 'caries', 36: 'rct', 14: 'missing', 21: 'filled' },
-    activityNotes: [
-      {
-        id: 'act-201',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'root_canal_full (tooth 36)',
-        date: '10/08/2026',
-        content: 'Emergency pulpectomy performed under 2% Lidocaine without epinephrine. Canals located, rotary cleaning with NaOCl, Cavit temporary seal placed.',
-      },
-      {
-        id: 'act-202',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'diagnosis',
-        procedureTag: 'Tooth 36',
-        date: '10/08/2026',
-        content: 'Deep disto-occlusal carious cavitation into pulp chamber. Vitality negative. Vertical percussion positive.',
-      },
-      {
-        id: 'act-203',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'clinical',
-        date: '10/08/2026',
-        content: 'Penicillin allergy red flag verified with patient. Clindamycin 300mg prescribed as safe alternative.',
-      },
-    ],
-  },
-  {
-    id: 'apt-003',
-    mrn: 'BDS-MRN-2026-0037',
-    name: 'Dawit Haile',
-    nameAmharic: 'ዳዊት ኃይሌ ገብረሚካኤል',
-    phone: '+251 93 455 6677',
-    email: 'dawit.haile@tech.et',
-    age: 28,
-    gender: 'Male',
-    dob: '11/04/1998 (28 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Yeka Subcity, Woreda 07, House #312 (Megenagna)',
-    notes: 'Type 2 Diabetic with well-controlled HbA1c (6.8%). Discolored non-vital central incisor #11.',
-    allergies: ['No known allergies'],
-    systemicDiseases: ['Type 2 Diabetes Mellitus (Controlled on Metformin)'],
-    currentMedications: ['Metformin 500mg PO BID'],
-    specialConditions: ['Morning appointment preference; monitor fasting blood glucose before surgical procedures'],
-    emergencyContact: {
-      name: 'W/ro Rahel Haile',
-      relationship: 'Sister',
-      phone: '+251 92 888 1122',
-      email: 'rahel.haile@email.com',
-    },
-    billingName: 'Dawit Haile',
-    tin: '0049283711',
-    billingEmail: 'dawit.haile@tech.et',
-    billingAddress: 'Yeka Subcity, Megenagna, Addis Ababa',
-    activePlanTitle: 'Aesthetic Restoration & Internal Bleaching (#11)',
-    activePlanProgress: { completed: 2, total: 3, percent: 67 },
-    nextAppointment: undefined,
-    lastVisit: {
-      date: 'Oct 09, 2026 01:00 PM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Warm Gutta-Percha Vertical Condensation Obturation',
-    },
-    balanceETB: 0,
-    totalPaidETB: 6000,
-    diagnosesUntreated: ['Class II Enamel Caries on #46'],
-    chartNotation: { 11: 'rct', 46: 'caries', 16: 'caries', 26: 'filled' },
-    activityNotes: [
-      {
-        id: 'act-301',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'obturation_vertical (tooth 11)',
-        date: '10/09/2026',
-        content: 'Warm vertical condensation obturation with bioceramic sealer completed. Radiograph confirms dense 3D apical seal.',
-      },
-      {
-        id: 'act-302',
-        authorName: 'Dr. Dawit Bekele',
-        authorInitials: 'DB',
-        category: 'diagnosis',
-        procedureTag: 'Tooth 11 trauma',
-        date: '9/22/2026',
-        content: 'Traumatic non-vital pulp necrosis secondary to football injury 1 year ago. Discoloration noted.',
-      },
-    ],
-  },
-  {
-    id: 'apt-004',
-    mrn: 'BDS-MRN-2026-0155',
-    name: 'Sara Mengistu',
-    nameAmharic: 'ሳራ መንግስቱ ታከለ',
-    phone: '+251 94 888 9900',
-    email: 'sara.mengistu@school.edu.et',
-    age: 29,
-    gender: 'Female',
-    dob: '02/18/1997 (29 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Bole Subcity, Woreda 05, House #902',
-    notes: 'Pregnant (22 weeks gestation — 2nd Trimester). Localized reversible pulpitis on tooth #26.',
-    allergies: ['No known allergies'],
-    systemicDiseases: ['Pregnancy (22 weeks gestation — 2nd Trimester safe period)'],
-    currentMedications: ['Prenatal vitamins & Iron/Folic acid'],
-    specialConditions: ['Double lead thyroid apron required for all digital radiographs'],
-    emergencyContact: {
-      name: 'Ato Yohannes Bekele',
-      relationship: 'Spouse',
-      phone: '+251 91 777 3344',
-      email: 'yohannes.bekele@email.com',
-    },
-    billingName: 'Sara Mengistu Takele',
-    tin: '0049283711',
-    billingEmail: 'sara.mengistu@school.edu.et',
-    billingAddress: 'Bole Subcity, Woreda 05, Addis Ababa',
-    activePlanTitle: 'Biomimetic Resin Restoration & Prophylaxis',
-    activePlanProgress: { completed: 1, total: 2, percent: 50 },
-    nextAppointment: {
-      date: 'Sun, Oct 11, 2026',
-      time: '02:00 PM',
-      doctor: 'Dr. Dawit Bekele',
-      service: 'Routine Cleaning & Periodontal Scaling',
-    },
-    lastVisit: {
-      date: 'Oct 08, 2026 12:30 PM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Clinical Consultation & Reversible Pulpitis Diagnostic Exam',
-    },
-    balanceETB: 1500,
-    totalPaidETB: 1200,
-    diagnosesUntreated: ['Mesio-occlusal dentin caries on #26', 'Pregnancy-associated gingivitis'],
-    chartNotation: { 26: 'filled', 15: 'healthy', 36: 'healthy' },
-    activityNotes: [
-      {
-        id: 'act-401',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'filling_composite (tooth 26)',
-        date: '10/08/2026',
-        content: 'Caries excavated. Resin-modified glass ionomer protective liner placed followed by nano-hybrid composite restoration. Occlusion verified.',
-      },
-      {
-        id: 'act-402',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'clinical',
-        date: '10/08/2026',
-        content: '2nd trimester safe dental guidelines reviewed. Confirmed patient blood pressure normal at 115/75 mmHg.',
-      },
-    ],
-  },
-  {
-    id: 'apt-005',
-    mrn: 'BDS-MRN-2026-0210',
-    name: 'Meron Tesfaye',
-    nameAmharic: 'ሜሮን ተስፋዬ ገብሬ',
-    phone: '+251 92 333 4455',
-    email: 'meron.tesfaye@design.et',
-    age: 26,
-    gender: 'Female',
-    dob: '07/12/2000 (26 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Bole Subcity, Woreda 04, House #512',
-    notes: 'Nickel allergy on file. Ceramic and titanium aesthetic brackets required.',
-    allergies: ['Nickel / Base Metal Sensitivity (contact dermatitis) — Strict ceramic/titanium hardware requirement'],
-    systemicDiseases: ['None reported'],
-    currentMedications: ['None'],
-    specialConditions: ['Hypoallergenic orthodontic materials only'],
-    emergencyContact: {
-      name: 'W/ro Genet Assefa',
-      relationship: 'Mother',
-      phone: '+251 91 199 8877',
-      email: 'genet.assefa@email.com',
-    },
-    billingName: 'Meron Tesfaye Gebre',
-    tin: '0049283711',
-    billingEmail: 'meron.tesfaye@design.et',
-    billingAddress: 'Bole Subcity, Woreda 04, Addis Ababa',
-    activePlanTitle: 'Clear Ceramic Aesthetic Orthodontics',
-    activePlanProgress: { completed: 1, total: 16, percent: 6 },
-    nextAppointment: undefined,
-    lastVisit: {
-      date: 'Oct 06, 2026 11:00 AM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Orthodontic Assessment & Pit Restoration',
-    },
-    balanceETB: 0,
-    totalPaidETB: 1500,
-    diagnosesUntreated: ['Angle Class I Malocclusion with Moderate Anterior Crowding'],
-    chartNotation: { 14: 'filled', 24: 'filled', 34: 'filled', 44: 'filled' },
-    activityNotes: [
-      {
-        id: 'act-501',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'plan',
-        procedureTag: 'aesthetic_orthodontics',
-        date: '10/06/2026',
-        content: 'Photographic diagnostic series and alginate impressions taken. Nickel-free ceramic brackets ordered.',
-      },
-    ],
-  },
-  {
-    id: 'apt-006',
-    mrn: 'BDS-MRN-2026-0225',
-    name: 'Yonas Getachew',
-    nameAmharic: 'ዮናስ ጌታቸው ደበበ',
-    phone: '+251 91 555 7788',
-    email: 'yonas.getachew@logistics.et',
-    age: 38,
-    gender: 'Male',
-    dob: '09/03/1988 (38 years)',
-    status: 'active',
-    doNotContact: false,
-    subcity: 'Bole Subcity, Woreda 02, House #731',
-    notes: 'Mild bronchial asthma. Salbutamol inhaler must be verified chairside.',
-    allergies: ['No known allergies'],
-    systemicDiseases: ['Bronchial Asthma (mild intermittent, triggered by cold air)'],
-    currentMedications: ['Salbutamol 100mcg inhaler PRN'],
-    specialConditions: ['Inhaler placed on bracket tray prior to surgical extractions'],
-    emergencyContact: {
-      name: 'Ato Getachew Debebe',
-      relationship: 'Father',
-      phone: '+251 91 144 2211',
-      email: 'getachew.debebe@email.com',
-    },
-    billingName: 'Yonas Getachew Debebe',
-    tin: '0049283711',
-    billingEmail: 'yonas.getachew@logistics.et',
-    billingAddress: 'Bole Subcity, Woreda 02, Addis Ababa',
-    activePlanTitle: 'Surgical Odontectomy of Impacted #48',
-    activePlanProgress: { completed: 1, total: 3, percent: 33 },
-    nextAppointment: undefined,
-    lastVisit: {
-      date: 'Oct 05, 2026 03:00 PM',
-      doctor: 'Dr. Dawit Bekele',
-      procedure: 'Pericoronitis Debridement & Surgical Planning',
-    },
-    balanceETB: 0,
-    totalPaidETB: 1200,
-    diagnosesUntreated: ['Mesioangular Impacted Wisdom Tooth #48'],
-    activityNotes: [
-      {
-        id: 'act-601',
-        authorName: 'Dr. Dawit Bekele',
-        authorInitials: 'DB',
-        category: 'treatment',
-        procedureTag: 'pericoronitis_debridement',
-        date: '10/05/2026',
-        content: 'Operculum debrided with warm sterile saline. Amoxicillin 500mg and Ibuprofen prescribed. Scheduled for surgical extraction after acute phase resolves.',
-      },
-    ],
-  },
-  {
-    id: 'apt-010',
-    mrn: 'BDS-MRN-2026-0312',
-    name: 'Almaz Wolde',
-    nameAmharic: 'አልማዝ ወልዴ ገብረ',
-    phone: '+251 91 234 5678',
-    email: 'almaz.wolde@finance.et',
-    age: 35,
-    gender: 'Female',
-    dob: '04/19/1991 (35 years)',
-    status: 'active',
-    doNotContact: true,
-    subcity: 'Bole Subcity, Woreda 01, House #204',
-    notes: 'Requested do-not-contact flag for phone calls; communicates via email only.',
-    allergies: ['No known allergies'],
-    systemicDiseases: ['None reported'],
-    currentMedications: ['None'],
-    specialConditions: ['Email communications only'],
-    emergencyContact: {
-      name: 'Ato Wolde Gebre',
-      relationship: 'Father',
-      phone: '+251 91 999 0011',
-      email: 'wolde.gebre@email.com',
-    },
-    billingName: 'Almaz Wolde',
-    tin: '0049283711',
-    billingEmail: 'almaz.wolde@finance.et',
-    billingAddress: 'Bole Subcity, Woreda 01, Addis Ababa',
-    activePlanTitle: 'Fixed Orthodontics Maintenance',
-    activePlanProgress: { completed: 8, total: 18, percent: 44 },
-    nextAppointment: undefined,
-    lastVisit: {
-      date: 'Oct 10, 2026 10:00 AM',
-      doctor: 'Dr. Senait Tadesse',
-      procedure: 'Emergency Broken Bracket Re-bonding',
-    },
-    balanceETB: 400,
-    totalPaidETB: 20000,
-    diagnosesUntreated: ['Bracket debonding on Tooth #24'],
-    activityNotes: [
-      {
-        id: 'act-701',
-        authorName: 'Dr. Senait Tadesse',
-        authorInitials: 'ST',
-        category: 'treatment',
-        procedureTag: 'bracket_rebonding',
-        date: '10/10/2026',
-        content: 'Tooth #24 etched, bonded with Transbond XT, archwire re-engaged. Option B emergency repair fee applied.',
-      },
-    ],
-  },
-];
+import {
+  FullPatientProfile,
+  PatientActivityNote,
+  INITIAL_PATIENTS,
+} from '@/lib/initial-patients';
 
 type ProfileTab = 'summary' | 'info' | 'clinical' | 'administration' | 'gallery' | 'activity';
 type ClinicalSubTab = 'diagnosis' | 'treatment_plans' | 'appointments' | 'history';
@@ -557,6 +71,31 @@ type ClinicalSubTab = 'diagnosis' | 'treatment_plans' | 'appointments' | 'histor
 export default function PatientsPage() {
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const isDoctor = isMounted && (store.currentUser?.role === 'doctor' || store.activePersona === 'doctor');
+
+  // Role and Chair Concurrency Guards
+  const isOwner = isMounted && Boolean(
+    store.currentUser?.role === 'admin' ||
+    store.activePersona === 'manager' ||
+    sinnaStore.isOwnerState?.()
+  );
+
+  const isChair1Busy = Boolean(
+    store.chairs.find((c) => c.chairNumber === 1)?.status === 'occupied' ||
+    store.appointments.some((a) => a.chairNumber === 1 && a.status === 'in_progress') ||
+    (store.pendingSeatingRequest?.chairNumber === 1 && store.pendingSeatingRequest?.status === 'pending')
+  );
+
+  const isChair2Busy = Boolean(
+    store.chairs.find((c) => c.chairNumber === 2)?.status === 'occupied' ||
+    store.appointments.some((a) => a.chairNumber === 2 && a.status === 'in_progress') ||
+    (store.pendingSeatingRequest?.chairNumber === 2 && store.pendingSeatingRequest?.status === 'pending')
+  );
 
   // Patient roster state
   const [patients, setPatients] = useState<FullPatientProfile[]>(INITIAL_PATIENTS);
@@ -573,10 +112,184 @@ export default function PatientsPage() {
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [archType, setArchType] = useState<'permanent' | 'primary'>('permanent');
 
+  // Doctor Personal Information Editing State on Summary Card
+  const [isEditingPersonalInfo, setIsEditingPersonalInfo] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editNameAmharic, setEditNameAmharic] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editAge, setEditAge] = useState<number>(30);
+  const [editGender, setEditGender] = useState<'Female' | 'Male'>('Female');
+  const [editEmergencyName, setEditEmergencyName] = useState('');
+  const [editEmergencyRel, setEditEmergencyRel] = useState('');
+  const [editEmergencyPhone, setEditEmergencyPhone] = useState('');
+
+  const handleStartEditPersonalInfo = (p: FullPatientProfile) => {
+    if (isOwner) {
+      sinnaStore.toastWarning('Action Restricted', 'Owner audit mode: Editing patient demographics is restricted.');
+      return;
+    }
+    setEditName(p.name || '');
+    setEditNameAmharic(p.nameAmharic || '');
+    setEditPhone(p.phone || '');
+    setEditAge(p.age || 30);
+    setEditGender(p.gender || 'Female');
+    setEditEmergencyName(p.emergencyContact?.name || '');
+    setEditEmergencyRel(p.emergencyContact?.relationship || 'Family');
+    setEditEmergencyPhone(p.emergencyContact?.phone || '');
+    setIsEditingPersonalInfo(true);
+  };
+
+  const handleSavePersonalInfo = (patientId: string) => {
+    setPatients((prev) =>
+      prev.map((p) => {
+        if (p.id === patientId) {
+          return {
+            ...p,
+            name: editName.trim() || p.name,
+            nameAmharic: editNameAmharic.trim() || p.nameAmharic,
+            phone: editPhone.trim() || p.phone,
+            age: editAge,
+            gender: editGender,
+            emergencyContact: {
+              ...p.emergencyContact,
+              name: editEmergencyName.trim() || p.emergencyContact?.name || '',
+              relationship: editEmergencyRel.trim() || p.emergencyContact?.relationship || 'Family',
+              phone: editEmergencyPhone.trim() || p.emergencyContact?.phone || '',
+            },
+          };
+        }
+        return p;
+      })
+    );
+    setIsEditingPersonalInfo(false);
+    sinnaStore.toastSuccess('Demographics Saved', `Updated personal demographics for ${editName.trim()}`);
+  };
+
+  // Check URL parameters once on initial mount / navigation to auto-select patient from dashboard navigation
+  const processedParamRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const urlPid = params.get('patientId') || params.get('id');
+
+    if (urlPid && processedParamRef.current !== urlPid) {
+      processedParamRef.current = urlPid;
+      const UPCOMING_ID_MAP: Record<string, string> = {
+        'apt-up-1': 'apt-001',
+        'apt-up-2': 'apt-006',
+        'apt-up-3': 'apt-005',
+        'apt-up-4': 'apt-002',
+        'apt-up-5': 'apt-007',
+        'apt-up-6': 'apt-008',
+        'apt-up-7': 'apt-009',
+        'apt-up-8': 'apt-012',
+        'apt-up-9': 'apt-011',
+      };
+      const canonicalPid = UPCOMING_ID_MAP[urlPid.toLowerCase()] || urlPid;
+      if (isDoctor) {
+        setSelectedPatientId(canonicalPid);
+        const tab = params.get('tab') as ProfileTab | null;
+        if (tab) setActiveProfileTab(tab);
+        const ctab = params.get('clinicalTab') as ClinicalSubTab | null;
+        if (ctab) setClinicalSubTab(ctab);
+      } else {
+        // Reception: Keep on directory list, open slide-over drawer, and clean the URL
+        setSelectedPatientId(null);
+        sinnaStore.openPatientDrawer(canonicalPid);
+        // Clean URL search params so closing the drawer never re-triggers an auto-open loop
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, '', cleanUrl);
+      }
+    } else if (isDoctor && store.selectedPatientRecordId && store.selectedPatientRecordId !== selectedPatientId) {
+      setSelectedPatientId(store.selectedPatientRecordId);
+    }
+  }, [isDoctor, store.selectedPatientRecordId, selectedPatientId]);
+
+  // Merge store appointments into patients roster so online reservations immediately appear
+  const allPatients = useMemo(() => {
+    const list = [...patients];
+    const apts = Array.isArray(store.appointments) ? store.appointments : [];
+
+    apts.forEach((apt) => {
+      const cleanAptPhone = (apt.patientPhone || '').replace(/\D/g, '').slice(-9);
+      const exists = list.some((p) => {
+        const cleanPPhone = (p.phone || '').replace(/\D/g, '').slice(-9);
+        return p.id === apt.id || (cleanAptPhone && cleanPPhone === cleanAptPhone) || p.name.toLowerCase() === apt.patientName.toLowerCase();
+      });
+
+      if (!exists) {
+        const isOnline = Boolean(apt.isOnlineBooking || apt.source === 'online' || apt.source === 'copilot' || (apt.notes && apt.notes.includes('Online')) || (apt.notes && apt.notes.includes('Booked via')));
+        const newProfile: FullPatientProfile = {
+          id: apt.id,
+          mrn: apt.patientChart?.medicalRecordNumber || apt.patientChart?.cardNo || `BDS-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: apt.patientName,
+          nameAmharic: apt.patientChart?.fullNameAmharic || apt.patientName,
+          phone: apt.patientPhone,
+          email: `${apt.patientName.toLowerCase().replace(/\s+/g, '.')}@patient.et`,
+          age: apt.patientChart?.age || 30,
+          gender: apt.patientChart?.gender || 'Female',
+          dob: '01/01/1996 (30 years)',
+          status: 'active',
+          doNotContact: false,
+          subcity: 'Bole Subcity, Woreda 03 (Morning Star Mall vicinity)',
+          notes: apt.notes || 'Booked online via Sinna Dental AI patient portal',
+          allergies: apt.patientChart?.medicalHistory?.allergies?.length ? apt.patientChart.medicalHistory.allergies : ['No known drug allergies (NKDA)'],
+          systemicDiseases: apt.patientChart?.medicalHistory?.systemicDiseases || [],
+          currentMedications: apt.patientChart?.medicalHistory?.currentMedications || [],
+          specialConditions: isOnline ? ['Online Self-Service Booking (በኦንላይን የተያዘ)', '300 ETB Deposit Verified'] : [],
+          emergencyContact: apt.patientChart?.emergencyContact
+            ? {
+                name: apt.patientChart.emergencyContact.name,
+                relationship: apt.patientChart.emergencyContact.relationship,
+                phone: apt.patientChart.emergencyContact.phone,
+                email: 'contact@patient.et',
+              }
+            : {
+                name: 'Family Contact',
+                relationship: 'Emergency Contact',
+                phone: apt.patientPhone,
+                email: 'contact@patient.et',
+              },
+          billingName: apt.patientName,
+          tin: '0049283711',
+          billingEmail: 'billing@patient.et',
+          billingAddress: 'Bole Subcity, Addis Ababa',
+          activePlanTitle: apt.serviceName,
+          activePlanProgress: { completed: 0, total: 1, percent: 0 },
+          nextAppointment: {
+            date: apt.startsAt ? new Date(apt.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today',
+            time: apt.startsAt ? new Date(apt.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00 AM',
+            doctor: apt.doctorName,
+            service: apt.serviceName,
+          },
+          balanceETB: Math.max(0, (apt.totalDueETB || 1200) - (apt.depositPaidETB || 0)),
+          totalPaidETB: apt.depositPaidETB || 0,
+          diagnosesUntreated: [apt.serviceName],
+          chartNotation: apt.toothChart || {},
+          activityNotes: [
+            {
+              id: `act-online-${apt.id}`,
+              authorName: 'Sinna Dental AI',
+              authorInitials: 'AI',
+              category: 'administrative',
+              procedureTag: apt.serviceName,
+              date: new Date().toLocaleDateString('en-US'),
+              content: `Patient booked online via ${apt.bookedVia || 'Sinna Dental AI Web Portal'}. 300 ETB deposit held via ${(apt.depositMethod || 'telebirr').toUpperCase()}. Appointment ID: ${apt.id}.`,
+            },
+          ],
+        };
+        list.unshift(newProfile);
+      }
+    });
+
+    return list;
+  }, [patients, store.appointments]);
+
   // Synchronize 32-tooth FDI odontogram when switching between patient records
   useEffect(() => {
     if (selectedPatientId) {
-      const p = patients.find(pat => pat.id === selectedPatientId);
+      const p = allPatients.find(pat => pat.id === selectedPatientId);
       if (p?.chartNotation) {
         setPatientTeeth({ ...p.chartNotation });
       } else {
@@ -584,7 +297,7 @@ export default function PatientsPage() {
       }
       setSelectedTooth(null);
     }
-  }, [selectedPatientId, patients]);
+  }, [selectedPatientId, allPatients]);
 
   const handleUpdateToothStatus = (toothNum: number, status: ToothStatus) => {
     setPatientTeeth(prev => {
@@ -605,10 +318,15 @@ export default function PatientsPage() {
 
   // Filter Bar state
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateTab, setDateTab] = useState<'all' | 'today' | 'tomorrow' | 'yesterday' | 'upcoming' | 'custom'>('all');
+  const [customDate, setCustomDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [doctorFilter, setDoctorFilter] = useState<'all' | 'senait' | 'dawit'>(() => isDoctor ? 'senait' : 'all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('active');
   const [onlyDoNotContact, setOnlyDoNotContact] = useState(false);
   const [withDebtOnly, setWithDebtOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<'last_visit' | 'name' | 'debt'>('last_visit');
+  const [onlineOnly, setOnlineOnly] = useState(false);
+  const [medicalAlertsOnly, setMedicalAlertsOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<'last_visit' | 'name' | 'debt' | 'mrn'>('last_visit');
 
   // Modals state
   const [newPatientModalOpen, setNewPatientModalOpen] = useState(false);
@@ -637,37 +355,493 @@ export default function PatientsPage() {
     notes: '',
   });
 
-  // Selected Patient computation
+  // Selected Patient computation with exhaustive multi-layer fallback & appointment synthesis
   const currentPatient = useMemo(() => {
-    return patients.find((p) => p.id === selectedPatientId) || null;
-  }, [patients, selectedPatientId]);
+    if (!selectedPatientId) return null;
+    let cleanId = selectedPatientId.trim().toLowerCase();
+    const cleanDigits = selectedPatientId.replace(/\D/g, '').slice(-9);
+
+    // Dynamic alias map for synthetic upcoming and legacy appointment IDs
+    const UPCOMING_ID_MAP: Record<string, string> = {
+      'apt-up-1': 'apt-001', // Tigist Alemu
+      'apt-up-2': 'apt-006', // Yonas Getachew
+      'apt-up-3': 'apt-005', // Meron Tesfaye
+      'apt-up-4': 'apt-002', // Abebe Kebede
+      'apt-up-5': 'apt-007', // Bethelhem Desta
+      'apt-up-6': 'apt-008', // Samuel Tadesse
+      'apt-up-7': 'apt-009', // Almaz Bekele
+      'apt-up-8': 'apt-012', // Natnael Girma
+      'apt-up-9': 'apt-011', // Rahel Solomon
+    };
+
+    if (UPCOMING_ID_MAP[cleanId]) {
+      cleanId = UPCOMING_ID_MAP[cleanId].toLowerCase();
+    }
+
+    // Check if a name parameter is in window.location.search for direct fallback
+    let urlName = '';
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlName = (urlParams.get('name') || '').trim().toLowerCase();
+    }
+
+    // 1. Direct ID match (canonical or alias)
+    let match = allPatients.find(
+      (p) =>
+        p.id === selectedPatientId ||
+        p.id.toLowerCase() === cleanId ||
+        (UPCOMING_ID_MAP[selectedPatientId.toLowerCase()] &&
+          p.id.toLowerCase() === UPCOMING_ID_MAP[selectedPatientId.toLowerCase()])
+    );
+    if (match) return match;
+
+    // 2. MRN or card number match
+    match = allPatients.find(
+      (p) => p.mrn === selectedPatientId || p.mrn.toLowerCase() === cleanId
+    );
+    if (match) return match;
+
+    // 3. Name match (from URL name query param or cleanId)
+    if (urlName) {
+      match = allPatients.find(
+        (p) =>
+          p.name.toLowerCase() === urlName ||
+          (p.nameAmharic && p.nameAmharic.toLowerCase() === urlName) ||
+          p.name.toLowerCase().includes(urlName) ||
+          urlName.includes(p.name.toLowerCase())
+      );
+      if (match) return match;
+    }
+
+    match = allPatients.find(
+      (p) =>
+        p.name.toLowerCase() === cleanId ||
+        (p.nameAmharic && p.nameAmharic.toLowerCase() === cleanId) ||
+        p.name.toLowerCase().includes(cleanId) ||
+        cleanId.includes(p.name.toLowerCase())
+    );
+    if (match) return match;
+
+    // 4. Phone number match
+    if (cleanDigits.length >= 7) {
+      match = allPatients.find(
+        (p) => (p.phone || '').replace(/\D/g, '').slice(-9) === cleanDigits
+      );
+      if (match) return match;
+    }
+
+    // 5. Look in store.appointments for an appointment with this ID, MRN, phone or name
+    const apt = store.appointments.find((a) => {
+      const aId = (a.id || '').toLowerCase();
+      const aCardNo = (a.patientChart?.cardNo || '').toLowerCase();
+      const aMrn = (a.patientChart?.medicalRecordNumber || '').toLowerCase();
+      const aName = (a.patientName || '').toLowerCase();
+      const aPhone = (a.patientPhone || '').replace(/\D/g, '').slice(-9);
+
+      return (
+        aId === cleanId ||
+        aCardNo === cleanId ||
+        aMrn === cleanId ||
+        aName === cleanId ||
+        (urlName && aName === urlName) ||
+        (cleanDigits.length >= 7 && aPhone === cleanDigits)
+      );
+    });
+
+    if (apt) {
+      // Find matching patient in allPatients by apt phone or name
+      const aptCleanDigits = (apt.patientPhone || '').replace(/\D/g, '').slice(-9);
+      const foundInAll = allPatients.find(
+        (p) =>
+          p.id === apt.id ||
+          p.mrn === apt.patientChart?.cardNo ||
+          p.mrn === apt.patientChart?.medicalRecordNumber ||
+          p.name.toLowerCase() === apt.patientName.toLowerCase() ||
+          (aptCleanDigits.length >= 7 && (p.phone || '').replace(/\D/g, '').slice(-9) === aptCleanDigits)
+      );
+      if (foundInAll) return foundInAll;
+
+      // On-the-fly synthesis from appointment so no patient ever displays a blank page
+      const isOnline = Boolean(
+        apt.isOnlineBooking ||
+        apt.source === 'online' ||
+        apt.source === 'copilot' ||
+        (apt.notes && apt.notes.includes('Online')) ||
+        (apt.notes && apt.notes.includes('Booked via'))
+      );
+
+      return {
+        id: apt.id,
+        mrn: apt.patientChart?.medicalRecordNumber || apt.patientChart?.cardNo || (apt.id.startsWith('BDS-') ? apt.id : `BDS-${Math.floor(1000 + Math.random() * 9000)}`),
+        name: apt.patientName,
+        nameAmharic: apt.patientChart?.fullNameAmharic || apt.patientName,
+        phone: apt.patientPhone,
+        email: `${apt.patientName.toLowerCase().replace(/\s+/g, '.')}@patient.et`,
+        age: apt.patientChart?.age || 30,
+        gender: apt.patientChart?.gender || 'Female',
+        dob: '01/01/1996 (30 years)',
+        status: 'active' as const,
+        doNotContact: false,
+        subcity: apt.patientChart?.subcityWoreda || 'Bole Subcity, Woreda 03 (Morning Star Mall vicinity)',
+        notes: apt.notes || 'Registered clinical patient at Bole Dental Studio',
+        allergies: apt.patientChart?.medicalHistory?.allergies?.length ? apt.patientChart.medicalHistory.allergies : ['No known drug allergies (NKDA)'],
+        systemicDiseases: apt.patientChart?.medicalHistory?.systemicDiseases || [],
+        currentMedications: apt.patientChart?.medicalHistory?.currentMedications || [],
+        specialConditions: isOnline ? ['Online Self-Service Booking (በኦንላይን የተያዘ)', '300 ETB Deposit Verified'] : [],
+        emergencyContact: apt.patientChart?.emergencyContact
+          ? {
+              name: apt.patientChart.emergencyContact.name,
+              relationship: apt.patientChart.emergencyContact.relationship,
+              phone: apt.patientChart.emergencyContact.phone,
+              email: 'contact@patient.et',
+            }
+          : {
+              name: 'Family Contact',
+              relationship: 'Emergency Contact',
+              phone: apt.patientPhone,
+              email: 'contact@patient.et',
+            },
+        billingName: apt.patientName,
+        tin: '0049283711',
+        billingEmail: 'billing@patient.et',
+        billingAddress: 'Bole Subcity, Addis Ababa',
+        activePlanTitle: apt.serviceName,
+        activePlanProgress: { completed: 0, total: 1, percent: 0 },
+        nextAppointment: {
+          date: apt.startsAt ? new Date(apt.startsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today',
+          time: apt.startsAt ? new Date(apt.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00 AM',
+          doctor: apt.doctorName,
+          service: apt.serviceName,
+        },
+        balanceETB: Math.max(0, (apt.totalDueETB || 1200) - (apt.depositPaidETB || 0)),
+        totalPaidETB: apt.depositPaidETB || 0,
+        diagnosesUntreated: [apt.serviceName],
+        chartNotation: apt.toothChart || {},
+        activityNotes: [
+          {
+            id: `act-dyn-${apt.id}`,
+            authorName: apt.doctorName || 'Dr. Senait Tadesse',
+            authorInitials: 'ST',
+            category: 'administrative' as const,
+            procedureTag: apt.serviceName,
+            date: new Date().toLocaleDateString('en-US'),
+            content: `Clinical intake record for ${apt.patientName}. Appointment ID: ${apt.id}.`,
+          },
+        ],
+      };
+    }
+
+    // 6. Final safety fallback: If selectedPatientId was passed, never drop the doctor back to directory!
+    const synthName = urlName
+      ? urlName.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      : `Patient ${selectedPatientId}`;
+    return {
+      id: selectedPatientId,
+      mrn: `BDS-${String(Math.floor(1000 + Math.random() * 9000))}`,
+      name: synthName,
+      nameAmharic: synthName,
+      phone: '+251 91 100 0000',
+      email: `${synthName.toLowerCase().replace(/\s+/g, '.')}@patient.et`,
+      age: 30,
+      gender: 'Female' as const,
+      dob: '01/01/1996 (30 years)',
+      status: 'active' as const,
+      doNotContact: false,
+      subcity: 'Bole Subcity, Woreda 03, Addis Ababa',
+      notes: 'Clinical patient record at Bole Dental Studio',
+      allergies: ['No known drug allergies (NKDA)'],
+      systemicDiseases: [],
+      currentMedications: [],
+      specialConditions: [],
+      emergencyContact: {
+        name: 'Family Contact',
+        relationship: 'Emergency Contact',
+        phone: '+251 91 100 0000',
+        email: 'contact@patient.et',
+      },
+      billingName: synthName,
+      tin: '0049283711',
+      billingEmail: 'billing@patient.et',
+      billingAddress: 'Bole Subcity, Addis Ababa',
+      activePlanTitle: 'Comprehensive Clinical Consultation',
+      activePlanProgress: { completed: 0, total: 1, percent: 0 },
+      nextAppointment: {
+        date: 'Upcoming',
+        time: '10:00 AM',
+        doctor: 'Dr. Senait Tadesse',
+        service: 'Clinical Consultation',
+      },
+      balanceETB: 0,
+      totalPaidETB: 1500,
+      diagnosesUntreated: ['Clinical Examination'],
+      chartNotation: {},
+      activityNotes: [
+        {
+          id: `act-fallback-${selectedPatientId}`,
+          authorName: 'Dr. Senait Tadesse',
+          authorInitials: 'ST',
+          category: 'clinical' as const,
+          date: new Date().toLocaleDateString('en-US'),
+          content: `Patient profile opened for ${synthName}.`,
+        },
+      ],
+    };
+  }, [allPatients, selectedPatientId, store.appointments]);
+
+  // Active Appointment for current patient (from live clinic appointments)
+  const currentAppointment = useMemo(() => {
+    if (!currentPatient) return null;
+    return (
+      store.appointments.find(
+        (a) =>
+          a.id === currentPatient.id ||
+          (a.patientPhone &&
+            currentPatient.phone &&
+            a.patientPhone.replace(/\s+/g, '') === currentPatient.phone.replace(/\s+/g, '')) ||
+          a.patientName.toLowerCase() === currentPatient.name.toLowerCase()
+      ) || null
+    );
+  }, [currentPatient, store.appointments]);
+
+  const assignedChair = useMemo(() => {
+    if (!currentAppointment) return 1;
+    return (currentAppointment.doctorName && currentAppointment.doctorName.includes('Dawit')) ||
+      currentAppointment.chairNumber === 2
+      ? 2
+      : 1;
+  }, [currentAppointment]);
+
+  const assignedDoctorName = assignedChair === 1 ? 'Dr. Senait Tadesse' : 'Dr. Dawit Bekele';
+  const otherChair = assignedChair === 1 ? 2 : 1;
+  const otherDoctorName = otherChair === 1 ? 'Dr. Senait Tadesse' : 'Dr. Dawit Bekele';
+
+  const isCurrentOnlineBooking = Boolean(
+    currentAppointment?.isOnlineBooking ||
+      currentAppointment?.source === 'online' ||
+      currentAppointment?.source === 'copilot' ||
+      (currentAppointment?.notes &&
+        (currentAppointment.notes.includes('Online') || currentAppointment.notes.includes('Booked via'))) ||
+      currentPatient?.specialConditions?.some((c) => c.includes('Online')) ||
+      currentPatient?.notes?.includes('online') ||
+      currentPatient?.notes?.includes('Online')
+  );
+
+  const currentPatientPlan = useMemo(() => {
+    if (!currentPatient) return null;
+    return (
+      store.treatmentPlans?.find(
+        (p) =>
+          p.patientId === currentPatient.id ||
+          (currentPatient.mrn && p.patientId === currentPatient.mrn) ||
+          (p.patientName && p.patientName.toLowerCase() === currentPatient.name.toLowerCase())
+      ) || null
+    );
+  }, [store.treatmentPlans, currentPatient]);
+
+  const currentPatientPlanMonies = useMemo(() => {
+    if (!currentPatientPlan) return 0;
+    const procSum = currentPatientPlan.procedures?.reduce((sum, p) => sum + (p.feeETB || 0), 0) || 0;
+    return procSum > 0 ? procSum : (currentPatientPlan.quoteAmountETB || 0);
+  }, [currentPatientPlan]);
+
+  // Helper to resolve dynamic patient visit, doctor assignment, and online status
+  const getPatientVisitInfo = (p: FullPatientProfile) => {
+    const pPhone = (p.phone || '').replace(/\D/g, '').slice(-9);
+    const apt = store.appointments.find((a) => {
+      const aPhone = (a.patientPhone || '').replace(/\D/g, '').slice(-9);
+      return (
+        a.id === p.id ||
+        (pPhone && aPhone && pPhone === aPhone) ||
+        a.patientName.toLowerCase() === p.name.toLowerCase()
+      );
+    });
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const tomorrowStr = new Date(now.getTime() + 86400000).toISOString().split('T')[0];
+    const yesterdayStr = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
+
+    const aptDate = apt?.startsAt ? apt.startsAt.split('T')[0] : '';
+    const nextDateStr = (p.nextAppointment?.date || '').toLowerCase();
+
+    const isToday = Boolean(
+      (aptDate && aptDate === todayStr) ||
+      apt?.status === 'in_progress' ||
+      apt?.status === 'pending_hold' ||
+      nextDateStr.includes('today') ||
+      ['apt-001', 'apt-002', 'apt-003', 'apt-004', 'apt-005', 'apt-006'].includes(p.id) ||
+      ['apt-001', 'apt-002', 'apt-003', 'apt-004', 'apt-005', 'apt-006'].includes(apt?.id || '')
+    );
+
+    const isTomorrow = Boolean(
+      (aptDate && aptDate === tomorrowStr) ||
+      nextDateStr.includes('tomorrow') ||
+      p.id.includes('tomorrow') ||
+      apt?.id?.includes('tomorrow')
+    );
+
+    const isYesterday = Boolean(
+      (aptDate && aptDate === yesterdayStr) ||
+      (aptDate && aptDate < todayStr) ||
+      p.id.includes('yesterday') ||
+      p.id.includes('overdue') ||
+      p.id.includes('twodaysago') ||
+      Boolean(p.lastVisit?.date)
+    );
+
+    const isUpcoming = Boolean(
+      isTomorrow ||
+      (aptDate && aptDate > todayStr) ||
+      Boolean(p.nextAppointment?.date)
+    );
+
+    const matchesCustom = (cDate: string) => {
+      if (!cDate) return true;
+      return Boolean(
+        (aptDate && aptDate === cDate) ||
+        (p.nextAppointment?.date && p.nextAppointment.date.includes(cDate)) ||
+        (p.lastVisit?.date && p.lastVisit.date.includes(cDate))
+      );
+    };
+
+    const doctorName = apt?.doctorName || p.nextAppointment?.doctor || p.lastVisit?.doctor || 'Dr. Senait Tadesse';
+    const isSenait = doctorName.toLowerCase().includes('senait') || apt?.chairNumber === 1;
+    const isDawit = doctorName.toLowerCase().includes('dawit') || apt?.chairNumber === 2;
+
+    const isOnline = Boolean(
+      apt?.isOnlineBooking ||
+      apt?.source === 'online' ||
+      apt?.source === 'copilot' ||
+      p.specialConditions?.some((c) => c.toLowerCase().includes('online')) ||
+      p.notes?.toLowerCase().includes('online') ||
+      p.notes?.toLowerCase().includes('booked via')
+    );
+
+    const hasMedicalAlert = Boolean(
+      (p.allergies && p.allergies.some((a) => !a.toLowerCase().includes('no known') && !a.toLowerCase().includes('nkda'))) ||
+      (p.systemicDiseases && p.systemicDiseases.length > 0)
+    );
+
+    return {
+      apt,
+      doctorName,
+      isSenait,
+      isDawit,
+      isToday,
+      isTomorrow,
+      isYesterday,
+      isUpcoming,
+      matchesCustom,
+      isOnline,
+      hasMedicalAlert,
+      time: apt?.startsAt ? new Date(apt.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : p.nextAppointment?.time || '10:00 AM',
+      service: apt?.serviceName || p.nextAppointment?.service || p.activePlanTitle || 'Consultation',
+    };
+  };
+
+  // Quick statistics for directory header
+  const directoryStats = useMemo(() => {
+    let totalCount = 0;
+    let todayCount = 0;
+    let tomorrowCount = 0;
+    let onlineCount = 0;
+    let debtCount = 0;
+    let totalDebtETB = 0;
+
+    allPatients.forEach((p) => {
+      const info = getPatientVisitInfo(p);
+      // If doctor is logged in, strictly scope to doctor's patients only
+      if (isDoctor && !info.isSenait) return;
+
+      totalCount++;
+      if (info.isToday) todayCount++;
+      if (info.isTomorrow) tomorrowCount++;
+      if (info.isOnline) onlineCount++;
+      if (p.balanceETB > 0) {
+        debtCount++;
+        totalDebtETB += p.balanceETB;
+      }
+    });
+
+    return {
+      total: totalCount,
+      todayCount,
+      tomorrowCount,
+      onlineCount,
+      debtCount,
+      totalDebtETB,
+    };
+  }, [allPatients, store.appointments, isDoctor]);
 
   // Filtered directory list
   const filteredPatients = useMemo(() => {
-    return patients
+    return allPatients
       .filter((p) => {
+        const info = getPatientVisitInfo(p);
+
+        // Doctor Scoping: Doctor can strictly only see their specific patients!
+        if (isDoctor) {
+          if (!info.isSenait) return false;
+        } else {
+          // Reception / Owner filter by specialist if chosen
+          if (doctorFilter === 'senait' && !info.isSenait) return false;
+          if (doctorFilter === 'dawit' && !info.isDawit) return false;
+        }
+
+        // Date Tabs
+        if (dateTab === 'today' && !info.isToday) return false;
+        if (dateTab === 'tomorrow' && !info.isTomorrow) return false;
+        if (dateTab === 'yesterday' && !info.isYesterday) return false;
+        if (dateTab === 'upcoming' && !info.isUpcoming) return false;
+        if (dateTab === 'custom' && !info.matchesCustom(customDate)) return false;
+
         // Status filter
         if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+
         // Do not contact filter
         if (onlyDoNotContact && !p.doNotContact) return false;
-        // Debt filter
-        if (withDebtOnly && p.balanceETB <= 0) return false;
-        // Search query
+
+        // Debt filter (only relevant for reception / owner)
+        if (!isDoctor && withDebtOnly && p.balanceETB <= 0) return false;
+
+        // Online bookings filter
+        if (onlineOnly && !info.isOnline) return false;
+
+        // Search query across name, amharic, phone, cardNo/MRN, ID, and service
         if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = p.name.toLowerCase().includes(q) || p.nameAmharic.includes(q);
-          const matchPhone = p.phone.includes(q);
-          const matchMrn = p.mrn.toLowerCase().includes(q);
-          if (!matchName && !matchPhone && !matchMrn) return false;
+          const q = searchQuery.toLowerCase().trim();
+          const cleanQ = q.replace(/\D/g, '');
+          const matchName = p.name.toLowerCase().includes(q) || (p.nameAmharic && p.nameAmharic.toLowerCase().includes(q));
+          const matchPhone = (p.phone || '').replace(/\D/g, '').includes(cleanQ) || (p.phone || '').toLowerCase().includes(q);
+          const matchMrn = (p.mrn || '').toLowerCase().includes(q) || (info.apt?.patientChart?.cardNo || '').toLowerCase().includes(q);
+          const matchId = (p.id || '').toLowerCase().includes(q);
+          const matchService = (info.service || '').toLowerCase().includes(q) || (p.activePlanTitle || '').toLowerCase().includes(q);
+
+          if (!matchName && !matchPhone && !matchMrn && !matchId && !matchService) return false;
         }
+
         return true;
       })
       .sort((a, b) => {
         if (sortBy === 'name') return a.name.localeCompare(b.name);
-        if (sortBy === 'debt') return b.balanceETB - a.balanceETB;
-        return 0; // default last visit
+        if (!isDoctor && sortBy === 'debt') return b.balanceETB - a.balanceETB;
+        if (sortBy === 'mrn') return a.mrn.localeCompare(b.mrn);
+        return 0; // default last visit / schedule
       });
-  }, [patients, statusFilter, onlyDoNotContact, withDebtOnly, searchQuery, sortBy]);
+  }, [
+    allPatients,
+    dateTab,
+    customDate,
+    doctorFilter,
+    statusFilter,
+    onlyDoNotContact,
+    withDebtOnly,
+    onlineOnly,
+    searchQuery,
+    sortBy,
+    store.appointments,
+    isDoctor,
+  ]);
 
   // Handlers
   const handleCreatePatient = (e: React.FormEvent) => {
@@ -675,7 +849,7 @@ export default function PatientsPage() {
     if (!newPatientForm.name.trim()) return;
 
     const newId = `apt-${Date.now()}`;
-    const newMrn = `BDS-MRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newMrn = `BDS-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const serviceObj = clinic.services.find((s) => s.id === newPatientForm.serviceId);
     const serviceTitle = serviceObj ? serviceObj.nameEn : 'Registration Only (Triage Pending)';
@@ -728,8 +902,13 @@ export default function PatientsPage() {
 
     setPatients([newPatient, ...patients]);
     setNewPatientModalOpen(false);
-    setSelectedPatientId(newId);
-    setActiveProfileTab('summary');
+    if (isDoctor) {
+      setSelectedPatientId(newId);
+      setActiveProfileTab('summary');
+    } else {
+      setSelectedPatientId(null);
+      sinnaStore.openPatientDrawer(newId);
+    }
 
     sinnaStore.toastSuccess(
       'Patient Registered',
@@ -775,9 +954,9 @@ export default function PatientsPage() {
   };
 
   // =========================================================================
-  // VIEW A: PATIENT PROFILE VIEW (Screenshots 2, 3, 4, 5)
+  // VIEW A: PATIENT PROFILE VIEW (Screenshots 2, 3, 4, 5) - STRICTLY DOCTOR ONLY!
   // =========================================================================
-  if (currentPatient) {
+  if (isDoctor && currentPatient) {
     const initials = currentPatient.name
       .split(' ')
       .map((n) => n[0])
@@ -797,7 +976,12 @@ export default function PatientsPage() {
             <button
               type="button"
               aria-label="Back"
-              onClick={() => setSelectedPatientId(null)}
+              onClick={() => {
+                setSelectedPatientId(null);
+                if (typeof window !== 'undefined' && window.location.search) {
+                  window.history.replaceState({}, '', window.location.pathname);
+                }
+              }}
               className="rounded-md font-medium inline-flex items-center transition-colors text-xs gap-1.5 text-slate-700 hover:bg-slate-100 active:bg-slate-200 p-1.5 shrink-0 border border-slate-200/80"
               title="Return to patient directory"
             >
@@ -807,7 +991,7 @@ export default function PatientsPage() {
               {initials}
             </span>
             <div className="min-w-0 flex-1 flex flex-col gap-0.5">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <h1 className="text-base sm:text-lg text-slate-900 font-semibold truncate">
                   {currentPatient.name}
                 </h1>
@@ -815,6 +999,15 @@ export default function PatientsPage() {
                 <span className="text-xs font-semibold text-slate-400 font-amharic hidden sm:inline truncate">
                   ({currentPatient.nameAmharic})
                 </span>
+                {isCurrentOnlineBooking && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs font-amharic">
+                    <Globe className="w-3.5 h-3.5 text-sky-600" />
+                    <span>በኦንላይን የተያዘ</span>
+                    <span className="text-[10px] font-mono bg-sky-200/80 text-sky-950 px-1.5 py-0.2 rounded font-semibold">
+                      300 ETB ተከፍሏል
+                    </span>
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-x-2.5 gap-y-1 flex-wrap text-xs text-slate-500">
                 <span className="font-mono">{currentPatient.age} years</span>
@@ -839,6 +1032,113 @@ export default function PatientsPage() {
                 <span className="font-mono text-[11px] text-slate-400 hidden md:inline">{currentPatient.mrn}</span>
               </div>
             </div>
+
+            {/* Quick Contextual Arrival & Operatory Seating Actions (Strictly 1 Action at a Time for Reception) */}
+            {currentAppointment && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {!isDoctor && (!currentAppointment.status || currentAppointment.status === 'confirmed' || currentAppointment.status === 'pending_hold') && (
+                  <button
+                    type="button"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      sinnaStore.checkInAppointment(currentAppointment.id);
+                      sinnaStore.toastSuccess('Checked In', `${currentPatient.name} moved to Waiting Lounge`);
+                    }}
+                    className={`rounded-xl font-bold inline-flex items-center transition-all px-3 py-1.5 text-xs gap-1.5 shadow-2xs ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
+                    title={isOwner ? 'Owner audit mode: Patient check-in restricted' : 'Check in patient to clinic waiting lounge'}
+                  >
+                    <Check className={`w-3.5 h-3.5 ${isOwner ? 'text-slate-400' : 'text-emerald-400'}`} />
+                    <span>{isOwner ? 'Check In (Locked)' : 'Check In'}</span>
+                  </button>
+                )}
+
+                {!isDoctor && currentAppointment.status === 'checked_in' && (
+                  <button
+                    type="button"
+                    disabled={isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)}
+                    onClick={() => {
+                      if (isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)) return;
+                      sinnaStore.requestSeatInChair(currentAppointment.id, assignedChair);
+                      sinnaStore.toastSuccess('Seated', `${currentPatient.name} seated in Chair ${assignedChair}`);
+                    }}
+                    className={`rounded-xl font-bold inline-flex items-center transition-all px-3 py-1.5 text-xs gap-1.5 shadow-2xs ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 1
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
+                    title={
+                      isOwner
+                        ? 'Owner audit mode: Operatory seating restricted'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait is actively conducting treatment in Chair 1. Cannot seat another patient.'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 is currently occupied.'
+                        : `Seat in Chair ${assignedChair} with ${assignedDoctorName}`
+                    }
+                  >
+                    <Armchair className="w-3 h-3" />
+                    <span>
+                      {isOwner
+                        ? `Seat Chair ${assignedChair} (Locked)`
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait Busy (Chair 1)'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 Busy'
+                        : `Seat Chair ${assignedChair}`}
+                    </span>
+                  </button>
+                )}
+
+                {currentAppointment.status === 'in_progress' && (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                      <span>In Chair {currentAppointment.chairNumber || 1}</span>
+                    </span>
+                    <button
+                      type="button"
+                      disabled={isOwner}
+                      onClick={() => {
+                        if (isOwner) return;
+                        sinnaStore.completeDoctorEncounter(currentAppointment.id, {
+                          finalFeeETB: currentPatientPlanMonies > 0 ? currentPatientPlanMonies : currentAppointment.totalDueETB,
+                          notes: currentPatientPlan && currentPatientPlan.procedures.length > 0
+                            ? `Staged Treatment Plan: ${currentPatientPlan.procedures.map((p) => p.name).join(', ')}. Transferred to reception for cashier checkout.`
+                            : 'Procedure completed in chair. Transferred to reception for cashier checkout.',
+                        });
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-2xs transition-all ${
+                        isOwner
+                          ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                          : 'bg-slate-900 hover:bg-slate-800 text-white hover:shadow-card active:scale-98'
+                      }`}
+                      title={isOwner ? 'Owner audit mode: Clinical encounter completion restricted' : 'Finish treatment encounter and send patient to cashier desk'}
+                    >
+                      <CheckCircle2 className={`w-3.5 h-3.5 ${isOwner ? 'text-slate-400' : 'text-emerald-400'}`} />
+                      <span>{isOwner ? 'Done (Locked - Doctor Only)' : `Done → Send to Cashier ${currentPatientPlanMonies > 0 ? `(${currentPatientPlanMonies.toLocaleString()} ETB)` : ''}`}</span>
+                    </button>
+                  </div>
+                )}
+
+                {currentAppointment.status === 'completed' && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Completed · Sent to Cashier</span>
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center gap-2 relative">
               <button
@@ -875,14 +1175,18 @@ export default function PatientsPage() {
                       <Calendar className="w-3.5 h-3.5 text-sky-600" />
                       <span>Book Appointment</span>
                     </button>
-                    <Link
-                      href="/treatment-plans"
-                      onClick={() => setActionsMenuOpen(false)}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActionsMenuOpen(false);
+                        setActiveProfileTab('clinical');
+                        setClinicalSubTab('treatment_plans');
+                      }}
                       className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
                     >
                       <ClipboardList className="w-3.5 h-3.5 text-emerald-600" />
                       <span>New Treatment Plan</span>
-                    </Link>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -954,20 +1258,22 @@ export default function PatientsPage() {
             <span className="truncate">Info</span>
           </button>
 
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeProfileTab === 'clinical'}
-            onClick={() => setActiveProfileTab('clinical')}
-            className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
-              activeProfileTab === 'clinical'
-                ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-            }`}
-          >
-            <Stethoscope className="shrink-0 w-4 h-4 text-slate-500" />
-            <span className="truncate">Clinical</span>
-          </button>
+          {store.currentUser?.role === 'doctor' && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeProfileTab === 'clinical'}
+              onClick={() => setActiveProfileTab('clinical')}
+              className={`group relative inline-flex items-center min-w-0 font-medium rounded-lg transition-all grow justify-center px-3 py-2 text-xs sm:text-sm gap-2 ${
+                activeProfileTab === 'clinical'
+                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <Stethoscope className="shrink-0 w-4 h-4 text-slate-500" />
+              <span className="truncate">Clinical</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -1020,6 +1326,253 @@ export default function PatientsPage() {
         {/* ------------------------------------------------------------------- */}
         {activeProfileTab === 'summary' && (
           <div className="space-y-4">
+            {/* Arrival Dispatch Banner (Confirmed / Online Booking) */}
+            {currentAppointment && (!currentAppointment.status || currentAppointment.status === 'confirmed' || currentAppointment.status === 'pending_hold') && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-sky-500/5 to-transparent border border-blue-200 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Check className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-slate-900 text-sm">Today&apos;s Appointment Confirmed</h3>
+                      {isCurrentOnlineBooking && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300 font-amharic">
+                          <Globe className="w-3 h-3 text-sky-600" />
+                          <span>በኦንላይን የተያዘ (Online Booking)</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {currentAppointment.serviceName} · Assigned to {assignedDoctorName} (Chair {assignedChair})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      sinnaStore.checkInAppointment(currentAppointment.id);
+                      sinnaStore.toastSuccess('Checked In', `${currentPatient.name} moved to Waiting Lounge`);
+                    }}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    }`}
+                    title={isOwner ? 'Owner audit mode: Patient check-in restricted' : 'Check In to Waiting Lounge'}
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{isOwner ? 'Check In (Locked)' : 'Check In to Waiting Lounge'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)}
+                    onClick={() => {
+                      if (isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)) return;
+                      sinnaStore.requestSeatInChair(currentAppointment.id, assignedChair);
+                      sinnaStore.toastSuccess('Seated', `${currentPatient.name} seated in Chair ${assignedChair}`);
+                    }}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 1
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
+                    title={
+                      isOwner
+                        ? 'Owner audit mode: Operatory seating restricted'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait is actively conducting treatment in Chair 1.'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 is currently occupied.'
+                        : `Seat in Chair ${assignedChair}`
+                    }
+                  >
+                    <span>
+                      {isOwner
+                        ? `Seat in Chair ${assignedChair} (Locked)`
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait Busy (Chair 1)'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 Busy'
+                        : `Seat in Chair ${assignedChair}`}
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      sinnaStore.reassignDoctorAndChair(currentAppointment.id, otherDoctorName, otherChair);
+                    }}
+                    className={`px-2.5 py-2 rounded-xl text-xs font-semibold border transition-all shadow-2xs ${
+                      isOwner
+                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                    title={isOwner ? 'Owner audit mode: Operatory reassignment restricted' : `Switch to Chair ${otherChair} (${otherDoctorName})`}
+                  >
+                    Change to Chair {otherChair}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Waiting Lounge Dispatch Banner */}
+            {currentAppointment && currentAppointment.status === 'checked_in' && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-300 shadow-card flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm">Patient Waiting in Reception Lounge</h3>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {currentAppointment.serviceName} · Ready to seat with {assignedDoctorName} in Chair {assignedChair}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)}
+                    onClick={() => {
+                      if (isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)) return;
+                      sinnaStore.requestSeatInChair(currentAppointment.id, assignedChair);
+                      sinnaStore.toastSuccess('Seated', `${currentPatient.name} seated in Chair ${assignedChair}`);
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-75'
+                        : assignedChair === 1
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    }`}
+                    title={
+                      isOwner
+                        ? 'Owner audit mode: Operatory seating restricted'
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait is actively conducting treatment in Chair 1.'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 is currently occupied.'
+                        : `Seat in Chair ${assignedChair}`
+                    }
+                  >
+                    <span>
+                      {isOwner
+                        ? `Seat in Chair ${assignedChair} (Locked)`
+                        : assignedChair === 1 && isChair1Busy
+                        ? 'Dr. Senait Busy (Chair 1)'
+                        : assignedChair === 2 && isChair2Busy
+                        ? 'Chair 2 Busy'
+                        : `Seat in Chair ${assignedChair} (${assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'})`}
+                    </span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      sinnaStore.reassignDoctorAndChair(currentAppointment.id, otherDoctorName, otherChair);
+                    }}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all shadow-2xs ${
+                      isOwner
+                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                        : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                    title={isOwner ? 'Owner audit mode: Operatory reassignment restricted' : `Switch to Chair ${otherChair} (${otherDoctorName})`}
+                  >
+                    Change to Chair {otherChair}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* In-Chair Active Session Banner */}
+            {currentAppointment && currentAppointment.status === 'in_progress' && (
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-2 border-emerald-400/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Armchair className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-slate-900 text-sm">
+                        Patient Active in Chair {currentAppointment.chairNumber || 1}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span>In Treatment</span>
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {currentAppointment.serviceName} · Lead Doctor: {assignedDoctorName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      sinnaStore.completeDoctorEncounter(currentAppointment.id, {
+                        finalFeeETB: currentPatientPlanMonies > 0 ? currentPatientPlanMonies : currentAppointment.totalDueETB,
+                        notes: currentPatientPlan && currentPatientPlan.procedures.length > 0
+                          ? `Staged Treatment Plan: ${currentPatientPlan.procedures.map((p) => p.name).join(', ')}. Transferred to reception for cashier checkout.`
+                          : 'Procedure completed in chair. Transferred to reception for cashier checkout.',
+                      });
+                    }}
+                    title={isOwner ? 'Owner audit view: Doctor clinical actions restricted' : 'Complete treatment and send to cashier'}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-2 ${
+                      isOwner
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
+                    }`}
+                  >
+                    <CheckCircle2 className={`w-4 h-4 ${isOwner ? 'text-slate-400' : 'text-emerald-400'}`} />
+                    <span>{isOwner ? 'Done (Locked - Doctor Only)' : `Done → Send to Cashier ${currentPatientPlanMonies > 0 ? `(${currentPatientPlanMonies.toLocaleString()} ETB)` : ''}`}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Completed & Sent to Cashier Banner (Hidden for Doctor role - only for Reception/Cashier checkout) */}
+            {currentAppointment && (currentAppointment.status === 'completed' || currentAppointment.seatingStatus === 'sent_to_cashier') && store.currentUser.role !== 'doctor' && (
+              <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 shadow-2xs flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-emerald-900">Encounter Completed · Transferred to Cashier Desk</span>
+                    <p className="text-[11px] text-emerald-700">Patient account transferred to reception for MoR fiscal invoice &amp; receipt checkout.</p>
+                  </div>
+                </div>
+                <Link
+                  href="/invoices"
+                  className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 text-xs font-semibold hover:bg-emerald-100 transition-colors shadow-2xs shrink-0"
+                >
+                  View Invoices
+                </Link>
+              </div>
+            )}
+
             {/* 6-Card Clinical & Financial Metric Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {/* Card 1: ACTIVE PLAN */}
@@ -1053,22 +1606,39 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 mt-4">
-                  <Link
-                    href="/treatment-plans"
-                    className="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveProfileTab('clinical');
+                      setClinicalSubTab('treatment_plans');
+                    }}
+                    className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
                   >
                     <span>Open plan</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
+                  </button>
                 </div>
               </div>
 
               {/* Card 2: NEXT APPOINTMENT */}
               <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-card flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Next Appointment</span>
+                  <div className="flex items-center justify-between text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Next Appointment</span>
+                    </div>
+                    {currentAppointment && (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                        currentAppointment.status === 'in_progress'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : currentAppointment.status === 'checked_in'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}>
+                        {currentAppointment.status === 'in_progress' ? 'In Chair' : currentAppointment.status === 'checked_in' ? 'Waiting' : 'Confirmed'}
+                      </span>
+                    )}
                   </div>
                   {currentPatient.nextAppointment ? (
                     <div>
@@ -1079,21 +1649,117 @@ export default function PatientsPage() {
                         {currentPatient.nextAppointment.service}
                       </p>
                       <p className="text-[11px] text-slate-400 mt-0.5">
-                        {currentPatient.nextAppointment.doctor}
+                        {currentPatient.nextAppointment.doctor} · Chair {assignedChair}
                       </p>
                     </div>
                   ) : (
                     <p className="text-xs text-slate-500">No upcoming appointments</p>
+                  )}
+
+                  {/* Inline Quick Action Buttons for Appointment (Reception Only: Strictly 1 Button at a Time) */}
+                  {!isDoctor && currentAppointment && (currentAppointment.status === 'confirmed' || currentAppointment.status === 'pending_hold') && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={isOwner}
+                        onClick={() => {
+                          if (isOwner) return;
+                          sinnaStore.checkInAppointment(currentAppointment.id);
+                          sinnaStore.toastSuccess('Checked In', `${currentPatient.name} moved to Waiting Lounge`);
+                        }}
+                        title={isOwner ? 'Owner audit view: Reception actions restricted' : 'Check In patient'}
+                        className={`w-full py-1.5 px-2.5 rounded-xl text-xs font-bold transition-colors text-center shadow-2xs flex items-center justify-center gap-1.5 ${
+                          isOwner
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white'
+                        }`}
+                      >
+                        <Check className={`w-3.5 h-3.5 ${isOwner ? 'text-slate-400' : 'text-emerald-400'}`} />
+                        <span>{isOwner ? 'Check In (Locked)' : 'Check In'}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {!isDoctor && currentAppointment && currentAppointment.status === 'checked_in' && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)}
+                        onClick={() => {
+                          if (isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)) return;
+                          sinnaStore.requestSeatInChair(currentAppointment.id, assignedChair);
+                          sinnaStore.toastSuccess('Seated', `${currentPatient.name} seated in Chair ${assignedChair}`);
+                        }}
+                        title={
+                          isOwner
+                            ? 'Owner audit view: Seating dispatch restricted'
+                            : (assignedChair === 1 && isChair1Busy)
+                            ? 'Dr. Senait is currently conducting another patient in Chair 1'
+                            : (assignedChair === 2 && isChair2Busy)
+                            ? 'Chair 2 is currently occupied'
+                            : `Seat patient in Chair ${assignedChair}`
+                        }
+                        className={`w-full py-1.5 px-3 rounded-xl text-xs font-bold transition-colors text-center shadow-2xs flex items-center justify-center gap-1.5 ${
+                          isOwner || (assignedChair === 1 ? isChair1Busy : isChair2Busy)
+                            ? 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
+                            : assignedChair === 1
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        }`}
+                      >
+                        <Armchair className="w-3.5 h-3.5" />
+                        <span>
+                          {isOwner
+                            ? `Seat Chair ${assignedChair} (Locked)`
+                            : (assignedChair === 1 && isChair1Busy)
+                            ? 'Dr. Senait Busy (Chair 1)'
+                            : (assignedChair === 2 && isChair2Busy)
+                            ? 'Chair 2 Busy'
+                            : `Seat Chair ${assignedChair}`}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  {currentAppointment && currentAppointment.status === 'in_progress' && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={isOwner}
+                        onClick={() => {
+                          if (isOwner) return;
+                          sinnaStore.completeDoctorEncounter(currentAppointment.id, {
+                            notes: 'Treatment finished in chair. Dispatched to reception cashier.',
+                          });
+                        }}
+                        title={isOwner ? 'Owner audit view: Doctor clinical actions restricted' : 'Done → Send to Cashier'}
+                        className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 ${
+                          isOwner
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
+                        }`}
+                      >
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${isOwner ? 'text-slate-400' : 'text-emerald-400'}`} />
+                        <span>{isOwner ? 'Done (Locked - Doctor Only)' : 'Done → Send to Cashier'}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 mt-4">
                   <button
                     type="button"
-                    onClick={() => setBookingModalOpen(true)}
-                    className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
+                    disabled={isOwner}
+                    onClick={() => {
+                      if (isOwner) return;
+                      setBookingModalOpen(true);
+                    }}
+                    title={isOwner ? 'Owner audit view: Appointment booking restricted' : 'Schedule appointment'}
+                    className={`w-full text-xs font-semibold flex items-center justify-between group ${
+                      isOwner ? 'text-slate-400 cursor-not-allowed' : 'text-sky-600 hover:text-sky-700'
+                    }`}
                   >
-                    <span>Schedule appointment</span>
+                    <span>{isOwner ? 'Schedule appointment (Locked)' : 'Schedule appointment'}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
@@ -1135,36 +1801,177 @@ export default function PatientsPage() {
                 </div>
               </div>
 
-              {/* Card 4: BALANCE (ETB Currency with Green accent line) */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-card flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500" />
-                <div>
-                  <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-1">
-                    <Wallet className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Balance</span>
+              {/* Card 4: BALANCE (Reception/Cashier/Owner) OR PERSONAL INFORMATION (Doctor) */}
+              {store.currentUser.role === 'doctor' ? (
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-card flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
+                        <User className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Personal Information</span>
+                      </div>
+                      {!isEditingPersonalInfo ? (
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditPersonalInfo(currentPatient)}
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span>Edit</span>
+                        </button>
+                      ) : null}
+                    </div>
+
+                    {!isEditingPersonalInfo ? (
+                      <div className="space-y-1.5 text-xs">
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm">{currentPatient.name}</p>
+                          <p className="text-[11px] text-slate-500 font-amharic mt-0.5">
+                            {currentPatient.nameAmharic || '—'}
+                          </p>
+                        </div>
+
+                        <div className="pt-1.5 space-y-1 border-t border-slate-100 text-slate-600">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Phone:</span>
+                            <span className="font-mono font-semibold text-slate-900">{currentPatient.phone}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Age / Gender:</span>
+                            <span className="font-medium text-slate-900">{currentPatient.age} yrs · {currentPatient.gender}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400">Emergency:</span>
+                            <span className="font-medium text-slate-900 truncate max-w-[150px]">
+                              {currentPatient.emergencyContact?.name ? `${currentPatient.emergencyContact.name} (${currentPatient.emergencyContact.relationship || 'Family'})` : 'None listed'}
+                            </span>
+                          </div>
+                          {currentPatient.emergencyContact?.phone && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-400">Emergency Phone:</span>
+                              <span className="font-mono text-slate-700 text-[11px]">{currentPatient.emergencyContact.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 text-xs animate-fadeIn">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Name (English)</label>
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Name (Amharic)</label>
+                          <input
+                            type="text"
+                            value={editNameAmharic}
+                            onChange={(e) => setEditNameAmharic(e.target.value)}
+                            className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white font-amharic"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Phone</label>
+                            <input
+                              type="text"
+                              value={editPhone}
+                              onChange={(e) => setEditPhone(e.target.value)}
+                              className="w-full px-2 py-1 text-xs rounded-lg border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-1">
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Age</label>
+                              <input
+                                type="number"
+                                value={editAge}
+                                onChange={(e) => setEditAge(parseInt(e.target.value, 10) || 30)}
+                                className="w-full px-1.5 py-1 text-xs rounded-lg border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Gen</label>
+                              <select
+                                value={editGender}
+                                onChange={(e) => setEditGender(e.target.value as 'Female' | 'Male')}
+                                className="w-full px-1 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                              >
+                                <option value="Female">F</option>
+                                <option value="Male">M</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-1 flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingPersonalInfo(false)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSavePersonalInfo(currentPatient.id)}
+                            className="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-2xs transition-colors"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-xs text-slate-500">Total collected / paid</p>
-                  <p className="text-2xl font-bold font-mono text-slate-900 mt-1">
-                    {currentPatient.totalPaidETB.toLocaleString()} ETB
-                  </p>
-                  {currentPatient.balanceETB > 0 && (
-                    <p className="text-xs text-amber-700 font-mono mt-1 font-semibold">
-                      Outstanding: {currentPatient.balanceETB.toLocaleString()} ETB
-                    </p>
+
+                  {!isEditingPersonalInfo && (
+                    <div className="pt-3 border-t border-slate-100 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setActiveProfileTab('info')}
+                        className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
+                      >
+                        <span>Full registration demographics</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
+                    </div>
                   )}
                 </div>
+              ) : (
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-card flex flex-col justify-between relative overflow-hidden">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500" />
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-500 text-[11px] font-bold uppercase tracking-wider mb-1">
+                      <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Balance</span>
+                    </div>
+                    <p className="text-xs text-slate-500">Total collected / paid</p>
+                    <p className="text-2xl font-bold font-mono text-slate-900 mt-1">
+                      {currentPatient.totalPaidETB.toLocaleString()} ETB
+                    </p>
+                    {currentPatient.balanceETB > 0 && (
+                      <p className="text-xs text-amber-700 font-mono mt-1 font-semibold">
+                        Outstanding: {currentPatient.balanceETB.toLocaleString()} ETB
+                      </p>
+                    )}
+                  </div>
 
-                <div className="pt-4 border-t border-slate-100 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setActiveProfileTab('administration')}
-                    className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
-                  >
-                    <span>Open ledger</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
+                  <div className="pt-4 border-t border-slate-100 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setActiveProfileTab('administration')}
+                      className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
+                    >
+                      <span>Open ledger</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Card 5: DIAGNOSES */}
               <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-card flex flex-col justify-between">
@@ -1188,7 +1995,10 @@ export default function PatientsPage() {
                 <div className="pt-4 border-t border-slate-100 mt-4">
                   <button
                     type="button"
-                    onClick={() => setActiveProfileTab('clinical')}
+                    onClick={() => {
+                      setActiveProfileTab('clinical');
+                      setClinicalSubTab('diagnosis');
+                    }}
                     className="w-full text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center justify-between group"
                   >
                     <span>Open dental chart</span>
@@ -1652,334 +2462,169 @@ export default function PatientsPage() {
               </button>
             </div>
 
-            {/* Sub-tab 1: Diagnosis (Odontogram + Register Conditions + Sidebar) */}
+            {/* Sub-tab 1: Diagnosis (32-Tooth FDI Anatomic Odontogram, Tooth Inspector, Procedure Grid, Clinical Notes) */}
             {clinicalSubTab === 'diagnosis' && (
-              <div className="min-[960px]:flex min-[960px]:gap-4 min-[960px]:items-start">
-                {/* Left Column: Register conditions Card */}
-                <div className="flex-1 min-w-0 space-y-4">
-                  <div className="overflow-hidden shadow-sm rounded-2xl bg-white border border-slate-200 divide-y divide-slate-100">
-                    <div className="p-4 px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-100 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Stethoscope className="w-5 h-5 text-sky-600" />
-                        <span className="font-semibold text-slate-900 text-sm">Register conditions</span>
+              <div className="space-y-4">
+                {/* Active In-Chair Session Bar */}
+                {currentAppointment && currentAppointment.status === 'in_progress' && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-2 border-emerald-400/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                        <Armchair className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href="/treatment-plans"
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors flex items-center gap-1.5"
-                        >
-                          <span>Full Treatment Plan Workspace</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div className="p-4 sm:p-5">
-                      {/* Permanent / Primary Toggle & Header */}
-                      <div className="flex items-center justify-between mb-4">
+                      <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-base font-bold text-slate-900">Dental Chart</h3>
-                          <span className="text-xs text-slate-400 font-mono">FDI World Dental Federation (11-48)</span>
+                          <h4 className="font-bold text-slate-900 text-sm">
+                            Chair {currentAppointment.chairNumber || 1} Active Operatory Session · {currentPatient.name}
+                          </h4>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>In Treatment</span>
+                          </span>
                         </div>
-                        <div className="items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg inline-flex border border-slate-200/80">
-                          <button
-                            type="button"
-                            onClick={() => setArchType('permanent')}
-                            className={`inline-flex items-center justify-center text-xs font-semibold rounded-md transition-colors px-3 py-1 ${
-                              archType === 'permanent'
-                                ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                                : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                          >
-                            Permanent
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setArchType('primary')}
-                            className={`inline-flex items-center justify-center text-xs font-semibold rounded-md transition-colors px-3 py-1 ${
-                              archType === 'primary'
-                                ? 'bg-white text-slate-900 shadow-2xs font-bold'
-                                : 'text-slate-500 hover:text-slate-900'
-                            }`}
-                          >
-                            Primary
-                          </button>
-                        </div>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Procedure: <strong>{currentAppointment.serviceName}</strong> · Lead Doctor: {assignedDoctorName}
+                        </p>
                       </div>
-
-                      {/* Odontogram Component */}
-                      <TreatmentOdontogramChart
-                        chartNotation={patientTeeth}
-                        selectedTooth={selectedTooth}
-                        onSelectTooth={(num) => setSelectedTooth(selectedTooth === num ? null : num)}
-                        archType={archType}
-                        onToggleArchType={(type) => setArchType(type)}
-                        onWholeMouthSelect={() => setSelectedTooth(null)}
-                        onAddQuickCleaning={() => {
-                          sinnaStore.toastSuccess('Prophylaxis Added', 'Ultrasonic Scaling & Prophylaxis (1,500 ETB) recorded in chart.');
-                        }}
-                        onAddQuickFirstVisit={() => {
-                          sinnaStore.toastSuccess('Diagnostic Exam Added', 'Initial Clinical Consultation & X-Ray recorded in chart.');
-                        }}
-                      />
-
-                      {/* Selected Tooth Clinical Action Drawer */}
-                      {selectedTooth && (
-                        <div className="mt-4 p-4 rounded-xl border border-sky-200 bg-sky-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in text-xs">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="w-7 h-7 rounded-lg bg-sky-600 text-white font-mono font-bold flex items-center justify-center text-xs shadow-2xs">
-                                #{selectedTooth}
-                              </span>
-                              <div>
-                                <p className="font-bold text-slate-900">
-                                  Tooth #{selectedTooth} Selected
-                                </p>
-                                <p className="text-[11px] text-slate-500">
-                                  Condition: <span className="font-mono font-bold uppercase text-sky-700">{patientTeeth[selectedTooth] || 'SOUND / HEALTHY'}</span>
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {[
-                              { status: 'healthy' as ToothStatus, label: 'Sound', color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100' },
-                              { status: 'caries' as ToothStatus, label: 'Caries (Decay)', color: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100' },
-                              { status: 'filled' as ToothStatus, label: 'Filled', color: 'bg-sky-50 text-sky-800 border-sky-200 hover:bg-sky-100' },
-                              { status: 'crown' as ToothStatus, label: 'Crown', color: 'bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100' },
-                              { status: 'rct' as ToothStatus, label: 'Root Canal', color: 'bg-purple-50 text-purple-800 border-purple-200 hover:bg-purple-100' },
-                              { status: 'missing' as ToothStatus, label: 'Extraction', color: 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100' },
-                            ].map((item) => (
-                              <button
-                                key={item.status}
-                                type="button"
-                                onClick={() => {
-                                  handleUpdateToothStatus(selectedTooth, item.status);
-                                  sinnaStore.toastSuccess('Tooth Status Updated', `Tooth #${selectedTooth} marked as ${item.label}.`);
-                                }}
-                                className={`px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all ${item.color} ${
-                                  (patientTeeth[selectedTooth] || 'healthy') === item.status ? 'ring-2 ring-sky-500 font-bold shadow-2xs' : ''
-                                }`}
-                              >
-                                {item.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column: Active Diagnoses & Chairside Dispatch (>=960px sidebar) */}
-                <div className="min-[960px]:w-80 space-y-4 shrink-0 mt-4 min-[960px]:mt-0">
-                  {/* Active Diagnoses Card */}
-                  <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
-                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                      <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Diagnoses & Pathologies</span>
-                      </h4>
-                      <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">
-                        {Object.values(patientTeeth).filter(s => s === 'caries' || s === 'rct' || s === 'missing').length} active
-                      </span>
                     </div>
 
-                    <div className="space-y-2 text-xs">
-                      {Object.entries(patientTeeth)
-                        .filter(([_, status]) => status === 'caries' || status === 'rct' || status === 'missing')
-                        .map(([toothNum, status]) => (
-                          <div key={toothNum} className="p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-slate-900">#{toothNum}</span>
-                              <span className="text-slate-600 capitalize">
-                                {status === 'caries' ? 'Dental Caries' : status === 'rct' ? 'Pulpitis / Endo' : 'Missing / Extraction'}
-                              </span>
-                            </div>
-                            <span className="font-mono font-semibold text-slate-900">
-                              {status === 'caries' ? '2,200 ETB' : status === 'rct' ? '6,000 ETB' : '800 ETB'}
-                            </span>
-                          </div>
-                        ))}
-
-                      {Object.values(patientTeeth).filter(s => s === 'caries' || s === 'rct' || s === 'missing').length === 0 && (
-                        <div className="text-center py-4 text-slate-400 text-xs">
-                          <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
-                          No active pathological conditions recorded.
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                      <span className="text-slate-500 font-medium">Est. Treatment Total:</span>
-                      <span className="font-mono font-bold text-emerald-700 text-sm">
-                        {Object.entries(patientTeeth).reduce((sum, [_, status]) => {
-                          if (status === 'caries') return sum + 2200;
-                          if (status === 'rct') return sum + 6000;
-                          if (status === 'crown') return sum + 7500;
-                          if (status === 'missing') return sum + 800;
-                          return sum;
-                        }, 0).toLocaleString()} ETB
-                      </span>
-                    </div>
-
-                    <Link
-                      href="/treatment-plans"
-                      className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sinnaStore.completeDoctorEncounter(currentAppointment.id, {
+                          finalFeeETB: currentPatientPlanMonies > 0 ? currentPatientPlanMonies : currentAppointment.totalDueETB,
+                          notes: currentPatientPlan && currentPatientPlan.procedures.length > 0
+                            ? `Staged Treatment Plan: ${currentPatientPlan.procedures.map((p) => p.name).join(', ')}. Clinical charting and diagnosis completed. Patient transferred to reception cashier desk.`
+                            : 'Clinical charting and diagnosis completed. Patient transferred to reception cashier desk.',
+                        });
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98 shrink-0"
                     >
-                      <ClipboardList className="w-3.5 h-3.5" />
-                      <span>Stage into Treatment Plan</span>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Done → Send to Cashier {currentPatientPlanMonies > 0 ? `(${currentPatientPlanMonies.toLocaleString()} ETB)` : ''}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Completed & Sent to Cashier Banner (Hidden for Doctor role) */}
+                {currentAppointment && (currentAppointment.status === 'completed' || currentAppointment.seatingStatus === 'sent_to_cashier') && store.currentUser.role !== 'doctor' && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 shadow-2xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-emerald-900">Treatment Completed · Dispatched to Cashier Desk</span>
+                        <p className="text-[11px] text-emerald-700">Patient chart archived for this visit. Reception cashier bill is ready.</p>
+                      </div>
+                    </div>
+                    <Link
+                      href="/invoices"
+                      className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 text-xs font-semibold hover:bg-emerald-100 transition-colors shadow-2xs shrink-0"
+                    >
+                      View MoR Invoices
                     </Link>
                   </div>
+                )}
 
-                  {/* Operatory Chairside Dispatch */}
-                  <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
-                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>Chairside Operatory Dispatch</span>
-                    </h4>
-                    <p className="text-[11px] text-slate-500">Dispatch patient to active clinical dental unit:</p>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          sinnaStore.toastSuccess('Seated in Chair 1', `${currentPatient.name} seated in Chair 1 (Main Operatory).`);
-                        }}
-                        className="p-2.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100/90 text-indigo-900 font-semibold text-xs flex flex-col items-center justify-center gap-1 transition-colors shadow-2xs text-center"
-                      >
-                        <span className="font-bold">Chair 1</span>
-                        <span className="text-[10px] text-indigo-700 font-normal">Main Operatory</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          sinnaStore.toastSuccess('Seated in Chair 2', `${currentPatient.name} seated in Chair 2 (Hygiene & Endo).`);
-                        }}
-                        className="p-2.5 rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100/90 text-sky-900 font-semibold text-xs flex flex-col items-center justify-center gap-1 transition-colors shadow-2xs text-center"
-                      >
-                        <span className="font-bold">Chair 2</span>
-                        <span className="text-[10px] text-sky-700 font-normal">Hygiene & Endo</span>
-                      </button>
-                    </div>
-
-                    <Link
-                      href="/schedule"
-                      className="w-full py-1.5 px-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <span>Open Schedule Timeline</span>
-                      <ArrowRight className="w-3 h-3 text-slate-400" />
-                    </Link>
-                  </div>
-                </div>
+                <TreatmentPlanWorkspace
+                  viewMode="diagnosis"
+                  hideHeaderBanner={true}
+                  patientId={currentPatient.id}
+                  patientName={currentPatient.name}
+                  patientMrn={currentPatient.mrn}
+                  patientPhone={currentPatient.phone}
+                  activePlanTitle={currentPatient.activePlanTitle}
+                  activePlanProgress={currentPatient.activePlanProgress}
+                  balanceETB={currentPatient.balanceETB}
+                  totalPaidETB={currentPatient.totalPaidETB}
+                  chartNotation={currentPatient.chartNotation}
+                  diagnosesUntreated={currentPatient.diagnosesUntreated}
+                  activityNotes={currentPatient.activityNotes}
+                />
               </div>
             )}
 
-            {/* Sub-tab 2: Treatment Plans */}
+            {/* Sub-tab 2: Treatment plans (Staged Protocol Roadmap, Procedures Ledger, Live ETB Totals, Quotes & Fiscal Invoices) */}
             {clinicalSubTab === 'treatment_plans' && (
-              <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-emerald-600" />
-                      <span>{currentPatient.activePlanTitle || 'General Restorative Plan'}</span>
-                    </h4>
-                    <p className="text-xs text-slate-500 mt-0.5">Staged Ethiopian Clinical Dental Protocol</p>
-                  </div>
-                  <Link
-                    href="/treatment-plans"
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors flex items-center gap-1.5"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Open Odontogram Workspace</span>
-                  </Link>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-slate-700">Phase Completion Progress</span>
-                    <span className="font-mono text-emerald-700">{currentPatient.activePlanProgress?.percent || 60}%</span>
-                  </div>
-                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="bg-emerald-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${currentPatient.activePlanProgress?.percent || 60}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                    <span>{currentPatient.activePlanProgress?.completed || 3} of {currentPatient.activePlanProgress?.total || 5} procedures completed</span>
-                    <span className="font-mono font-bold text-slate-900">Total: {currentPatient.balanceETB + currentPatient.totalPaidETB} ETB</span>
-                  </div>
-                </div>
-
-                {/* Staged Procedure Breakdown */}
-                <div className="space-y-2 text-xs">
-                  <h5 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Staged Clinical Procedures</h5>
-                  <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="p-3 bg-white flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
-                          <Check className="w-3.5 h-3.5" />
-                        </span>
-                        <div>
-                          <p className="font-semibold text-slate-900">Stage 1: Comprehensive Periodontal Scaling & Debridement</p>
-                          <p className="text-[11px] text-slate-500">Completed on {currentPatient.lastVisit?.date || 'Sep 24, 2026'}</p>
-                        </div>
+              <div className="space-y-4">
+                {/* Active In-Chair Session Bar */}
+                {currentAppointment && currentAppointment.status === 'in_progress' && (
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-transparent border-2 border-emerald-400/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                        <Armchair className="w-5 h-5" />
                       </div>
-                      <span className="font-mono font-semibold text-slate-900">1,500 ETB</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-900 text-sm">
+                            Chair {currentAppointment.chairNumber || 1} Active Operatory Session · {currentPatient.name}
+                          </h4>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>In Treatment</span>
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-0.5">
+                          Procedure: <strong>{currentAppointment.serviceName}</strong> · Lead Doctor: {assignedDoctorName}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="p-3 bg-white flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-xs">
-                          <Clock className="w-3.5 h-3.5" />
-                        </span>
-                        <div>
-                          <p className="font-semibold text-slate-900">Stage 2: Composite Resin Restoration (Tooth #16 MO)</p>
-                          <p className="text-[11px] text-sky-600 font-medium">In Progress · Scheduled Next Visit</p>
-                        </div>
-                      </div>
-                      <span className="font-mono font-semibold text-slate-900">2,200 ETB</span>
-                    </div>
-
-                    <div className="p-3 bg-white flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
-                          3
-                        </span>
-                        <div>
-                          <p className="font-semibold text-slate-900">Stage 3: Full Zirconia Crown (Tooth #46)</p>
-                          <p className="text-[11px] text-slate-500">Planned · Awaiting Tooth Preparation</p>
-                        </div>
-                      </div>
-                      <span className="font-mono font-semibold text-slate-900">7,500 ETB</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sinnaStore.completeDoctorEncounter(currentAppointment.id, {
+                          finalFeeETB: currentPatientPlanMonies > 0 ? currentPatientPlanMonies : currentAppointment.totalDueETB,
+                          notes: currentPatientPlan && currentPatientPlan.procedures.length > 0
+                            ? `Staged Treatment Plan: ${currentPatientPlan.procedures.map((p) => p.name).join(', ')}. Clinical treatment plan completed. Patient transferred to reception cashier desk.`
+                            : 'Clinical treatment plan and encounter completed. Patient transferred to reception cashier desk.',
+                        });
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 active:scale-98 shrink-0"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Done → Send to Cashier {currentPatientPlanMonies > 0 ? `(${currentPatientPlanMonies.toLocaleString()} ETB)` : ''}</span>
+                    </button>
                   </div>
-                </div>
+                )}
 
-                <div className="pt-2 flex items-center justify-end gap-2">
-                  <Link
-                    href="/quotes"
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition-colors flex items-center gap-1.5"
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>View Formal ETB Quote</span>
-                  </Link>
-                  <Link
-                    href="/invoices"
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white shadow-2xs transition-colors flex items-center gap-1.5"
-                  >
-                    <Receipt className="w-3.5 h-3.5" />
-                    <span>Issue Fiscal MoR Invoice</span>
-                  </Link>
-                </div>
+                {/* Completed & Sent to Cashier Banner (Hidden for Doctor role) */}
+                {currentAppointment && (currentAppointment.status === 'completed' || currentAppointment.seatingStatus === 'sent_to_cashier') && store.currentUser.role !== 'doctor' && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 shadow-2xs flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <div>
+                        <span className="text-xs font-bold text-emerald-900">Treatment Completed · Dispatched to Cashier Desk</span>
+                        <p className="text-[11px] text-emerald-700">Patient chart archived for this visit. Reception cashier bill is ready.</p>
+                      </div>
+                    </div>
+                    <Link
+                      href="/invoices"
+                      className="px-3 py-1.5 rounded-xl bg-white border border-emerald-300 text-emerald-900 text-xs font-semibold hover:bg-emerald-100 transition-colors shadow-2xs shrink-0"
+                    >
+                      View MoR Invoices
+                    </Link>
+                  </div>
+                )}
+
+                <TreatmentPlanWorkspace
+                  viewMode="treatment_plans"
+                  hideHeaderBanner={true}
+                  patientId={currentPatient.id}
+                  patientName={currentPatient.name}
+                  patientMrn={currentPatient.mrn}
+                  patientPhone={currentPatient.phone}
+                  activePlanTitle={currentPatient.activePlanTitle}
+                  activePlanProgress={currentPatient.activePlanProgress}
+                  balanceETB={currentPatient.balanceETB}
+                  totalPaidETB={currentPatient.totalPaidETB}
+                  chartNotation={currentPatient.chartNotation}
+                  diagnosesUntreated={currentPatient.diagnosesUntreated}
+                  activityNotes={currentPatient.activityNotes}
+                />
               </div>
             )}
 
-            {/* Sub-tab 3: Appointments */}
+            {/* Sub-tab 2: Appointments */}
             {clinicalSubTab === 'appointments' && (
               <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -2282,11 +2927,20 @@ export default function PatientsPage() {
 
               <button
                 type="button"
-                onClick={() => setNewNoteModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white shadow-2xs self-end sm:self-auto"
+                disabled={isOwner}
+                onClick={() => {
+                  if (isOwner) return;
+                  setNewNoteModalOpen(true);
+                }}
+                title={isOwner ? 'Owner audit view: Adding clinical notes restricted' : 'Add administrative note'}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-2xs self-end sm:self-auto transition-colors ${
+                  isOwner
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300'
+                    : 'bg-sky-500 hover:bg-sky-600 text-white'
+                }`}
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Administrative note</span>
+                <span>{isOwner ? 'Administrative note (Locked)' : 'Administrative note'}</span>
               </button>
             </div>
 
@@ -2450,103 +3104,486 @@ export default function PatientsPage() {
   // =========================================================================
   return (
     <div className="space-y-4 max-w-7xl mx-auto pb-12 animate-fade-in">
-      {/* 1. TOP HEADER: Title + New Patient Button (Screenshot 1) */}
-      <div className="flex items-center justify-between gap-4 pt-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Patients
-        </h1>
-
-        <button
-          type="button"
-          onClick={() => setNewPatientModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white shadow-2xs transition-colors"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>New patient</span>
-        </button>
-      </div>
-
-      {/* 2. FILTER STRIP (Screenshot 1: Search, Status, Do-not-contact, With debt, Sort) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
-          {/* Search Box */}
-          <div className="relative w-64">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Name or phone"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8.5 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-2xs"
-            />
+      {/* Owner Oversight Mode Banner */}
+      {isOwner && (
+        <div className="p-3 bg-amber-500/10 border border-amber-300/80 rounded-2xl flex items-center justify-between text-xs text-amber-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
+            <span className="font-semibold">Owner Oversight Mode Active</span>
+            <span className="text-amber-700">· Read-only directory audit view. Patient registration and chart modifications restricted.</span>
           </div>
+          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-[10px] font-bold uppercase tracking-wider text-amber-800 border border-amber-300">
+            Audit Only
+          </span>
+        </div>
+      )}
 
-          {/* Status Filter Dropdown Pill */}
-          <div className="relative">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="appearance-none pl-6 pr-6 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="active">Status · 1 (Active)</option>
-              <option value="all">Status · All</option>
-              <option value="archived">Status · Archived</option>
-            </select>
-            <span className="w-2 h-2 rounded-full bg-sky-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+      {/* 1. TOP HEADER: Title + New Patient Button (Reception Only) */}
+      <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            Patients
+          </h1>
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+            {filteredPatients.length} {filteredPatients.length === 1 ? 'patient' : 'patients'}
+          </span>
+        </div>
 
-          {/* Only do-not-contact toggle */}
+        {/* New patient button: STRICTLY for Reception Desk only! Not shown for Doctors or Owner */}
+        {!isDoctor && !isOwner && (
           <button
             type="button"
-            onClick={() => setOnlyDoNotContact(!onlyDoNotContact)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors shadow-2xs ${
-              onlyDoNotContact
-                ? 'bg-slate-900 border-slate-900 text-white'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
+            onClick={() => setNewPatientModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-white shadow-2xs transition-colors"
           >
-            <BellOff className="w-3.5 h-3.5 text-slate-400" />
-            <span>Only do-not-contact</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>New patient</span>
           </button>
+        )}
+      </div>
 
-          {/* With debt toggle */}
+      {/* 2. DYNAMIC CLINICAL PULSE STAT CARDS (Slick Mint / Teal Operatory Palette) */}
+      <div className={`grid gap-3 ${isDoctor ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'}`}>
+        {/* All Directory */}
+        <button
+          type="button"
+          onClick={() => {
+            setDateTab('all');
+            setOnlineOnly(false);
+            setWithDebtOnly(false);
+          }}
+          className={`p-3.5 rounded-2xl border text-left transition-all ${
+            dateTab === 'all' && !onlineOnly && !withDebtOnly
+              ? 'bg-gradient-to-br from-[#E6FAF2] via-[#EDFDF7] to-[#F2FCF8] border-[#34D399] ring-2 ring-emerald-400/30 shadow-card'
+              : 'bg-white hover:bg-slate-50/80 text-slate-800 border-slate-200/90 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-[11px] font-semibold ${dateTab === 'all' && !onlineOnly && !withDebtOnly ? 'text-emerald-950 font-bold' : 'text-slate-500'}`}>
+              All Directory
+            </span>
+            {dateTab === 'all' && !onlineOnly && !withDebtOnly ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-bold tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active
+              </span>
+            ) : (
+              <Users className="w-4 h-4 text-slate-400" />
+            )}
+          </div>
+          <div className="text-2xl font-black text-slate-900 tracking-tight">
+            {directoryStats.total}
+          </div>
+          <p className={`text-[10px] mt-0.5 truncate ${dateTab === 'all' && !onlineOnly && !withDebtOnly ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+            Master Patient Records
+          </p>
+        </button>
+
+        {/* Scheduled Today */}
+        <button
+          type="button"
+          onClick={() => setDateTab('today')}
+          className={`p-3.5 rounded-2xl border text-left transition-all ${
+            dateTab === 'today'
+              ? 'bg-gradient-to-br from-[#E6FAF2] via-[#EDFDF7] to-[#F2FCF8] border-[#34D399] ring-2 ring-emerald-400/30 shadow-card'
+              : 'bg-white hover:bg-slate-50/80 text-slate-800 border-slate-200/90 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-[11px] font-semibold ${dateTab === 'today' ? 'text-emerald-950 font-bold' : 'text-slate-500'}`}>
+              Visiting Today
+            </span>
+            {dateTab === 'today' ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-bold tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active
+              </span>
+            ) : (
+              <Calendar className="w-4 h-4 text-emerald-600" />
+            )}
+          </div>
+          <div className="text-2xl font-black text-slate-900 tracking-tight">
+            {directoryStats.todayCount}
+          </div>
+          <p className={`text-[10px] mt-0.5 truncate ${dateTab === 'today' ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+            Live Chairs & Waiting
+          </p>
+        </button>
+
+        {/* Scheduled Tomorrow */}
+        <button
+          type="button"
+          onClick={() => setDateTab('tomorrow')}
+          className={`p-3.5 rounded-2xl border text-left transition-all ${
+            dateTab === 'tomorrow'
+              ? 'bg-gradient-to-br from-[#E6FAF2] via-[#EDFDF7] to-[#F2FCF8] border-[#34D399] ring-2 ring-emerald-400/30 shadow-card'
+              : 'bg-white hover:bg-slate-50/80 text-slate-800 border-slate-200/90 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-[11px] font-semibold ${dateTab === 'tomorrow' ? 'text-emerald-950 font-bold' : 'text-slate-500'}`}>
+              Visiting Tomorrow
+            </span>
+            {dateTab === 'tomorrow' ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-bold tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active
+              </span>
+            ) : (
+              <Clock className="w-4 h-4 text-sky-600" />
+            )}
+          </div>
+          <div className="text-2xl font-black text-slate-900 tracking-tight">
+            {directoryStats.tomorrowCount}
+          </div>
+          <p className={`text-[10px] mt-0.5 truncate ${dateTab === 'tomorrow' ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+            Upcoming Appointments
+          </p>
+        </button>
+
+        {/* Online Bookings */}
+        <button
+          type="button"
+          onClick={() => setOnlineOnly(!onlineOnly)}
+          className={`p-3.5 rounded-2xl border text-left transition-all ${
+            onlineOnly
+              ? 'bg-gradient-to-br from-[#E6FAF2] via-[#EDFDF7] to-[#F2FCF8] border-[#34D399] ring-2 ring-emerald-400/30 shadow-card'
+              : 'bg-white hover:bg-slate-50/80 text-slate-800 border-slate-200/90 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-[11px] font-semibold ${onlineOnly ? 'text-emerald-950 font-bold' : 'text-slate-500'}`}>
+              Online Bookings
+            </span>
+            {onlineOnly ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-bold tracking-wider uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active
+              </span>
+            ) : (
+              <Globe className="w-4 h-4 text-indigo-600" />
+            )}
+          </div>
+          <div className="text-2xl font-black text-slate-900 tracking-tight">
+            {directoryStats.onlineCount}
+          </div>
+          <p className={`text-[10px] mt-0.5 truncate ${onlineOnly ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+            300 ETB Deposit Hold
+          </p>
+        </button>
+
+        {/* Outstanding Debt: Only shown for Reception and Owner */}
+        {!isDoctor && (
           <button
             type="button"
             onClick={() => setWithDebtOnly(!withDebtOnly)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors shadow-2xs ${
+            className={`p-3.5 rounded-2xl border text-left transition-all col-span-2 sm:col-span-1 ${
               withDebtOnly
-                ? 'bg-amber-600 border-amber-600 text-white font-bold'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                ? 'bg-gradient-to-br from-[#E6FAF2] via-[#EDFDF7] to-[#F2FCF8] border-[#34D399] ring-2 ring-emerald-400/30 shadow-card'
+                : 'bg-white hover:bg-slate-50/80 text-slate-800 border-slate-200/90 shadow-2xs'
             }`}
           >
-            <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-            <span>With debt</span>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className={`text-[11px] font-semibold ${withDebtOnly ? 'text-emerald-950 font-bold' : 'text-slate-500'}`}>
+                With Balance
+              </span>
+              {withDebtOnly ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-bold tracking-wider uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Active
+                </span>
+              ) : (
+                <Wallet className="w-4 h-4 text-amber-600" />
+              )}
+            </div>
+            <div className="text-2xl font-black text-slate-900 tracking-tight font-mono">
+              {directoryStats.totalDebtETB.toLocaleString()} <span className="text-xs font-sans font-medium text-slate-500">ETB</span>
+            </div>
+            <p className={`text-[10px] mt-0.5 truncate ${withDebtOnly ? 'text-emerald-700 font-medium' : 'text-slate-400'}`}>
+              {directoryStats.debtCount} Patients with Debt
+            </p>
+          </button>
+        )}
+      </div>
+
+      {/* 3. DATE / VISIT FILTER TABS */}
+      <div className="bg-white p-1.5 border border-slate-200/90 rounded-2xl shadow-2xs flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 min-w-max">
+          <button
+            type="button"
+            onClick={() => setDateTab('all')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              dateTab === 'all'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>All Patients</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${dateTab === 'all' ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-700'}`}>
+              {directoryStats.total}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateTab('today')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              dateTab === 'today'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/60'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Today</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${dateTab === 'today' ? 'bg-emerald-700 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
+              {directoryStats.todayCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateTab('tomorrow')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              dateTab === 'tomorrow'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-sky-700 hover:bg-sky-50/60'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Tomorrow</span>
+            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${dateTab === 'tomorrow' ? 'bg-emerald-700 text-white' : 'bg-sky-100 text-sky-800'}`}>
+              {directoryStats.tomorrowCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateTab('yesterday')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              dateTab === 'yesterday'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <HistoryIcon className="w-3.5 h-3.5" />
+            <span>Yesterday / Past</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDateTab('upcoming')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              dateTab === 'upcoming'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Upcoming</span>
           </button>
         </div>
 
-        {/* Sort Dropdown */}
-        <div className="relative">
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="appearance-none pl-6 pr-6 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
-          >
-            <option value="last_visit">Last visit</option>
-            <option value="name">Name</option>
-            <option value="debt">Debt / Balance</option>
-          </select>
-          <ArrowUpDown className="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Custom Random Day Date Picker */}
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border text-xs transition-all ${
+            dateTab === 'custom'
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-900 ring-1 ring-emerald-300'
+              : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+          }`}>
+            <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <input
+              type="date"
+              value={customDate}
+              onChange={(e) => {
+                setCustomDate(e.target.value);
+                setDateTab('custom');
+              }}
+              title="Filter by any specific appointment date"
+              className="bg-transparent text-xs font-medium focus:outline-none cursor-pointer"
+            />
+          </div>
         </div>
       </div>
 
-      {/* 3. PATIENTS DIRECTORY TABLE / LIST (Exact Match to Screenshot 1) */}
+      {/* 4. MULTI-FILTER STRIP & SEARCH */}
+      <div className="bg-white p-3 border border-slate-200/90 rounded-2xl shadow-2xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[300px]">
+            {/* Search Input across name, phone, card-number */}
+            <div className="relative w-64 sm:w-72">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search by name, phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1.5 focus:ring-sky-500 shadow-2xs transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Doctor Scoping: Reception / Owner filter dropdown only. Doctor is automatically locked to his/her patients */}
+            {!isDoctor && (
+              <div className="relative">
+                <select
+                  value={doctorFilter}
+                  onChange={(e) => setDoctorFilter(e.target.value as any)}
+                  className="appearance-none pl-7 pr-7 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer focus:bg-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+                >
+                  <option value="all">Specialist: All Doctors</option>
+                  <option value="senait">Dr. Senait Tadesse (Chair 1)</option>
+                  <option value="dawit">Dr. Dawit Bekele (Chair 2)</option>
+                </select>
+                <Stethoscope className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+            )}
+
+            {/* Status Filter Dropdown */}
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="appearance-none pl-6 pr-7 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer focus:bg-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+              >
+                <option value="active">Status · Active</option>
+                <option value="all">Status · All</option>
+                <option value="archived">Status · Archived</option>
+              </select>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="appearance-none pl-7 pr-7 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer focus:bg-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+            >
+              <option value="last_visit">Sort · Last visit / schedule</option>
+              <option value="name">Sort · Patient Name (A-Z)</option>
+              <option value="mrn">Sort · Card / BDS MRN</option>
+              {!isDoctor && <option value="debt">Sort · Balance / Debt (High to Low)</option>}
+            </select>
+            <ArrowUpDown className="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Multi-Filter Fast Toggle Pills Row */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">
+              Filter by:
+            </span>
+
+            {/* Online Bookings Filter Toggle */}
+            <button
+              type="button"
+              onClick={() => setOnlineOnly(!onlineOnly)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-semibold transition-all shadow-2xs ${
+                onlineOnly
+                  ? 'bg-indigo-600 border-indigo-600 text-white font-bold'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Globe className={`w-3.5 h-3.5 ${onlineOnly ? 'text-white' : 'text-indigo-600'}`} />
+              <span>Online Bookings</span>
+            </button>
+
+            {/* With Debt Toggle: Reception & Owner Only */}
+            {!isDoctor && (
+              <button
+                type="button"
+                onClick={() => setWithDebtOnly(!withDebtOnly)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-semibold transition-all shadow-2xs ${
+                  withDebtOnly
+                    ? 'bg-amber-600 border-amber-600 text-white font-bold'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Wallet className={`w-3.5 h-3.5 ${withDebtOnly ? 'text-white' : 'text-amber-500'}`} />
+                <span>With Debt</span>
+              </button>
+            )}
+
+            {/* Do-Not-Contact Toggle */}
+            <button
+              type="button"
+              onClick={() => setOnlyDoNotContact(!onlyDoNotContact)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-semibold transition-all shadow-2xs ${
+                onlyDoNotContact
+                  ? 'bg-slate-900 border-slate-900 text-white'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <BellOff className={`w-3.5 h-3.5 ${onlyDoNotContact ? 'text-white' : 'text-slate-400'}`} />
+              <span>Only do-not-contact</span>
+            </button>
+          </div>
+
+          {/* Reset Filters Shortcut */}
+          {(searchQuery || dateTab !== 'all' || onlineOnly || (!isDoctor && withDebtOnly) || onlyDoNotContact || statusFilter !== 'active' || (!isDoctor && doctorFilter !== 'all')) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setDateTab('all');
+                setOnlineOnly(false);
+                setWithDebtOnly(false);
+                setOnlyDoNotContact(false);
+                setStatusFilter('active');
+                if (!isDoctor) setDoctorFilter('all');
+              }}
+              className="text-xs text-rose-600 hover:text-rose-700 font-semibold inline-flex items-center gap-1 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Clear filters</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 5. PATIENTS DIRECTORY TABLE / LIST */}
       <div className="bg-white border border-slate-200/90 rounded-2xl shadow-card overflow-hidden">
         <div className="divide-y divide-slate-100">
           {filteredPatients.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 text-xs">
-              No patients match the selected filters.
+            <div className="p-16 text-center text-slate-500 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-400">
+                <Users className="w-6 h-6" />
+              </div>
+              <p className="text-sm font-semibold text-slate-800">
+                No patients match the selected filters
+              </p>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                Try resetting your date tab or clearing search keywords.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setDateTab('all');
+                  setOnlineOnly(false);
+                  setWithDebtOnly(false);
+                  setOnlyDoNotContact(false);
+                  setStatusFilter('active');
+                  if (!isDoctor) setDoctorFilter('all');
+                }}
+                className="mt-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 shadow-2xs transition-colors"
+              >
+                Reset All Filters
+              </button>
             </div>
           ) : (
             filteredPatients.map((patient) => {
@@ -2556,55 +3593,142 @@ export default function PatientsPage() {
                 .join('')
                 .toUpperCase();
 
-              // Formatted name: Surname, First (Matching Sánchez Muñoz, Javier)
               const nameParts = patient.name.split(' ');
               const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
               const firstName = nameParts.slice(0, -1).join(' ');
               const displayName = surname ? `${surname}, ${firstName}` : patient.name;
 
+              const activeApt = store.appointments.find(
+                (a) => a.id === patient.id || a.patientName.toLowerCase() === patient.name.toLowerCase()
+              );
+              const isCancelled = activeApt?.seatingStatus === 'cancelled_by_doctor';
+              const isInChair = activeApt?.status === 'in_progress' || (activeApt?.chairNumber && activeApt?.chairNumber > 0);
+              const isWaiting = activeApt?.status === 'pending_hold' || activeApt?.seatingStatus === 'requested';
+
+              const info = getPatientVisitInfo(patient);
+
               return (
                 <div
                   key={patient.id}
                   onClick={() => {
-                    setSelectedPatientId(patient.id);
-                    setActiveProfileTab('summary');
+                    if (isDoctor) {
+                      setSelectedPatientId(patient.id);
+                      setActiveProfileTab('summary');
+                      if (typeof window !== 'undefined') {
+                        window.history.pushState({}, '', `?patientId=${encodeURIComponent(patient.id)}`);
+                      }
+                    } else {
+                      sinnaStore.openPatientDrawer(patient.id);
+                    }
                   }}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50/70 transition-colors cursor-pointer group"
+                  className={`p-4 flex items-center justify-between transition-colors cursor-pointer group ${
+                    isCancelled
+                      ? 'bg-rose-50/50 hover:bg-rose-50/80 border-l-4 border-l-rose-500'
+                      : 'hover:bg-slate-50/70'
+                  }`}
+                  title={isDoctor ? "Click to view detailed personal profile and clinical chart" : "Click to view patient details & quick actions"}
                 >
-                  {/* Left: Avatar Circle + Name + Phone */}
+                  {/* Left: Avatar + Primary Info + BDS MRN */}
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0 group-hover:border-sky-300 group-hover:text-sky-700 transition-colors">
-                      {initials}
+                    <div className="relative shrink-0">
+                      <div className={`w-10 h-10 rounded-full border font-bold text-xs flex items-center justify-center transition-colors shadow-2xs ${
+                        isCancelled
+                          ? 'bg-rose-100 border-rose-300 text-rose-800'
+                          : 'bg-slate-100 border-slate-200 text-slate-700 group-hover:border-sky-300 group-hover:text-sky-700'
+                      }`}>
+                        {initials}
+                      </div>
+
+                      {/* Live Chair / Waiting indicator beacon */}
+                      {isInChair && (
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full ring-2 ring-white animate-pulse" title="Currently seated in chair" />
+                      )}
+                      {!isInChair && isWaiting && (
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" title="Checked in / Waiting in reception" />
+                      )}
+                      {!isInChair && !isWaiting && info.isOnline && (
+                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-sky-500 rounded-full ring-2 ring-white" title="Online reservation" />
+                      )}
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-slate-900 text-xs group-hover:text-sky-700 transition-colors truncate">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className={`font-semibold text-xs transition-colors truncate ${
+                          isCancelled ? 'text-rose-600 font-bold group-hover:text-rose-700' : 'text-slate-900 group-hover:text-sky-700'
+                        }`}>
                           {displayName}
                         </p>
-                        <span className="text-[10px] text-slate-400 font-amharic hidden sm:inline">
-                          ({patient.nameAmharic})
+                        {patient.nameAmharic && (
+                          <span className="text-[10px] text-slate-400 font-amharic hidden sm:inline">
+                            ({patient.nameAmharic})
+                          </span>
+                        )}
+                        <span className="font-mono text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
+                          {patient.mrn || 'BDS-00000'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 font-mono mt-0.5">
-                        {patient.phone}
-                      </p>
+
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
+                        <span>{patient.phone}</span>
+                        <span className="text-slate-300">·</span>
+                        <span className="font-sans text-[11px] text-slate-400">{patient.age}y · {patient.gender}</span>
+                        {info.service && (
+                          <>
+                            <span className="text-slate-300 hidden md:inline">·</span>
+                            <span className="font-sans text-[11px] text-slate-600 truncate max-w-[160px] hidden md:inline">
+                              {info.service}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Right: Status Pill + Chevron */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    {patient.balanceETB > 0 && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 hidden sm:inline">
-                        {patient.balanceETB.toLocaleString()} ETB
+                  {/* Middle / Right: Clean Essential Badges Only (Schedule & Online, No fluff) + Chevron */}
+                  <div className="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
+                    {/* Live Cancelled Notice */}
+                    {isCancelled && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                        Cancelled Seating
                       </span>
                     )}
 
-                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Active
-                    </span>
+                    {/* Schedule / Visit Badge */}
+                    {info.isToday ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                        <Calendar className="w-3 h-3 text-emerald-600" />
+                        <span>Today {info.time}</span>
+                      </span>
+                    ) : info.isTomorrow ? (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-300 flex items-center gap-1 shadow-2xs">
+                        <Clock className="w-3 h-3 text-sky-600" />
+                        <span>Tomorrow {info.time}</span>
+                      </span>
+                    ) : info.isUpcoming ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 hidden md:flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-500" />
+                        <span>Upcoming</span>
+                      </span>
+                    ) : null}
 
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all" />
+                    {/* Online Reservation Badge */}
+                    {info.isOnline && (
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-900 border border-indigo-200 flex items-center gap-1 shadow-2xs font-amharic hidden sm:inline-flex">
+                        <Globe className="w-3 h-3 text-indigo-600" />
+                        <span>በኦንላይን የተያዘ (300 ETB)</span>
+                      </span>
+                    )}
+
+                    {/* Debt / Balance Badge: ONLY shown for Reception & Owner */}
+                    {!isDoctor && patient.balanceETB > 0 && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs">
+                        {patient.balanceETB.toLocaleString()} ETB Due
+                      </span>
+                    )}
+
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
               );
@@ -2628,7 +3752,7 @@ export default function PatientsPage() {
               Register New Patient
             </h3>
             <p className="text-xs text-slate-500 mb-4">
-              Create official clinical record and assign BDS-MRN.
+              Create official clinical record and assign BDS Card No.
             </p>
 
             <form onSubmit={handleCreatePatient} className="space-y-3.5 text-xs">
@@ -2700,17 +3824,6 @@ export default function PatientsPage() {
                     <option value="Male">Male</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Subcity & Woreda Address</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Bole Subcity, Woreda 03, House #142"
-                  value={newPatientForm.subcity}
-                  onChange={(e) => setNewPatientForm({ ...newPatientForm, subcity: e.target.value })}
-                  className="w-full p-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500"
-                />
               </div>
 
               <div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Phone,
   PhoneOff,
@@ -53,7 +54,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-001',
     name: 'Tigist Alemu',
     nameAmharic: 'ትዕግስት አለሙ ደስታ',
-    mrn: 'BDS-MRN-2026-0041',
+    mrn: 'BDS-00041',
     tags: {
       priority: 'Normal',
       category: 'Hygiene',
@@ -71,7 +72,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-002',
     name: 'Dawit Haile',
     nameAmharic: 'ዳዊት ኃይሌ ገብረ',
-    mrn: 'BDS-MRN-2026-0089',
+    mrn: 'BDS-00089',
     tags: {
       priority: 'Urgent',
       category: 'Post-Op',
@@ -89,7 +90,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-003',
     name: 'Sara Mengistu',
     nameAmharic: 'ሳራ መንግስቱ ታደሰ',
-    mrn: 'BDS-MRN-2026-0155',
+    mrn: 'BDS-00155',
     tags: {
       priority: 'Normal',
       category: 'Ortho',
@@ -107,7 +108,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-004',
     name: 'Abebe Kebede',
     nameAmharic: 'አበበ ከበደ ወርቁ',
-    mrn: 'BDS-MRN-2026-0012',
+    mrn: 'BDS-00012',
     tags: {
       priority: 'High',
       category: 'Scaling',
@@ -125,7 +126,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-010',
     name: 'Almaz Wolde',
     nameAmharic: 'አልማዝ ወልዴ ገብረ',
-    mrn: 'BDS-MRN-2026-0312',
+    mrn: 'BDS-00312',
     tags: {
       priority: 'Normal',
       category: 'Preventive',
@@ -143,7 +144,7 @@ const INITIAL_RECALLS: RecallPatient[] = [
     id: 'apt-006',
     name: 'Yonas Bekele',
     nameAmharic: 'ዮናስ በቀለ ተፈራ',
-    mrn: 'BDS-MRN-2026-0244',
+    mrn: 'BDS-00244',
     tags: {
       priority: 'High',
       category: 'Hygiene',
@@ -160,8 +161,18 @@ const INITIAL_RECALLS: RecallPatient[] = [
 ];
 
 export default function RecallsPage() {
+  const router = useRouter();
   const store = useSinnaStore();
   const clinic = getClinicData(store.activeClinicSlug);
+
+  const isDoctor = store.currentUser?.role === 'doctor' || store.activePersona === 'doctor';
+  const handleOpenPatient = (patientId: string) => {
+    if (isDoctor) {
+      router.push(`/patients?patientId=${patientId}`);
+    } else {
+      sinnaStore.openPatientDrawer(patientId);
+    }
+  };
 
   const [recalls, setRecalls] = useState<RecallPatient[]>(INITIAL_RECALLS);
   const [selectedMonth, setSelectedMonth] = useState('October 2026');
@@ -511,12 +522,14 @@ export default function RecallsPage() {
                     {/* Left: Patient Details & Clinical Context */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                          href={`/patients`}
-                          className="font-semibold text-slate-900 hover:text-sky-600 transition-colors text-sm"
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPatient(patient.id)}
+                          className="font-semibold text-slate-900 hover:text-sky-600 transition-colors text-sm text-left"
+                          title="Open patient profile & clinical chart"
                         >
                           {patient.name}
-                        </Link>
+                        </button>
                         <span className="text-xs text-slate-400 font-amharic hidden sm:inline">
                           ({patient.nameAmharic})
                         </span>
@@ -649,14 +662,17 @@ export default function RecallsPage() {
 
                         {activeActionsMenuId === patient.id && (
                           <div className="absolute right-0 mt-1 w-52 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 text-xs animate-in fade-in-50 zoom-in-95">
-                            <Link
-                              href="/patients"
-                              onClick={() => setActiveActionsMenuId(null)}
-                              className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveActionsMenuId(null);
+                                handleOpenPatient(patient.id);
+                              }}
+                              className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700 cursor-pointer"
                             >
                               <User className="w-3.5 h-3.5 text-sky-600" />
                               <span>View Clinical Chart</span>
-                            </Link>
+                            </button>
 
                             <button
                               type="button"
