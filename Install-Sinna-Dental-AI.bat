@@ -1,56 +1,79 @@
 @echo off
 setlocal enabledelayedexpansion
-title Sinna Dental AI - Auto Setup & Launcher
+title Sinna Dental AI - 1-Click Setup and Launcher
 color 0b
 
 echo.
 echo =====================================================================
 echo               SINNA DENTAL AI - 1-CLICK CLINIC SETUP
-echo            Autonomous Practice Suite (Offline Native App)
+echo            Autonomous Practice Suite - Offline Native App
 echo =====================================================================
 echo.
 
 :: 1. Verify Node.js Environment
 where node >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
-    if exist "%ProgramFiles%\nodejs\node.exe" (
-        set "PATH=%ProgramFiles%\nodejs;%PATH%"
-    ) else if exist "%ProgramFiles(x86)%\nodejs\node.exe" (
-        set "PATH=%ProgramFiles(x86)%\nodejs;%PATH%"
-    ) else if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
-        set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
-    ) else (
-        echo [!] Node.js runtime was not detected on this computer.
-        echo [*] Please install Node.js LTS (v20+ recommended) from:
-        echo     https://nodejs.org/
-        echo.
-        pause
-        exit /b 1
-    )
+if %ERRORLEVEL% EQU 0 goto NODE_FOUND
+
+if exist "%SystemDrive%\Program Files\nodejs\node.exe" (
+    set "PATH=%SystemDrive%\Program Files\nodejs;%PATH%"
+    goto NODE_FOUND
 )
-echo [OK] Node.js is ready.
+if exist "%SystemDrive%\Program Files (x86)\nodejs\node.exe" (
+    set "PATH=%SystemDrive%\Program Files (x86)\nodejs;%PATH%"
+    goto NODE_FOUND
+)
+if exist "%LOCALAPPDATA%\Programs\nodejs\node.exe" (
+    set "PATH=%LOCALAPPDATA%\Programs\nodejs;%PATH%"
+    goto NODE_FOUND
+)
+
+echo.
+echo [X] Node.js was not detected on this computer.
+echo [*] Please download and install Node.js LTS from: https://nodejs.org/
+echo [*] After installing Node.js, double-click this file again.
+echo.
+pause
+exit /b 1
+
+:NODE_FOUND
+echo [OK] Node.js is ready:
 node -v
 
 :: 2. Locate Git (System PATH or GitHub Desktop)
 where git >nul 2>nul
-if %ERRORLEVEL% NEQ 0 (
-    for /d %%d in ("%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\cmd") do (
-        if exist "%%d\git.exe" (
-            set "PATH=%%d;!PATH!"
-        )
+if %ERRORLEVEL% EQU 0 goto GIT_READY
+
+for /d %%d in ("%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\cmd") do (
+    if exist "%%d\git.exe" (
+        set "PATH=%%d;!PATH!"
+        goto GIT_READY
     )
+)
+for /d %%d in ("%LOCALAPPDATA%\GitHubDesktop\app-*\resources\app\git\bin") do (
+    if exist "%%d\git.exe" (
+        set "PATH=%%d;!PATH!"
+        goto GIT_READY
+    )
+)
+
+:GIT_READY
+where git >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    echo [OK] Git engine located.
+) else (
+    echo [*] Git CLI not found in PATH - will use direct HTTPS download.
 )
 
 :: 3. Acquire Project Codebase
 set "TARGET_DIR=%~dp0SinnaAI"
 if exist "%~dp0package.json" (
-    echo [OK] Running inside existing Sinna project directory.
+    echo [OK] Running directly inside Sinna project directory.
     set "TARGET_DIR=%~dp0"
     goto CONFIGURE_PROJECT
 )
 
 if exist "%TARGET_DIR%\package.json" (
-    echo [OK] SinnaAI directory already exists. Updating latest changes...
+    echo [OK] SinnaAI directory already exists. Syncing updates...
     cd /d "%TARGET_DIR%"
     where git >nul 2>nul
     if !ERRORLEVEL! EQU 0 (
@@ -66,7 +89,7 @@ if %ERRORLEVEL% EQU 0 (
     echo [*] Cloning via Git...
     git clone https://github.com/Dagmawialebachew/SinnaAI.git "%TARGET_DIR%"
 ) else (
-    echo [*] Git not found. Downloading project zip directly via secure HTTPS...
+    echo [*] Downloading project zip directly via secure HTTPS...
     powershell -NoProfile -Command ^
         "$zipPath = Join-Path $env:TEMP 'sinna_source.zip'; " ^
         "$tempExtract = Join-Path $env:TEMP 'sinna_extract'; " ^
@@ -102,7 +125,7 @@ if not exist ".env" (
 :: 5. Install Dependencies (First-Time Only)
 if not exist "node_modules\" (
     echo.
-    echo [*] Installing required clinical packages (one-time setup, ~1-2 min)...
+    echo [*] Installing required clinical packages - one-time setup...
     call npm install
     if !ERRORLEVEL! NEQ 0 (
         echo [X] Dependency installation failed. Please check your connection.
@@ -133,7 +156,7 @@ powershell -NoProfile -Command ^
     "$sc.WorkingDirectory = '%CD%'; " ^
     "$sc.Description = 'Sinna Dental AI - Clinical Operating Platform'; " ^
     "$sc.Save()" 2>nul
-echo [OK] Created "Sinna Dental AI" shortcut on your Windows Desktop!
+echo [OK] Created 'Sinna Dental AI' shortcut on your Windows Desktop!
 
 :: 8. Launch the Application Now
 echo.
