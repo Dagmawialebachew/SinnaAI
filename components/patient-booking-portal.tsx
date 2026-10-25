@@ -145,10 +145,11 @@ const MORNING_SLOTS = ['09:00 AM', '09:45 AM', '10:30 AM', '11:15 AM'];
 const AFTERNOON_SLOTS = ['02:00 PM', '02:45 PM', '03:30 PM', '04:15 PM'];
 
 // Service category tags
-type ServiceCategory = 'all' | 'hygiene' | 'emergency' | 'restorative' | 'cosmetic';
+type ServiceCategory = 'all' | 'consultation' | 'hygiene' | 'emergency' | 'restorative' | 'cosmetic';
 
 const CATEGORIES: { id: ServiceCategory; labelEn: string; labelAm: string; labelOm: string }[] = [
   { id: 'all', labelEn: 'All Services', labelAm: 'ሁሉም ህክምናዎች', labelOm: 'Hunda' },
+  { id: 'consultation', labelEn: 'Card & Checkup', labelAm: 'የካርድና ምርመራ', labelOm: 'Kaardii fi Qorannoo' },
   { id: 'hygiene', labelEn: 'Hygiene & Scaling', labelAm: 'ማጽዳት እና ፖሊሽ', labelOm: 'Qulqullina' },
   { id: 'emergency', labelEn: 'Emergency Care', labelAm: 'አስቸኳይ ህክምና', labelOm: 'Ariifachiisaa' },
   { id: 'restorative', labelEn: 'Root Canal & Fillings', labelAm: 'የስር ህክምና', labelOm: 'Hiddamoo' },
@@ -433,6 +434,7 @@ export function PatientBookingPortal({
   // Filtered services by category
   const filteredServices = useMemo(() => {
     if (selectedCategory === 'all') return LOCALIZED_SERVICES;
+    if (selectedCategory === 'consultation') return LOCALIZED_SERVICES.filter(s => s.id === 'srv-card-exam');
     if (selectedCategory === 'hygiene') return LOCALIZED_SERVICES.filter(s => s.id === 'srv-cleaning');
     if (selectedCategory === 'emergency') return LOCALIZED_SERVICES.filter(s => s.id === 'srv-emergency');
     if (selectedCategory === 'restorative') return LOCALIZED_SERVICES.filter(s => s.id === 'srv-rootcanal');
@@ -1041,6 +1043,20 @@ export function PatientBookingPortal({
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1 pr-1">
+                              {srv.id === 'srv-card-exam' && (
+                                <div className="mb-1">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/80">
+                                    <Sparkles className="w-2.5 h-2.5 text-blue-600 shrink-0" />
+                                    <span>
+                                      {lang === 'am'
+                                        ? 'የመጀመሪያ ጉብኝት · የካርድ መክፈቻ'
+                                        : lang === 'om'
+                                        ? 'Kaardii Haaraa fi Qorannoo'
+                                        : 'First Visit · Diagnostic Card'}
+                                    </span>
+                                  </span>
+                                </div>
+                              )}
                               <h3 className="font-bold text-slate-900 text-xs tracking-tight truncate">
                                 {srv.name[lang] || srv.name.en}
                               </h3>
@@ -1065,7 +1081,11 @@ export function PatientBookingPortal({
                             {srv.depositRequired ? (
                               <span className="text-emerald-700 font-semibold inline-flex items-center gap-1 truncate text-[11px]">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                <span className="truncate">{srv.depositAmountETB} ETB Telebirr Deposit</span>
+                                <span className="truncate">
+                                  {srv.id === 'srv-card-exam'
+                                    ? `${srv.depositAmountETB} ETB Card Fee via Telebirr`
+                                    : `${srv.depositAmountETB} ETB Telebirr Deposit`}
+                                </span>
                               </span>
                             ) : (
                               <span className="text-slate-400 text-[10px] truncate">

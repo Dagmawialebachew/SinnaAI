@@ -222,7 +222,7 @@ export default function PatientsPage() {
         const isOnline = Boolean(apt.isOnlineBooking || apt.source === 'online' || apt.source === 'copilot' || (apt.notes && apt.notes.includes('Online')) || (apt.notes && apt.notes.includes('Booked via')));
         const newProfile: FullPatientProfile = {
           id: apt.id,
-          mrn: apt.patientChart?.medicalRecordNumber || apt.patientChart?.cardNo || `BDS-${Math.floor(1000 + Math.random() * 9000)}`,
+          mrn: apt.patientChart?.medicalRecordNumber || apt.patientChart?.cardNo || (apt.id.startsWith('BDS-') ? apt.id : `BDS-${Math.floor(1000 + Math.random() * 9000)}`),
           name: apt.patientName,
           nameAmharic: apt.patientChart?.fullNameAmharic || apt.patientName,
           phone: apt.patientPhone,

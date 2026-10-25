@@ -51,6 +51,23 @@ export interface FiscalInvoice {
 
 const INITIAL_INVOICES: FiscalInvoice[] = [
   {
+    id: 'inv-000',
+    invoiceNumber: 'BDS-INV-2026-0008',
+    patientName: 'Kalkidan Yohannes',
+    patientNameAmharic: 'ቃልኪዳን ዮሐንስ',
+    patientMrn: 'BDS-00482',
+    status: 'Paid',
+    isOverdue: false,
+    issueDate: '10/22/2026',
+    dueDate: '10/22/2026',
+    totalETB: 300.0,
+    balanceETB: 0.0,
+    paymentMethod: 'Telebirr',
+    serviceDescription: 'New Patient Card Opening & Diagnostic Clinical Examination',
+    doctorName: 'Dr. Senait Tadesse',
+    tin: '0049283711',
+  },
+  {
     id: 'inv-001',
     invoiceNumber: 'BDS-INV-2026-0007',
     patientName: 'Dawit Haile Gebre',

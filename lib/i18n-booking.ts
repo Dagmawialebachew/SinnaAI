@@ -252,6 +252,23 @@ export interface LocalizedService {
 
 export const LOCALIZED_SERVICES: LocalizedService[] = [
   {
+    id: 'srv-card-exam',
+    name: {
+      en: 'New Patient Card & Clinical Examination',
+      am: 'አዲስ የታካሚ ካርድ እና የጥርስ ምርመራ',
+      om: 'Kaardii Haaraa fi Qorannoo Ilkaanii',
+    },
+    description: {
+      en: 'New clinical card registration, comprehensive oral inspection, and doctor treatment plan diagnosis.',
+      am: 'አዲስ የታካሚ ካርድ መክፈቻ፣ አጠቃላይ የአፍ እና የጥርስ ምርመራ እና የህክምና እቅድ ማውጣት።',
+      om: 'Galmee kaardii haaraa, qorannoo guutuu afaanii fi ilkaanii, karoora yaala ogeessaa.',
+    },
+    durationMinutes: 20,
+    priceETB: 300,
+    depositRequired: true,
+    depositAmountETB: 300,
+  },
+  {
     id: 'srv-cleaning',
     name: {
       en: 'Routine Cleaning & Scaling',

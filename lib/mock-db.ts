@@ -42,6 +42,16 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
     ],
     services: [
       {
+        id: 'srv-card-exam',
+        nameEn: 'New Patient Card & Clinical Examination',
+        nameAm: 'አዲስ የታካሚ ካርድ እና የመጀመሪያ ምርመራ',
+        durationMinutes: 20,
+        priceETB: 300,
+        depositRequired: true,
+        depositAmountETB: 300,
+        description: 'New clinical card opening, comprehensive oral inspection, and doctor treatment plan diagnosis.'
+      },
+      {
         id: 'srv-cleaning',
         nameEn: 'Routine Cleaning & Scaling',
         nameAm: 'መደበኛ የጥርስ ማጽዳት እና ፖሊሽ',
@@ -111,6 +121,16 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
     ],
     services: [
       {
+        id: 'srv-card-exam',
+        nameEn: 'New Patient Card & Clinical Examination',
+        nameAm: 'አዲስ የታካሚ ካርድ እና የመጀመሪያ ምርመራ',
+        durationMinutes: 20,
+        priceETB: 200,
+        depositRequired: true,
+        depositAmountETB: 200,
+        description: 'New clinical card opening, comprehensive oral inspection, and doctor diagnosis.'
+      },
+      {
         id: 'srv-summit-cleaning',
         nameEn: 'Full Dental Hygiene & Cleaning',
         nameAm: 'የጥርስ ንፅህና አጠባበቅ እና ማጽዳት',
@@ -162,6 +182,16 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
       }
     ],
     services: [
+      {
+        id: 'srv-card-exam',
+        nameEn: 'New Patient Card & Clinical Examination',
+        nameAm: 'አዲስ የታካሚ ካርድ እና የመጀመሪያ ምርመራ',
+        durationMinutes: 20,
+        priceETB: 300,
+        depositRequired: true,
+        depositAmountETB: 300,
+        description: 'New clinical card opening, comprehensive oral inspection, and doctor diagnosis.'
+      },
       {
         id: 'srv-cleaning',
         nameEn: 'Routine Cleaning & Scaling',
@@ -318,6 +348,64 @@ export function getDynamicMockData(baseDate: Date = new Date()) {
   ];
 
   const appointments: Appointment[] = [
+    // 0. Kalkidan Yohannes (New Patient Card & Clinical Examination, Confirmed at 15:30)
+    {
+      id: 'BDS-00482',
+      clinicId: 'clinic-bole-001',
+      patientName: 'Kalkidan Yohannes',
+      patientPhone: '+251 91 199 8877',
+      doctorId: 'doc-senait',
+      doctorName: 'Dr. Senait Tadesse',
+      serviceId: 'srv-card-exam',
+      serviceName: 'New Patient Card & Clinical Examination',
+      startsAt: `${todayStr}T15:30:00Z`,
+      endsAt: `${todayStr}T15:50:00Z`,
+      status: 'confirmed',
+      paymentStatus: 'deposit_paid',
+      depositPaidETB: 300,
+      totalDueETB: 300,
+      receiptNumber: 'RCP-2026-0048',
+      source: 'online',
+      isOnlineBooking: true,
+      bookedVia: 'Sinna Web Portal (በኦንላይን የቀጠሮ መመዝገቢያ)',
+      notes: 'New Card Registration & Diagnostic Oral Examination. 300 ETB Card fee paid via Telebirr.',
+      patientChart: {
+        cardNo: 'BDS-00482',
+        medicalRecordNumber: 'BDS-00482',
+        fullNameAmharic: 'ቃልኪዳን ዮሐንስ',
+        age: 26,
+        gender: 'Female',
+        occupation: 'Graphic Designer',
+        subcityWoreda: 'Bole Subcity, Woreda 04, House #208',
+        emergencyContact: {
+          name: 'Yohannes Haile',
+          relationship: 'Father',
+          phone: '+251 91 122 8899',
+        },
+        chiefComplaint: 'Upper right molar pain when drinking cold water. Awaiting doctor diagnosis.',
+        hpi: 'First-time clinic visit. Opened BDS clinical card online via Telebirr. Needs clinical examination and odontogram staging.',
+        medicalHistory: {
+          allergies: ['No known drug allergies (NKDA)'],
+          systemicDiseases: [],
+          currentMedications: [],
+          bleedingDisorders: false,
+        },
+        clinicalFindings: {
+          extraoral: 'Symmetrical, no swelling.',
+          intraoralSoftTissue: 'Normal gingival contours.',
+          intraoralHardTissue: 'Suspected deep enamel caries on #16. Diagnosis pending chairside inspection.',
+          percussionTest: 'Pending',
+          vitalityTest: 'Pending',
+        },
+        radiographicNotes: 'Bitewing X-ray to be determined upon chairside checkup.',
+        definitiveDiagnosis: 'Clinical Examination & Diagnostic Assessment Pending',
+        stagedTreatmentPlan: [
+          'Stage 1: Clinical Examination & 32-Tooth Odontogram Staging (Card Paid: 300 ETB)',
+        ],
+        prescriptions: [],
+      },
+    },
+
     // 1. Tigist Alemu (Routine Cleaning & Scaling, Completed at 12:00)
     {
       id: 'apt-001',

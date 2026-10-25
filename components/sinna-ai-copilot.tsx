@@ -115,6 +115,7 @@ function InChatBookingWidget({ initialData, lang, onAppointmentBooked }: InChatB
   const [confirmedAptId, setConfirmedAptId] = useState<string | null>(initialData?.confirmedAptId || null);
 
   const servicesList = [
+    { id: 'srv-card-exam', nameEn: 'New Patient Card & Clinical Exam', nameAm: 'አዲስ የታካሚ ካርድ እና የጥርስ ምርመራ', nameOm: 'Kaardii Haaraa fi Qorannoo Ilkaanii', priceETB: 300, depositETB: 300 },
     { id: 'srv-cleaning', nameEn: 'Routine Cleaning & Scaling', nameAm: 'መደበኛ የጥርስ ማጽዳት', nameOm: 'Qulqullina Ilkaanii', priceETB: 1500, depositETB: 300 },
     { id: 'srv-emergency', nameEn: 'Emergency Pain Relief & Exam', nameAm: 'አስቸኳይ የህመም ህክምና', nameOm: 'Yaala Ariifachiisaa', priceETB: 1200, depositETB: 300 },
     { id: 'srv-rct', nameEn: 'Root Canal Treatment (Single-Visit)', nameAm: 'የነርቭ ስር ህክምና', nameOm: 'Yaala Hiddamoo', priceETB: 4500, depositETB: 300 },

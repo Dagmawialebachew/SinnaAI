@@ -68,6 +68,24 @@ export interface PaymentItem {
 
 const INITIAL_PAYMENTS: PaymentItem[] = [
   {
+    id: 'pay-0007',
+    reference: 'REF-0007',
+    patientName: 'Kalkidan Yohannes',
+    patientNameAmharic: 'ቃልኪዳን ዮሐንስ',
+    patientMrn: 'BDS-00482',
+    patientInitial: 'K',
+    date: '10/22/2026',
+    rawDate: '2026-10-22',
+    method: 'Telebirr',
+    methodLabel: 'Telebirr SuperApp',
+    amountETB: 300.0,
+    onAccountETB: 300.0,
+    allocationLabel: 'Card & Exam',
+    doctorName: 'Dr. Senait Tadesse',
+    recordedBy: 'Telebirr Gateway',
+    notes: 'New Patient Card Opening & Clinical Examination'
+  },
+  {
     id: 'pay-0006',
     reference: 'REF-0006',
     patientName: 'Dawit Haile Gebre',
