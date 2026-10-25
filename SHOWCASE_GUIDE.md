@@ -4,17 +4,27 @@ This guide contains everything your friend needs to showcase **Sinna Dental AI**
 
 ---
 
-## 1. Setup on Friend's PC (One-Time, 2 Minutes)
+## 1. Setup on Friend's PC (Choose Either Option A or B)
 
-1. **Copy the Project**:
-   - Copy the `Sinna` folder onto your friend's laptop (via USB flash drive or zip).
-   - Ensure the `.next` and `node_modules` folders are included.
-2. **Install Node.js (If not already installed)**:
-   - If their laptop doesn't have Node.js, install **Node.js LTS (v20+)** from [nodejs.org](https://nodejs.org/).
-3. **Launch**:
-   - Double-click **`Sinna-Dental-AI.bat`**.
-   - The script will automatically boot the pre-compiled production server and pop open Microsoft Edge or Chrome in **Dedicated App Mode** (no URL bar, no tabs, full native desktop experience).
-   - *(Optional: Press `F11` on the keyboard to enter 100% full-screen mode for the ultimate enterprise hospital presentation).*
+### Option A: Send Just ONE Single Setup File (`Install-Sinna-Dental-AI.bat`)
+* If you only want to send **one single file** (via Telegram, WhatsApp, or USB):
+  1. Send **`Install-Sinna-Dental-AI.bat`**.
+  2. On the new PC (which has Node.js installed), double-click **`Install-Sinna-Dental-AI.bat`**.
+  3. The installer will automatically:
+     - Detect GitHub Desktop / Git (or download the full repository directly via HTTPS zip if Git isn't found).
+     - Install all packages (`npm install`).
+     - Generate the production bundle (`npm run build`).
+     - Create a **"Sinna Dental AI" shortcut icon directly on the Windows Desktop**.
+     - Automatically open the dedicated clinic presentation window!
+
+---
+
+### Option B: 100% Offline Instant USB Copy (No Internet Required)
+* **Best for Ethiopian clinics with slow or restricted Wi-Fi**:
+  1. Copy your entire `Sinna` folder to a USB drive (make sure `.next` and `node_modules` are included).
+  2. Paste it onto your friend's laptop.
+  3. Double-click **`Sinna-Dental-AI.bat`**.
+  4. It boots in **literally 3 seconds without needing any internet connection**.
 
 ---
 
