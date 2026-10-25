@@ -550,118 +550,115 @@ export function ClinicLandingPage({
           ref={langModalRef}
           className="relative max-w-md w-full bg-white/98 backdrop-blur-2xl rounded-3xl border border-slate-200/90 shadow-[0_30px_90px_-15px_rgba(15,23,42,0.22),0_0_60px_-10px_rgba(30,80,255,0.20)] p-7 sm:p-9 space-y-6 text-center z-10 transition-transform"
         >
+          {/* Top Verification Pill */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-700 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Sinna Dental Studio · Verified Practice</span>
+          </div>
+
+          {/* Clinic Brand Identity Mark */}
+          <div className="space-y-3">
+            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 text-white flex items-center justify-center mx-auto shadow-lg shadow-slate-950/20 ring-4 ring-slate-100">
+              <svg className="w-7 h-7 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2C8 2 5 4.5 5 8c0 3 1.5 6 2 9 .4 2.4 1.5 5 5 5s4.6-2.6 5-5c.5-3 2-6 2-9 0-3.5-3-6-7-6z" />
+                <path d="M12 2v7" />
+              </svg>
+            </div>
             
-            {/* Top Verification Pill */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-700 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Sinna Dental Studio · Verified Practice</span>
-            </div>
-
-            {/* Clinic Brand Identity Mark */}
-            <div className="space-y-3">
-              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 text-white flex items-center justify-center mx-auto shadow-lg shadow-slate-950/20 ring-4 ring-slate-100">
-                <svg className="w-7 h-7 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2C8 2 5 4.5 5 8c0 3 1.5 6 2 9 .4 2.4 1.5 5 5 5s4.6-2.6 5-5c.5-3 2-6 2-9 0-3.5-3-6-7-6z" />
-                  <path d="M12 2v7" />
-                </svg>
-              </div>
-              
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950">
-                  {clinic.name}
-                </h2>
-                <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-mono mt-1">
-                  <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                  <span>{clinic.location.split(',')[0]} · Addis Ababa, Ethiopia</span>
-                </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950">
+                {clinic.name}
+              </h2>
+              <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-mono mt-1">
+                <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
+                <span>{clinic.location.split(',')[0]} · Addis Ababa, Ethiopia</span>
               </div>
             </div>
+          </div>
 
-            {/* Section Prompt */}
-            <div className="space-y-1 pt-1 border-t border-slate-100">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Select Language · ቋንቋ ይምረጡ · Afaan Filadhaa
-              </p>
-              <p className="text-[11px] text-slate-400">
-                Choose your language to proceed to clinic services and online booking
-              </p>
-            </div>
+          {/* Section Prompt */}
+          <div className="space-y-1 pt-1 border-t border-slate-100">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Select Language · ቋንቋ ይምረጡ · Afaan Filadhaa
+            </p>
+            <p className="text-[11px] text-slate-400">
+              Choose your language to proceed to clinic services and online booking
+            </p>
+          </div>
 
-            {/* 3 Luxury Sculpted Language Tiles */}
-            <div className="space-y-2.5">
-              {/* 1. English */}
-              <button
-                type="button"
-                onClick={() => handleSelectLanguage('en')}
-                className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
-                    EN
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors">
-                      English
-                    </p>
-                    <p className="text-[11px] text-slate-400">International Dental Care Standard</p>
-                  </div>
+          {/* 3 Luxury Sculpted Language Tiles */}
+          <div className="space-y-2.5">
+            {/* 1. English */}
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('en')}
+              className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
+                  EN
                 </div>
-                <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors">
+                    English
+                  </p>
+                  <p className="text-[11px] text-slate-400">International Dental Care Standard</p>
                 </div>
-              </button>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
 
-              {/* 2. Amharic */}
-              <button
-                type="button"
-                onClick={() => handleSelectLanguage('am')}
-                className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1E50FF] to-sky-400 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs font-amharic">
-                    አማ
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors font-amharic">
-                      አማርኛ (Amharic)
-                    </p>
-                    <p className="text-[11px] text-slate-400">የአማርኛ ቋንቋ የክሊኒክ አገልግሎት</p>
-                  </div>
+            {/* 2. Amharic */}
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('am')}
+              className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1E50FF] to-sky-400 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs font-amharic">
+                  አማ
                 </div>
-                <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors font-amharic">
+                    አማርኛ (Amharic)
+                  </p>
+                  <p className="text-[11px] text-slate-400">የአማርኛ ቋንቋ የክሊኒክ አገልግሎት</p>
                 </div>
-              </button>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
 
-              {/* 3. Afaan Oromoo */}
-              <button
-                type="button"
-                onClick={() => handleSelectLanguage('om')}
-                className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
-              >
-                <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
-                    OM
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors">
-                      Afaan Oromoo
-                    </p>
-                    <p className="text-[11px] text-slate-400">Tajaajila yaala ilkaanii afaan oromootiin</p>
-                  </div>
+            {/* 3. Afaan Oromoo */}
+            <button
+              type="button"
+              onClick={() => handleSelectLanguage('om')}
+              className="gsap-lang-tile w-full p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#1E50FF] hover:ring-2 hover:ring-[#1E50FF]/15 shadow-2xs hover:shadow-md transition-all duration-200 flex items-center justify-between group cursor-pointer active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white font-mono font-bold text-xs flex items-center justify-center transition-transform group-hover:scale-105 shadow-2xs">
+                  OM
                 </div>
-                <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-950 group-hover:text-[#1E50FF] transition-colors">
+                    Afaan Oromoo
+                  </p>
+                  <p className="text-[11px] text-slate-400">Tajaajila yaala ilkaanii afaan oromootiin</p>
                 </div>
-              </button>
-            </div>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-blue-50 text-slate-400 group-hover:text-[#1E50FF] flex items-center justify-center transition-colors">
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
+          </div>
 
-            {/* Bottom Trust Assurance */}
-            <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-center gap-1.5 border-t border-slate-100">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Direct online chair booking · Instant SMS confirmation · 100% Free</span>
-            </div>
-
+          {/* Bottom Trust Assurance */}
+          <div className="pt-2 text-[11px] text-slate-500 flex items-center justify-center gap-1.5 border-t border-slate-100">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Direct online chair booking · Instant SMS confirmation · 100% Free</span>
           </div>
         </div>
       </div>
