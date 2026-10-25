@@ -69,7 +69,7 @@ export function AppShell({ children }: AppShellProps) {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
-  const clinic = getClinicData(store.activeClinicSlug);
+  const clinic = getClinicData(store.activeClinicSlug, store);
 
   const safeAppointments = Array.isArray(store.appointments) ? store.appointments : [];
   const safeChairs = Array.isArray(store.chairs) ? store.chairs : [];
@@ -348,10 +348,10 @@ export function AppShell({ children }: AppShellProps) {
                   {isDoctor ? 'SD' : isOwner ? 'DT' : 'HT'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-slate-900 truncate">
+                  <p suppressHydrationWarning className="text-xs font-bold text-slate-900 truncate">
                     {store.currentUser.name}
                   </p>
-                  <p className="text-[10px] text-slate-400 truncate font-mono">
+                  <p suppressHydrationWarning className="text-[10px] text-slate-400 truncate font-mono">
                     {(() => {
                       const domain = (clinic.slug || 'clinic').replace(/[^a-z0-9]/g, '') + '.et';
                       return isDoctor ? `doctor@${domain}` : isOwner ? `owner@${domain}` : `reception@${domain}`;
@@ -389,7 +389,7 @@ export function AppShell({ children }: AppShellProps) {
               {/* Clinic Name (Matches Screenshot: Clínica Dental Demo / Bole Dental Studio) */}
               <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <LayoutGrid className="w-4 h-4 text-slate-400" />
-                <span>{clinic.name}</span>
+                <span suppressHydrationWarning>{clinic.name}</span>
               </div>
             </div>
 

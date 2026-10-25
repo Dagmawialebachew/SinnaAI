@@ -20,7 +20,7 @@ import { UserRole } from '@/lib/types';
 export default function LoginPage() {
   const router = useRouter();
   const store = useSinnaStore();
-  const clinic = getClinicData(store.activeClinicSlug);
+  const clinic = getClinicData(store.activeClinicSlug, store);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -129,7 +129,7 @@ export default function LoginPage() {
             <span className="font-bold text-slate-900 text-base tracking-tight">
               Sinna Dental AI
             </span>
-            <p className="text-[11px] text-slate-500">
+            <p suppressHydrationWarning className="text-[11px] text-slate-500">
               {clinic.name} · {clinic.location}
             </p>
           </div>

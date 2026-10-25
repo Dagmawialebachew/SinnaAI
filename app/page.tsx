@@ -42,7 +42,7 @@ import { Appointment } from '@/lib/types';
 export default function HomePage() {
   const router = useRouter();
   const store = useSinnaStore();
-  const clinic = getClinicData(store.activeClinicSlug);
+  const clinic = getClinicData(store.activeClinicSlug, store);
 
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');

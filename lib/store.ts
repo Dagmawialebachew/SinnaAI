@@ -274,16 +274,22 @@ export const sinnaStore = {
   },
 
   updateClinicProfile(slug: string, updates: Partial<Clinic>) {
-    const existing = currentState.clinics[slug] || INITIAL_CLINICS[slug] || INITIAL_CLINICS['bole-dental'];
+    const targetSlug = slug || currentState.activeClinicSlug || 'bole-dental';
+    const existing = currentState.clinics[targetSlug] || INITIAL_CLINICS[targetSlug] || INITIAL_CLINICS['bole-dental'];
     const updated = {
       ...existing,
       ...updates,
     };
+    const slugAlias = updates.name
+      ? updates.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      : null;
+
     currentState = {
       ...currentState,
       clinics: {
         ...currentState.clinics,
-        [slug]: updated,
+        [targetSlug]: updated,
+        ...(slugAlias ? { [slugAlias]: updated } : {}),
       },
     };
     emitChange();
@@ -309,6 +315,9 @@ export const sinnaStore = {
       .join('')
       .slice(0, 3)
       .toUpperCase() || 'BDS';
+    const slugAlias = custom.name.trim()
+      ? custom.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      : currentSlug;
     const updated: Clinic = {
       ...existing,
       name: custom.name.trim() || existing.name,
@@ -326,6 +335,7 @@ export const sinnaStore = {
       clinics: {
         ...currentState.clinics,
         [currentSlug]: updated,
+        ...(slugAlias ? { [slugAlias]: updated } : {}),
       },
     };
     emitChange();
@@ -1910,9 +1920,18 @@ export function useSinnaStore(): SinnaState {
   );
 }
 
-/**
- * Clinic helper selector
- */
-export function getClinicData(slug: string): Clinic {
-  return currentState.clinics?.[slug] || INITIAL_CLINICS[slug] || INITIAL_CLINICS['bole-dental'];
+export function getClinicData(slug?: string, storeState?: SinnaState): Clinic {
+  const clinics = storeState?.clinics || currentState?.clinics || INITIAL_CLINICS;
+  if (slug && clinics[slug]) return clinics[slug];
+  if (slug) {
+    const cleanTarget = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const found = Object.values(clinics).find(
+      (c) =>
+        c.slug.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanTarget ||
+        c.name.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanTarget
+    );
+    if (found) return found;
+  }
+  const activeSlug = storeState?.activeClinicSlug || currentState?.activeClinicSlug || 'bole-dental';
+  return clinics[activeSlug] || Object.values(clinics)[0] || INITIAL_CLINICS['bole-dental'];
 }

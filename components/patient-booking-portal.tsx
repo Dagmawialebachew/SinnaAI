@@ -159,14 +159,15 @@ const CATEGORIES: { id: ServiceCategory; labelEn: string; labelAm: string; label
 ];
 
 export function PatientBookingPortal({
-  clinicSlug = 'bole-dental',
+  clinicSlug,
   initialLang = 'am',
   skipLanguageModal = false,
   initialServiceId,
   onBackToApp
 }: PatientBookingPortalProps) {
   const store = useSinnaStore();
-  const clinic = (clinicSlug && store.clinics[clinicSlug]) || store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
+  const targetSlug = clinicSlug || store.activeClinicSlug;
+  const clinic = (targetSlug && store.clinics[targetSlug]) || store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
 
   // Language & Modal State: If language already selected upfront on landing page, skip prompt
   const [lang, setLang] = useState<BookingLang>(initialLang);

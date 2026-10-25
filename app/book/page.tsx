@@ -3,13 +3,21 @@
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ClinicLandingPage } from '@/components/clinic-landing-page';
+import { useSinnaStore } from '@/lib/store';
 
 function BookPageContent() {
+  const store = useSinnaStore();
   const searchParams = useSearchParams();
-  const clinicParam = searchParams.get('clinic') || searchParams.get('c') || 'smile-dental';
+  const clinicParam = searchParams.get('clinic') || searchParams.get('c');
   const langParam = (searchParams.get('lang') as 'en' | 'am' | 'om') || 'en';
 
-  return <ClinicLandingPage clinicSlug={clinicParam} initialLang={langParam} />;
+  // Dynamically resolve: if an explicit clinic query param is passed and exists, use it.
+  // Otherwise, ALWAYS use the active clinic from the live store!
+  const targetClinicSlug = (clinicParam && store.clinics[clinicParam])
+    ? clinicParam
+    : store.activeClinicSlug;
+
+  return <ClinicLandingPage clinicSlug={targetClinicSlug} initialLang={langParam} />;
 }
 
 export default function BookPage() {

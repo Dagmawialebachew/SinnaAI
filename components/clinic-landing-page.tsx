@@ -198,11 +198,22 @@ export function ClinicLandingPage({
 }: ClinicLandingPageProps) {
   const store = useSinnaStore();
 
-  // Dynamic clinic resolution from active store
-  const clinic =
-    (clinicSlug && store.clinics[clinicSlug]) ||
-    store.clinics[store.activeClinicSlug] ||
-    Object.values(store.clinics)[0];
+  // Dynamic clinic resolution from active store:
+  // 1. If explicit clinicSlug is provided and matches a key or name, use it.
+  // 2. Otherwise, dynamically resolve to the user's active/customized clinic from the store!
+  const clinic = React.useMemo(() => {
+    if (clinicSlug) {
+      if (store.clinics[clinicSlug]) return store.clinics[clinicSlug];
+      const cleanTarget = clinicSlug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const found = Object.values(store.clinics).find(
+        (c) =>
+          c.slug.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanTarget ||
+          c.name.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanTarget
+      );
+      if (found) return found;
+    }
+    return store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
+  }, [clinicSlug, store.clinics, store.activeClinicSlug]);
 
   // 1. Language Gate: Upfront selection before rendering content
   const [lang, setLang] = useState<BookingLang>(initialLang);
@@ -553,7 +564,7 @@ export function ClinicLandingPage({
           {/* Top Verification Pill */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200/80 text-[11px] font-semibold text-slate-700 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Sinna Dental Studio · Verified Practice</span>
+            <span suppressHydrationWarning>{clinic.name} · Verified Practice</span>
           </div>
 
           {/* Clinic Brand Identity Mark */}
@@ -566,12 +577,12 @@ export function ClinicLandingPage({
             </div>
             
             <div>
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950">
+              <h2 suppressHydrationWarning className="text-xl sm:text-2xl font-black tracking-tight text-slate-950">
                 {clinic.name}
               </h2>
               <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 font-mono mt-1">
                 <MapPin className="w-3 h-3 text-rose-500 shrink-0" />
-                <span>{clinic.location.split(',')[0]} · Addis Ababa, Ethiopia</span>
+                <span suppressHydrationWarning>{clinic.location.split(',')[0]} · Addis Ababa, Ethiopia</span>
               </div>
             </div>
           </div>
@@ -689,7 +700,7 @@ export function ClinicLandingPage({
               </svg>
             </div>
             <div className="leading-tight">
-              <span className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 truncate block max-w-[170px] sm:max-w-xs">
+              <span suppressHydrationWarning className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 truncate block max-w-[170px] sm:max-w-xs">
                 {clinic.name}
               </span>
             </div>
@@ -995,7 +1006,7 @@ export function ClinicLandingPage({
             </div>
 
             <div className="lg:col-span-7 space-y-5">
-              <span className="text-xs font-bold text-[#1E50FF] uppercase tracking-wider">
+              <span suppressHydrationWarning className="text-xs font-bold text-[#1E50FF] uppercase tracking-wider">
                 {clinic.name}
               </span>
 
@@ -1507,21 +1518,21 @@ export function ClinicLandingPage({
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
             <div className="space-y-2.5">
-              <span className="text-sm font-extrabold text-white block">
+              <span suppressHydrationWarning className="text-sm font-extrabold text-white block">
                 {clinic.name}
               </span>
               <p className="text-slate-400 leading-relaxed">
                 Hospital-grade clinical dentistry in Addis Ababa. Gentle chairside manner and modern comfort.
               </p>
-              <p className="text-slate-300 font-mono">{clinic.location}</p>
+              <p suppressHydrationWarning className="text-slate-300 font-mono">{clinic.location}</p>
             </div>
 
             <div className="space-y-2">
               <p className="text-white font-bold text-xs uppercase tracking-wider">Working Hours</p>
-              <p className="text-slate-300">{clinic.openHours}</p>
+              <p suppressHydrationWarning className="text-slate-300">{clinic.openHours}</p>
               <div className="pt-1">
                 <p className="text-emerald-400 font-bold">Reception Hotline:</p>
-                <p className="font-mono text-white text-sm">{clinic.phone}</p>
+                <p suppressHydrationWarning className="font-mono text-white text-sm">{clinic.phone}</p>
               </div>
             </div>
 
@@ -1540,7 +1551,7 @@ export function ClinicLandingPage({
           </div>
 
           <div className="pt-6 border-t border-slate-900 text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>© 2026 {clinic.name}. All rights reserved.</p>
+            <p suppressHydrationWarning>© 2026 {clinic.name}. All rights reserved.</p>
             <div className="flex items-center gap-1.5 text-slate-400 font-medium">
               <ShieldCheck className="w-3.5 h-3.5 text-[#1E50FF]" />
               <span>{t.poweredBy}</span>
@@ -1556,7 +1567,7 @@ export function ClinicLandingPage({
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           <div className="text-xs leading-tight">
-            <p className="font-bold text-slate-900 truncate max-w-[170px]">{clinic.name}</p>
+            <p suppressHydrationWarning className="font-bold text-slate-900 truncate max-w-[170px]">{clinic.name}</p>
             <p className="text-[10px] text-slate-400">{t.openToday}</p>
           </div>
         </div>
