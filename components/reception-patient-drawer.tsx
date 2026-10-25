@@ -512,7 +512,7 @@ export default function ReceptionPatientDrawer({
         systemicDiseases: chart?.medicalHistory?.systemicDiseases || [],
         currentMedications: chart?.medicalHistory?.currentMedications || [],
         diagnosesUntreated: chart?.definitiveDiagnosis ? [chart.definitiveDiagnosis] : [],
-        notes: chart?.hpi || chart?.chiefComplaint || notes || 'Regular dental visit at Bole Dental Studio.',
+        notes: chart?.hpi || chart?.chiefComplaint || notes || `Regular dental visit at ${clinic.name}.`,
         activePlanTitle: patientTreatmentPlan?.title || apt.serviceName,
         balanceETB: balanceETB,
         totalPaidETB: apt.depositPaidETB,
@@ -1266,10 +1266,10 @@ export default function ReceptionPatientDrawer({
                   {sendSmsNotification && (
                     <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600 space-y-1">
                       <p className="font-amharic text-slate-800">
-                        ሰላም {patientName || 'ደንበኛ'}፣ በ Bole Dental Studio ያደረጉት የቀጠሮ መረጃ ተዘምኗል። ቀን፡ {selectedDate} በ {selectedSlot}።
+                        ሰላም {patientName || 'ደንበኛ'}፣ በ {clinic.name} ያደረጉት የቀጠሮ መረጃ ተዘምኗል። ቀን፡ {selectedDate} በ {selectedSlot}።
                       </p>
                       <p className="text-[10px] text-slate-400 font-mono">
-                        To: {patientPhone || '+251 91 122 3344'} · AfroMessage Gateway
+                        To: {patientPhone || clinic.phone || '+251 91 122 3344'} · AfroMessage Gateway
                       </p>
                     </div>
                   )}

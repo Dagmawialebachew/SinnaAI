@@ -108,6 +108,10 @@ export const INITIAL_CLINICS: Record<string, Clinic> = {
     reviewCount: 92,
     openHours: 'Mon - Sun: 8:00 AM - 8:00 PM',
     depositPolicyETB: 200,
+    mrrPrefix: 'SFD',
+    tinNumber: '0058392019',
+    telebirrMerchant: '0923345566',
+    accountName: 'Summit Family Dental Care PLC',
     doctors: [
       {
         id: 'doc-samuel',
@@ -1053,8 +1057,8 @@ export function getDynamicMockData(baseDate: Date = new Date()) {
       recipientName: 'Abebe Kebede',
       recipientPhone: '+251 960306801',
       templateType: 'confirmation',
-      contentAm: 'ሰላም አበበ፣ በ Bole Dental Studio ከ ዶ/ር ሰናይት ታደሰ ጋር ያደረጉት የቀጠሮ ሰዓት በ 02:00 ተረጋግጧል። ቦሌ መድኃኒዓለም።',
-      contentEn: 'Hello Abebe, your appointment with Dr. Senait Tadesse at Bole Dental Studio is confirmed for 02:00 PM. Bole Medhanialem.',
+      contentAm: `ሰላም አበበ፣ በ ${INITIAL_CLINICS['bole-dental'].name} ከ ዶ/ር ሰናይት ታደሰ ጋር ያደረጉት የቀጠሮ ሰዓት በ 02:00 ተረጋግጧል። ${INITIAL_CLINICS['bole-dental'].location.split(',')[0]}።`,
+      contentEn: `Hello Abebe, your appointment with Dr. Senait Tadesse at ${INITIAL_CLINICS['bole-dental'].name} is confirmed for 02:00 PM. ${INITIAL_CLINICS['bole-dental'].location.split(',')[0]}.`,
       timestamp: `${todayStr} 10:05 AM`,
     },
     {
@@ -1062,8 +1066,8 @@ export function getDynamicMockData(baseDate: Date = new Date()) {
       recipientName: 'Sambulance Kambulance',
       recipientPhone: '+251 9960306801',
       templateType: 'confirmation',
-      contentAm: 'ሰላም ሳምቡላንስ፣ በ Bole Dental Studio በኦንላይን ያደረጉት የቀጠሮ ቀን በ 11:15 ተረጋግጧል። 300 ብር ቅድመ ክፍያ ደርሷል።',
-      contentEn: 'Hello Sambulance, your online appointment at Bole Dental Studio is confirmed for 11:15 AM. 300 ETB deposit received.',
+      contentAm: `ሰላም ሳምቡላንስ፣ በ ${INITIAL_CLINICS['bole-dental'].name} በኦንላይን ያደረጉት የቀጠሮ ቀን በ 11:15 ተረጋግጧል። 300 ብር ቅድመ ክፍያ ደርሷል።`,
+      contentEn: `Hello Sambulance, your online appointment at ${INITIAL_CLINICS['bole-dental'].name} is confirmed for 11:15 AM. 300 ETB deposit received.`,
       timestamp: `${todayStr} 11:16 AM`,
     },
   ];

@@ -389,11 +389,10 @@ export default function AdminPage() {
       <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveTab('clinic')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
-            activeTab === 'clinic'
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${activeTab === 'clinic'
               ? 'border-blue-600 text-blue-600 bg-white'
               : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
-          }`}
+            }`}
         >
           <Building2 className="w-4 h-4" />
           <span>Clinic Profile & MoR TIN</span>
@@ -401,11 +400,10 @@ export default function AdminPage() {
 
         <button
           onClick={() => setActiveTab('doctors')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
-            activeTab === 'doctors'
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${activeTab === 'doctors'
               ? 'border-blue-600 text-blue-600 bg-white'
               : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
-          }`}
+            }`}
         >
           <Stethoscope className="w-4 h-4" />
           <span>Dentists & Specialists ({clinic.doctors.length})</span>
@@ -413,11 +411,10 @@ export default function AdminPage() {
 
         <button
           onClick={() => setActiveTab('services')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
-            activeTab === 'services'
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${activeTab === 'services'
               ? 'border-blue-600 text-blue-600 bg-white'
               : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
-          }`}
+            }`}
         >
           <Receipt className="w-4 h-4" />
           <span>Fee Schedule & Services ({clinic.services.length})</span>
@@ -425,11 +422,10 @@ export default function AdminPage() {
 
         <button
           onClick={() => setActiveTab('chairs')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
-            activeTab === 'chairs'
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${activeTab === 'chairs'
               ? 'border-blue-600 text-blue-600 bg-white'
               : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
-          }`}
+            }`}
         >
           <Layers className="w-4 h-4" />
           <span>Operatory Chairs ({store.chairs.length})</span>
@@ -437,11 +433,10 @@ export default function AdminPage() {
 
         <button
           onClick={() => setActiveTab('ai')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
-            activeTab === 'ai'
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${activeTab === 'ai'
               ? 'border-blue-600 text-blue-600 bg-white'
               : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
-          }`}
+            }`}
         >
           <Sparkles className="w-4 h-4 text-sky-500" />
           <span>Sinna AI Copilot (Gemini & RAG)</span>
@@ -488,17 +483,15 @@ export default function AdminPage() {
                     key={preset.slug}
                     type="button"
                     onClick={() => sinnaStore.setActiveClinic(preset.slug)}
-                    className={`relative p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-3 ${
-                      isActive
+                    className={`relative p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-3 ${isActive
                         ? 'border-sky-600 bg-sky-50/70 shadow-xs ring-2 ring-sky-500/20'
                         : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                          isActive ? 'bg-sky-600 text-white' : 'bg-slate-200/80 text-slate-600'
-                        }`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-200/80 text-slate-600'
+                          }`}>
                           {preset.badge}
                         </span>
                         {isActive && <Check className="w-4 h-4 text-sky-600" />}
@@ -556,132 +549,132 @@ export default function AdminPage() {
           </div>
 
           <form onSubmit={handleSaveClinicProfile} className="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-7 shadow-2xs space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">
-                Clinic Identity & Fiscal Details
-              </h2>
-              <p className="text-xs text-slate-500">
-                Shown on patient booking pages, appointment reminder SMS, and printed Ministry of Revenues receipts.
-              </p>
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-2xs transition-colors"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Clinic Profile</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Clinic Legal Name
-              </label>
-              <input
-                type="text"
-                value={clinicName}
-                onChange={(e) => setClinicName(e.target.value)}
-                required
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  Clinic Identity & Fiscal Details
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Shown on patient booking pages, appointment reminder SMS, and printed Ministry of Revenues receipts.
+                </p>
+              </div>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-2xs transition-colors"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>Save Clinic Profile</span>
+              </button>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Official MoR TIN Number
-              </label>
-              <input
-                type="text"
-                value={tinNumber}
-                onChange={(e) => setTinNumber(e.target.value)}
-                required
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
-              />
-              <p className="text-[11px] text-slate-500 mt-1">
-                Printed on all POS fiscal thermal receipts and Z-Reports.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Clinic Legal Name
+                </label>
+                <input
+                  type="text"
+                  value={clinicName}
+                  onChange={(e) => setClinicName(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Physical Location / Address
-              </label>
-              <input
-                type="text"
-                value={clinicLocation}
-                onChange={(e) => setClinicLocation(e.target.value)}
-                required
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Official MoR TIN Number
+                </label>
+                <input
+                  type="text"
+                  value={tinNumber}
+                  onChange={(e) => setTinNumber(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Printed on all POS fiscal thermal receipts and Z-Reports.
+                </p>
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Primary Phone Number (SMS Caller ID)
-              </label>
-              <input
-                type="text"
-                value={clinicPhone}
-                onChange={(e) => setClinicPhone(e.target.value)}
-                required
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Physical Location / Address
+                </label>
+                <input
+                  type="text"
+                  value={clinicLocation}
+                  onChange={(e) => setClinicLocation(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                English Tagline
-              </label>
-              <input
-                type="text"
-                value={clinicTaglineEn}
-                onChange={(e) => setClinicTaglineEn(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Primary Phone Number (SMS Caller ID)
+                </label>
+                <input
+                  type="text"
+                  value={clinicPhone}
+                  onChange={(e) => setClinicPhone(e.target.value)}
+                  required
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Amharic Tagline
-              </label>
-              <input
-                type="text"
-                value={clinicTaglineAm}
-                onChange={(e) => setClinicTaglineAm(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  English Tagline
+                </label>
+                <input
+                  type="text"
+                  value={clinicTaglineEn}
+                  onChange={(e) => setClinicTaglineEn(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Operating Hours
-              </label>
-              <input
-                type="text"
-                value={clinicOpenHours}
-                onChange={(e) => setClinicOpenHours(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Amharic Tagline
+                </label>
+                <input
+                  type="text"
+                  value={clinicTaglineAm}
+                  onChange={(e) => setClinicTaglineAm(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Standard Appointment Deposit Policy (ETB)
-              </label>
-              <input
-                type="number"
-                value={depositPolicyETB}
-                onChange={(e) => setDepositPolicyETB(Number(e.target.value))}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
-              />
-              <p className="text-[11px] text-slate-500 mt-1">
-                Amount required for online holds via Telebirr or CBE Birr.
-              </p>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Operating Hours
+                </label>
+                <input
+                  type="text"
+                  value={clinicOpenHours}
+                  onChange={(e) => setClinicOpenHours(e.target.value)}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Standard Appointment Deposit Policy (ETB)
+                </label>
+                <input
+                  type="number"
+                  value={depositPolicyETB}
+                  onChange={(e) => setDepositPolicyETB(Number(e.target.value))}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-mono"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Amount required for online holds via Telebirr or CBE Birr.
+                </p>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
         </div>
       )}
 
@@ -1139,11 +1132,10 @@ export default function AdminPage() {
                             setDocDays([...docDays, day]);
                           }
                         }}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
-                          active
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${active
                             ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         {day}
                       </button>

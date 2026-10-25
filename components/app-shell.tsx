@@ -352,7 +352,10 @@ export function AppShell({ children }: AppShellProps) {
                     {store.currentUser.name}
                   </p>
                   <p className="text-[10px] text-slate-400 truncate font-mono">
-                    {isDoctor ? 'doctor@boledental.et' : isOwner ? 'owner@boledental.et' : 'reception@boledental.et'}
+                    {(() => {
+                      const domain = (clinic.slug || 'clinic').replace(/[^a-z0-9]/g, '') + '.et';
+                      return isDoctor ? `doctor@${domain}` : isOwner ? `owner@${domain}` : `reception@${domain}`;
+                    })()}
                   </p>
                 </div>
               </div>
@@ -451,7 +454,7 @@ export function AppShell({ children }: AppShellProps) {
 
               <button
                 type="button"
-                onClick={() => alert(`Sinna Dental OS Help: Addis Ababa clinical operations hotline: +251 91 122 3344.`)}
+                onClick={() => alert(`Sinna Dental OS Help: ${clinic.name} clinical operations hotline: ${clinic.phone || '+251 91 122 3344'}.`)}
                 className="inline-flex items-center gap-1 p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 text-xs transition-colors"
                 title="Help & Documentation"
               >

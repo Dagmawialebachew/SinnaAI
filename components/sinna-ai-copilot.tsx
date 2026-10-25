@@ -50,6 +50,8 @@ interface SinnaAICopilotProps {
   initialOpen?: boolean;
   currentLang?: ChatLanguage;
   onLanguageChange?: (newLang: ChatLanguage) => void;
+  className?: string;
+  triggerPosition?: 'bottom-right' | 'landing-page';
 }
 
 // Sinna Tooth & Clinical Cross SVG Icon
@@ -216,7 +218,8 @@ function InChatBookingWidget({ initialData, lang, onAppointmentBooked }: InChatB
     setIsSubmitting(true);
 
     setTimeout(() => {
-      const aptId = `BDS-${Math.floor(10000 + Math.random() * 90000)}`;
+      const prefix = clinic.mrrPrefix || (clinic.name ? clinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase() : 'BDS');
+      const aptId = `${prefix}-${Math.floor(10000 + Math.random() * 90000)}`;
 
       const [timeStr, period] = slot.split(' ');
       const [hStr, mStr] = timeStr.split(':');
@@ -678,7 +681,14 @@ function InChatBookingWidget({ initialData, lang, onAppointmentBooked }: InChatB
   );
 }
 
-export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLang, onLanguageChange }: SinnaAICopilotProps) {
+export function SinnaAICopilot({
+  mode = 'admin',
+  initialOpen = false,
+  currentLang,
+  onLanguageChange,
+  className,
+  triggerPosition = 'bottom-right'
+}: SinnaAICopilotProps) {
   const pathname = usePathname() || '/';
   const router = useRouter();
   const store = useSinnaStore();
@@ -769,6 +779,11 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
     return {
       route: pathname,
       pageTitle,
+      clinicName: clinic.name,
+      clinicLocation: clinic.location,
+      clinicPhone: clinic.phone,
+      clinicTin: clinic.tinNumber || '0049283711',
+      clinicMrrPrefix: clinic.mrrPrefix || 'BDS',
       role: mode === 'patient' ? 'patient' : (store.currentUser?.role || 'reception') as ChatRole,
       todayAppointmentsCount: todayApts.length,
       waitingCount: waitingPatients.length,
@@ -985,7 +1000,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
           ? `**Beellamni keessan mirkanaa'eera!**\n\n- **Lakkoofsa Beellamaa:** \`${aptId}\`\n- **Maqaa:** ${details.patientName}\n- **Ogeessa:** ${details.doctorName}\n- **Guyyaa fi Sa'aatii:** ${details.date} sa'aa ${details.slot}\n\nKaffaltiin duraa 300 ETB mirkanaa'eera. Ergaan SMS bilbila keessanitti ergameera!`
           : `**Your appointment has been confirmed!**\n\n- **Appointment ID:** \`${aptId}\`\n- **Patient:** ${details.patientName}\n- **Doctor:** ${details.doctorName}\n- **Date & Time:** ${details.date} at ${details.slot}\n\n300 ETB deposit verified. A confirmation SMS has been dispatched to your phone!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      sources: ['AfroMessage SMS Gateway', 'Bole Dental Appointment Ledger'],
+      sources: ['AfroMessage SMS Gateway', `${clinic.name} Appointment Ledger`],
       bookingMeta: {
         aptId,
         patientName: details.patientName,
@@ -1074,7 +1089,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
         role: 'assistant',
         content: data.text || 'Unable to generate response.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        sources: data.sources || ['Bole Dental Grounded Knowledge Base'],
+        sources: data.sources || [`${clinic.name} Grounded Knowledge Base`],
         suggestedPrompts: data.suggestedPrompts,
         actions: data.actions,
         bookingWidget: detectedBookingWidget,
@@ -1143,14 +1158,20 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
       {/* 1. FLOATING BOTTOM RIGHT TRIGGER BUTTON */}
       {/* --------------------------------------------------------------------- */}
       {!isOpen && (
-        <div className="fixed bottom-5 right-5 z-40 flex items-center print:hidden">
+        <div
+          className={`fixed ${
+            triggerPosition === 'landing-page'
+              ? 'bottom-20 md:bottom-6 right-4 md:right-6'
+              : 'bottom-5 right-5'
+          } z-40 flex items-center print:hidden ${className || ''}`}
+        >
           {mode === 'patient' ? (
-            /* PATIENT SIDE TRIGGER: Subtle glowing and bouncing with "ጥያቄ አሎዎት?" */
+            /* PATIENT SIDE TRIGGER: Subtle glowing and bouncing with localized prompt */
             <button
               type="button"
               onClick={() => setIsOpen(true)}
-              className="group flex items-center gap-2.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-900 rounded-full border border-sky-300 shadow-[0_4px_20px_rgba(2,132,199,0.25)] ring-2 ring-sky-400/40 animate-subtle-bounce animate-subtle-glow transition-all duration-200 active:scale-95"
-              title="Sinna Dental Assistant — ጥያቄ አሎዎት?"
+              className="group flex items-center gap-2.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-900 rounded-full border border-sky-300 shadow-[0_4px_20px_rgba(2,132,199,0.25)] ring-2 ring-sky-400/40 animate-subtle-bounce animate-subtle-glow transition-all duration-200 active:scale-95 cursor-pointer"
+              title="Sinna Dental Assistant"
               aria-label="Open Dental Assistant"
             >
               <div className="relative flex-shrink-0">
@@ -1159,10 +1180,10 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
               </div>
               <div className="flex flex-col text-left pr-1">
                 <span className="text-xs font-bold text-slate-900 tracking-wide font-amharic">
-                  ጥያቄ አሎዎት?
+                  {lang === 'am' ? 'ጥያቄ አሎዎት?' : lang === 'om' ? 'Gaaffii Qabduu?' : 'Have Questions?'}
                 </span>
                 <span className="text-[10px] text-sky-600 font-medium leading-none">
-                  Bole Dental AI
+                  {clinic.name ? clinic.name.split(' ')[0] : 'Sinna'} AI
                 </span>
               </div>
             </button>
@@ -1446,7 +1467,7 @@ export function SinnaAICopilot({ mode = 'admin', initialOpen = false, currentLan
                         <div className="flex items-center gap-1">
                           <ShieldCheck className="w-3 h-3 text-emerald-600" />
                           <span className="truncate max-w-[180px]">
-                            {msg.sources?.[0] || 'Bole Dental Grounded'}
+                            {msg.sources?.[0] || `${clinic.name} Grounded`}
                           </span>
                         </div>
                         <button

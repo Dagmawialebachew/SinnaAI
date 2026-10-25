@@ -23,15 +23,15 @@
 .sinna-border-beam {
   position: absolute;
   inset: -150%;
-  animation: border-circulate 4.5s linear infinite;
+  animation: border-circulate 4s linear infinite;
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    transparent 250deg,
-    #1A4F9E 280deg,
-    #00BFFF 310deg,
-    #008F7E 335deg,
-    #4FFFB0 355deg,
+    transparent 220deg,
+    #1E50FF 260deg,
+    #00BFFF 290deg,
+    #10B981 325deg,
+    #34D399 350deg,
     transparent 360deg
   );
 }
@@ -39,17 +39,17 @@
 .sinna-border-beam-glow {
   position: absolute;
   inset: -150%;
-  animation: border-circulate 4.5s linear infinite;
-  filter: blur(12px);
-  opacity: 0.6;
+  animation: border-circulate 4s linear infinite;
+  filter: blur(16px);
+  opacity: 0.75;
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    transparent 250deg,
-    #1A4F9E 280deg,
-    #00BFFF 310deg,
-    #008F7E 335deg,
-    #4FFFB0 355deg,
+    transparent 220deg,
+    #1E50FF 260deg,
+    #00BFFF 290deg,
+    #10B981 325deg,
+    #34D399 350deg,
     transparent 360deg
   );
 }
@@ -82,6 +82,24 @@
 
 .animate-subtle-glow {
   animation: subtle-glow 3s ease-in-out infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
 /* ========================================================================= */

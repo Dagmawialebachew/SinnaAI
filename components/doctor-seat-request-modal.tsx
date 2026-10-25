@@ -18,6 +18,7 @@ export default function DoctorSeatRequestModal() {
   const store = useSinnaStore();
   const isDoctor = store.currentUser?.role === 'doctor' || store.activePersona === 'doctor';
   const request = store.pendingSeatingRequest;
+  const clinic = store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
 
   // Soft clinical chime sound on arrival
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function DoctorSeatRequestModal() {
             </div>
             <div>
               <h3 className="font-bold text-sm tracking-tight">Patient Seating Request</h3>
-              <p className="text-[10px] text-blue-100 font-mono">Bole Dental Operatory Dispatch</p>
+              <p className="text-[10px] text-blue-100 font-mono">{clinic.name} Operatory Dispatch</p>
             </div>
           </div>
 

@@ -26,6 +26,7 @@ export function SmsDrawer({ isOpen, onClose }: SmsDrawerProps) {
 
   if (!isOpen) return null;
 
+  const clinic = store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
   const history = store.notificationHistory || [];
   const filtered = selectedFilter === 'all' 
     ? history 
@@ -37,8 +38,8 @@ export function SmsDrawer({ isOpen, onClose }: SmsDrawerProps) {
       recipientName: 'Sara Tesfaye',
       recipientPhone: '+251 92 345 6789',
       templateType: 'reminder',
-      contentAm: 'ሰላም ሳራ፣ በ Bole Dental Studio ከ ዶ/ር ዳዊት በቀለ ጋር የነበረዎት የቀጠሮ ቀን በ 2:00 ሰዓት መሆኑን እናስታውሳለን። እባክዎ በሰዓቱ ይገኙ። ቦሌ መድኃኒዓለም።',
-      contentEn: 'Hello Sara, reminder for your appointment with Dr. Dawit Bekele at Bole Dental Studio at 2:00 PM today. Please arrive 10 mins early.',
+      contentAm: `ሰላም ሳራ፣ በ ${clinic.name} ከ ዶ/ር ሰናይት ታደሰ ጋር የነበረዎት የቀጠሮ ቀን በ 2:00 ሰዓት መሆኑን እናስታውሳለን። እባክዎ በሰዓቱ ይገኙ። ${clinic.location}። ስልክ: ${clinic.phone}።`,
+      contentEn: `Hello Sara, reminder for your appointment with Dr. Senait Tadesse at ${clinic.name} at 2:00 PM today. Please arrive 10 mins early. Location: ${clinic.location}. Phone: ${clinic.phone}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
     sinnaStore.sendSms(testNotification);
@@ -66,11 +67,11 @@ export function SmsDrawer({ isOpen, onClose }: SmsDrawerProps) {
                   AfroMessage SMS Log
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Gateway Active
+                  {clinic.mrrPrefix || 'BDS'} Active
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Live Ethio Telecom & Safaricom SMS Gateway
+                {clinic.name} · Ethio Telecom &amp; Safaricom Gateway
               </p>
             </div>
           </div>

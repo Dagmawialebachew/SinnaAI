@@ -51,6 +51,11 @@ export interface LiveClinicSnapshot {
   route: string;
   pageTitle?: string;
   role: ChatRole;
+  clinicName?: string;
+  clinicLocation?: string;
+  clinicPhone?: string;
+  clinicTin?: string;
+  clinicMrrPrefix?: string;
   waitingCount?: number;
   occupiedChairsCount?: number;
   todayAppointmentsCount?: number;
@@ -476,7 +481,13 @@ export function buildGroundedSystemInstruction(
         .join('\n')
     : 'No overdue recalls.';
 
-  return `You are the official Sinna Dental AI Assistant for Bole Dental Studio in Addis Ababa, Ethiopia.
+  const clinicName = snapshot.clinicName || 'Bole Dental Studio';
+  const clinicLocation = snapshot.clinicLocation || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
+  const clinicPhone = snapshot.clinicPhone || '+251 91 122 3344';
+  const clinicTin = snapshot.clinicTin || '0049283711';
+  const clinicMrrPrefix = snapshot.clinicMrrPrefix || 'BDS';
+
+  return `You are the official Sinna Dental AI Assistant for ${clinicName} in Addis Ababa, Ethiopia.
 Your role: Clinical Reception and Diagnostic Operations Copilot.
 Current User Persona: ${role.toUpperCase()}
 Current Web Page: ${snapshot.route} (${snapshot.pageTitle || 'Active Page'})
@@ -486,12 +497,12 @@ CRITICAL RULES (NON-NEGOTIABLE CLINICAL INTEGRITY):
 1. ZERO HALLUCINATIONS: You MUST ONLY answer based on the verified clinic knowledge base and the live database snapshot below. Never invent appointment times, patient names, financial numbers, or clinical procedures.
 2. If asked about today's schedule, waiting room, occupied chairs, or revenue, USE THE EXACT FIGURES PROVIDED in the LIVE DATABASE SNAPSHOT below.
 3. If an answer cannot be determined from the provided context, politely state:
-   - In English: "Based on Bole Dental Studio records, this information is not documented. Please contact our reception desk at +251 91 122 3344."
-   - In Amharic: "በቦሌ ዴንታል ስቱዲዮ መረጃ መሰረት ይህ አልተመዘገበም። እባክዎ በመቀበያ ስልካችን +251 91 122 3344 ይደውሉ።"
-   - In Afaan Oromoo: "Oodeeffannoo Bole Dental Studio irratti hundaa'uun kun hin galmoofne. Maaloo lakkoofsa keenya +251 91 122 3344 irratti bilbilaa."
+   - In English: "Based on ${clinicName} records, this information is not documented. Please contact our reception desk at ${clinicPhone}."
+   - In Amharic: "በ${clinicName} መረጃ መሰረት ይህ አልተመዘገበም። እባክዎ በመቀበያ ስልካችን ${clinicPhone} ይደውሉ።"
+   - In Afaan Oromoo: "Oodeeffannoo ${clinicName} irratti hundaa'uun kun hin galmoofne. Maaloo lakkoofsa keenya ${clinicPhone} irratti bilbilaa."
 4. ZERO EMOJIS: Never use emojis in your response under any circumstance. Adhere strictly to the clean Swiss/Nordic clinical precision aesthetic (DentalPin / Linear style).
 5. TONE: Calm, highly competent, professional, respectful, and clinically accurate.
-6. ETHIOPIAN CONTEXT: Currency is Ethiopian Birr (ETB). Payment rails are Telebirr, CBE Birr, and Cash. Location is Bole Medhanialem, Morning Star Mall 3rd Floor. Ministry of Revenues TIN is 0049283711. Tooth notation is FDI 32-tooth standard (11-48). All patient appointment IDs and medical record cards use the strict BDS 5-digit format (e.g. BDS-00210, BDS-10492). NEVER use apt- or ap- prefixes under any circumstance.
+6. ETHIOPIAN CONTEXT: Currency is Ethiopian Birr (ETB). Payment rails are Telebirr, CBE Birr, and Cash. Location is ${clinicLocation}. Ministry of Revenues TIN is ${clinicTin}. Tooth notation is FDI 32-tooth standard (11-48). All patient appointment IDs and medical record cards use the strict ${clinicMrrPrefix} 5-digit format (e.g. ${clinicMrrPrefix}-00210, ${clinicMrrPrefix}-10492). NEVER use apt- or ap- prefixes under any circumstance.
 7. LANGUAGE: Respond natively and fluently in ${targetLang}.
 8. AUTOMATON ACTIONS: When recommending booking, calling, or viewing specific views, append optional action triggers on their own lines:
    [ACTION:NAVIGATE|/schedule|View Operatory Chairs]
@@ -500,7 +511,7 @@ CRITICAL RULES (NON-NEGOTIABLE CLINICAL INTEGRITY):
    [ACTION:NAVIGATE|/payments|Open Cashier Ledger]
    [ACTION:BOOK_DOCTOR|Dr. Senait Tadesse|Book with Dr. Senait]
    [ACTION:BOOK_SERVICE|srv-cleaning|Book Routine Cleaning]
-   [ACTION:CALL_CLINIC|+251911223344|Call Reception Desk]
+   [ACTION:CALL_CLINIC|${clinicPhone.replace(/\s+/g, '')}|Call Reception Desk]
 9. DYNAMIC SUGGESTIONS: At the very end of your response, provide 2 short relevant follow-up questions in ${targetLang}:
    [SUGGESTION:First suggested follow-up in ${targetLang}]
    [SUGGESTION:Second suggested follow-up in ${targetLang}]
@@ -577,16 +588,20 @@ export function resolveOfflineClinicalQuery(
   snapshot: LiveClinicSnapshot
 ): { text: string; sources: string[]; suggestedPrompts?: string[]; bookingWidget?: InChatBookingData } {
   const q = query.toLowerCase().trim();
+  const clinicName = snapshot.clinicName || 'Bole Dental Studio';
+  const clinicLocation = snapshot.clinicLocation || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
+  const clinicPhone = snapshot.clinicPhone || '+251 91 122 3344';
+  const clinicTin = snapshot.clinicTin || '0049283711';
 
   // Helper translations for dynamic responses
   const t = {
     todayAppointments: {
       en: (count: number, waiting: number, occupied: number) =>
-        `Bole Dental Studio currently has **${count} appointments** scheduled for today.\n\n- **Checked-in & Waiting:** ${waiting} patient(s)\n- **Currently in Chair:** ${occupied} chair(s) active\n- **Upcoming:** ${Math.max(0, count - waiting - occupied)} appointment(s)\n\nAll records are synced directly with the clinic operatory timeline.`,
+        `${clinicName} currently has **${count} appointments** scheduled for today.\n\n- **Checked-in & Waiting:** ${waiting} patient(s)\n- **Currently in Chair:** ${occupied} chair(s) active\n- **Upcoming:** ${Math.max(0, count - waiting - occupied)} appointment(s)\n\nAll records are synced directly with the clinic operatory timeline.`,
       am: (count: number, waiting: number, occupied: number) =>
-        `ቦሌ ዴንታል ስቱዲዮ ለዛሬ **${count} ቀጠሮዎች** ተመዝግበውለታል።\n\n- **መቀበያ ክፍል ውስጥ የሚጠብቁ:** ${waiting} ታካሚ(ዎች)\n- **በወንበር ላይ ህክምና የሚደረግላቸው:** ${occupied} ወንበር(ዎች)\n- **ቀጣይ የሚመጡ:** ${Math.max(0, count - waiting - occupied)} ታካሚዎች\n\nመረጃው በቀጥታ ከቀጠሮ መርሃ ግብሩ የተገኘ ነው።`,
+        `${clinicName} ለዛሬ **${count} ቀጠሮዎች** ተመዝግበውለታል።\n\n- **መቀበያ ክፍል ውስጥ የሚጠብቁ:** ${waiting} ታካሚ(ዎች)\n- **በወንበር ላይ ህክምና የሚደረግላቸው:** ${occupied} ወንበር(ዎች)\n- **ቀጣይ የሚመጡ:** ${Math.max(0, count - waiting - occupied)} ታካሚዎች\n\nመረጃው በቀጥታ ከቀጠሮ መርሃ ግብሩ የተገኘ ነው።`,
       om: (count: number, waiting: number, occupied: number) =>
-        `Bole Dental Studio har'aaf beellama **${count}** qaba.\n\n- **Kutaa keessummeessaa keessatti kan eegan:** ${waiting}\n- **Barcuma yaalaa irratti kan jiran:** ${occupied}\n- **Beellama hafe:** ${Math.max(0, count - waiting - occupied)}\n\nOodeeffannoon kun kallattiin galmee klinikaa irraa fudhatame.`,
+        `${clinicName} har'aaf beellama **${count}** qaba.\n\n- **Kutaa keessummeessaa keessatti kan eegan:** ${waiting}\n- **Barcuma yaalaa irratti kan jiran:** ${occupied}\n- **Beellama hafe:** ${Math.max(0, count - waiting - occupied)}\n\nOodeeffannoon kun kallattiin galmee klinikaa irraa fudhatame.`,
     },
     waitingList: {
       en: (list: string[], count: number) =>
@@ -612,21 +627,21 @@ export function resolveOfflineClinicalQuery(
     },
     revenue: {
       en: (total: number, telebirr: number, cash: number, cbe: number) =>
-        `Today's Financial Summary (MoR Compliant):\n\n- **Total Collected:** **${total.toLocaleString()} ETB**\n- **Telebirr Digital Gateway:** ${telebirr.toLocaleString()} ETB\n- **Physical Cash in Drawer:** ${cash.toLocaleString()} ETB\n- **CBE Birr POS:** ${cbe.toLocaleString()} ETB\n\nAll transactions comply with Ministry of Revenues TIN 0049283711.`,
+        `Today's Financial Summary (MoR Compliant):\n\n- **Total Collected:** **${total.toLocaleString()} ETB**\n- **Telebirr Digital Gateway:** ${telebirr.toLocaleString()} ETB\n- **Physical Cash in Drawer:** ${cash.toLocaleString()} ETB\n- **CBE Birr POS:** ${cbe.toLocaleString()} ETB\n\nAll transactions comply with Ministry of Revenues TIN ${clinicTin}.`,
       am: (total: number, telebirr: number, cash: number, cbe: number) =>
-        `የዛሬው የገንዘብ ገቢ ማጠቃለያ፦\n\n- **ጠቅላላ የተሰበሰበ:** **${total.toLocaleString()} ብር (ETB)**\n- **ቴሌብር (Telebirr):** ${telebirr.toLocaleString()} ብር\n- **ጥሬ ገንዘብ በካዝና:** ${cash.toLocaleString()} ብር\n- **ሲቢኢ ብር (CBE Birr):** ${cbe.toLocaleString()} ብር\n\nክፍያው በገቢዎች ሚኒስቴር TIN 0049283711 መሰረት የተከናወነ ነው።`,
+        `የዛሬው የገንዘብ ገቢ ማጠቃለያ፦\n\n- **ጠቅላላ የተሰበሰበ:** **${total.toLocaleString()} ብር (ETB)**\n- **ቴሌብር (Telebirr):** ${telebirr.toLocaleString()} ብር\n- **ጥሬ ገንዘብ በካዝና:** ${cash.toLocaleString()} ብር\n- **ሲቢኢ ብር (CBE Birr):** ${cbe.toLocaleString()} ብር\n\nክፍያው በገቢዎች ሚኒስቴር TIN ${clinicTin} መሰረት የተከናወነ ነው።`,
       om: (total: number, telebirr: number, cash: number, cbe: number) =>
-        `Gabaasa Maallaqaa Har'aa:\n\n- **Waliigala Galii:** **${total.toLocaleString()} ETB**\n- **Telebirr:** ${telebirr.toLocaleString()} ETB\n- **Kaashii Saanduqa Keessaa:** ${cash.toLocaleString()} ETB\n- **CBE Birr:** ${cbe.toLocaleString()} ETB\n\nLakkoofsa TIN Ministeera Galiiwwanii 0049283711 kan hordofe.`,
+        `Gabaasa Maallaqaa Har'aa:\n\n- **Waliigala Galii:** **${total.toLocaleString()} ETB**\n- **Telebirr:** ${telebirr.toLocaleString()} ETB\n- **Kaashii Saanduqa Keessaa:** ${cash.toLocaleString()} ETB\n- **CBE Birr:** ${cbe.toLocaleString()} ETB\n\nLakkoofsa TIN Ministeera Galiiwwanii ${clinicTin} kan hordofe.`,
     },
     cleaning: {
-      en: `Routine Cleaning & Ultrasonic Scaling at Bole Dental Studio is **1,500 ETB**.\n\n- **Duration:** 45 minutes\n- **Included:** Ultrasonic calculus debridement, stain polishing, gum probing, and oral hygiene instruction.\n- **Deposit:** 300 ETB via Telebirr or CBE Birr (fully credited toward your bill).\n\nYou can book directly through our online calendar or by tapping 'Book Appointment'.`,
-      am: `በቦሌ ዴንታል ስቱዲዮ መደበኛ የጥርስ ማጽዳት እና ፖሊሽ (Routine Cleaning & Scaling) **1,500 ብር (ETB)** ነው።\n\n- **የህክምና ጊዜ:** 45 ደቂቃ\n- **የሚያካትተው:** የአልትራሶኒክ የቆሻሻ ማጽዳት፣ የጥርስ ፖሊሽ እና የድድ ጤንነት ምርመራ።\n- **ቅድመ ክፍያ:** 300 ብር በቴሌብር ወይም በሲቢኢ ብር (ሙሉ በሙሉ ከክፍያው ላይ ይቀነሳል)።\n\nበቀጥታ 'Book Appointment' የሚለውን በመጫን ቀጠሮ መያዝ ይችላሉ።`,
-      om: `Qulqulleessi ilkaanii (Routine Cleaning & Scaling) Bole Dental Studio keessatti **1,500 ETB** dha.\n\n- **Yeroo:** Daqiiqaa 45\n- **Kan dabalatu:** Qulqulleessa ultrasonic, pooolishii fi qorannoo irree ilkaanii.\n- **Kaffaltii Duraa:** 300 ETB Telebirr ykn CBE dhaan (waliigala irraa hir'ifama).\n\nKallattiin beellama qabachuu dandeessu.`,
+      en: `Routine Cleaning & Ultrasonic Scaling at ${clinicName} is **1,500 ETB**.\n\n- **Duration:** 45 minutes\n- **Included:** Ultrasonic calculus debridement, stain polishing, gum probing, and oral hygiene instruction.\n- **Deposit:** 300 ETB via Telebirr or CBE Birr (fully credited toward your bill).\n\nYou can book directly through our online calendar or by tapping 'Book Appointment'.`,
+      am: `በ${clinicName} መደበኛ የጥርስ ማጽዳት እና ፖሊሽ (Routine Cleaning & Scaling) **1,500 ብር (ETB)** ነው።\n\n- **የህክምና ጊዜ:** 45 ደቂቃ\n- **የሚያካትተው:** የአልትራሶኒክ የቆሻሻ ማጽዳት፣ የጥርስ ፖሊሽ እና የድድ ጤንነት ምርመራ።\n- **ቅድመ ክፍያ:** 300 ብር በቴሌብር ወይም በሲቢኢ ብር (ሙሉ በሙሉ ከክፍያው ላይ ይቀነሳል)።\n\nበቀጥታ 'Book Appointment' የሚለውን በመጫን ቀጠሮ መያዝ ይችላሉ።`,
+      om: `Qulqulleessi ilkaanii (Routine Cleaning & Scaling) ${clinicName} keessatti **1,500 ETB** dha.\n\n- **Yeroo:** Daqiiqaa 45\n- **Kan dabalatu:** Qulqulleessa ultrasonic, pooolishii fi qorannoo irree ilkaanii.\n- **Kaffaltii Duraa:** 300 ETB Telebirr ykn CBE dhaan (waliigala irraa hir'ifama).\n\nKallattiin beellama qabachuu dandeessu.`,
     },
     emergency: {
-      en: `Emergency Pain Relief & Exam is **1,200 ETB**.\n\n- **Duration:** 30 minutes\n- **Included:** Immediate diagnostic periapical assessment and acute pulpal pain alleviation.\n- **Deposit:** No advance deposit required for immediate walk-in emergencies.\n\nIf you are experiencing severe dental trauma or swelling, visit us directly at Morning Star Mall 3rd Floor, Bole Medhanialem.`,
-      am: `አስቸኳይ የጥርስ ህመም ማስታገሻ እና ምርመራ **1,200 ብር (ETB)** ነው።\n\n- **የህክምና ጊዜ:** 30 ደቂቃ\n- **የሚያካትተው:** አጣዳፊ የጥርስ ነርቭ ህመምን ማስታገስ እና የዲጂታል ራጅ ምርመራ።\n- **ቅድመ ክፍያ:** ለአስቸኳይ ድንገተኛ ህመም ቅድመ ክፍያ አያስፈልግም።\n\nከፍተኛ ህመም ካለብዎት በቀጥታ ቦሌ መድኃኔዓለም ሞርኒንግ ስታር ሞል 3ኛ ፎቅ ይምጡ።`,
-      om: `Yaalli ariifachiisaa fi qorannoon **1,200 ETB** dha.\n\n- **Yeroo:** Daqiiqaa 30\n- **Kan dabalatu:** Dhukkubbii ilkaanii hir'isuu fi qorannoo suuraa dijitaalaa.\n- **Kaffaltii duraa:** Yaala ariifachiisaaf kaffaltiin duraa hin barbaachisu.\n\nKallattiin Bole Medhanialem, Morning Star Mall Fooqii 3ffaa koottaa.`,
+      en: `Emergency Pain Relief & Exam is **1,200 ETB**.\n\n- **Duration:** 30 minutes\n- **Included:** Immediate diagnostic periapical assessment and acute pulpal pain alleviation.\n- **Deposit:** No advance deposit required for immediate walk-in emergencies.\n\nIf you are experiencing severe dental trauma or swelling, visit us directly at ${clinicLocation}.`,
+      am: `አስቸኳይ የጥርስ ህመም ማስታገሻ እና ምርመራ **1,200 ብር (ETB)** ነው።\n\n- **የህክምና ጊዜ:** 30 ደቂቃ\n- **የሚያካትተው:** አጣዳፊ የጥርስ ነርቭ ህመምን ማስታገስ እና የዲጂታል ራጅ ምርመራ።\n- **ቅድመ ክፍያ:** ለአስቸኳይ ድንገተኛ ህመም ቅድመ ክፍያ አያስፈልግም።\n\nከፍተኛ ህመም ካለብዎት በቀጥታ ወደ ${clinicLocation} ይምጡ።`,
+      om: `Yaalli ariifachiisaa fi qorannoon **1,200 ETB** dha.\n\n- **Yeroo:** Daqiiqaa 30\n- **Kan dabalatu:** Dhukkubbii ilkaanii hir'isuu fi qorannoo suuraa dijitaalaa.\n- **Kaffaltii duraa:** Yaala ariifachiisaaf kaffaltiin duraa hin barbaachisu.\n\nKallattiin ${clinicLocation} koottaa.`,
     },
     deposit: {
       en: `Our **300 ETB deposit policy** guarantees your operatory chair reservation and sterilizes dedicated instrument sets for your arrival.\n\n- **100% Deductible:** The 300 ETB is subtracted from your final treatment cost at the clinic.\n- **Payment Rails:** Telebirr SuperApp (USSD / QR) or CBE Birr.\n- **Confirmation:** You immediately receive an official AfroMessage SMS confirmation on your mobile phone.\n- **Cancellation Policy:** Full refund or reschedule if notified at least 2 hours in advance.`,
@@ -634,14 +649,14 @@ export function resolveOfflineClinicalQuery(
       om: `Imaammatni **kaffaltii duraa 300 ETB** barcuma yaalaa keessan qabachuuf:\n\n- **100% Kan hir'ifamu:** 300 ETB kaffaltii waliigalaa irraa hir'ifama.\n- **Karaa Kaffaltii:** Telebirr ykn CBE Birr.\n- **Mirkaneessa:** Battalumatti ergaan gabaabaa (SMS) AfroMessage isiniif ergama.\n- **Haqamuu:** Sa'aatii 2 dura yoo beeksiftan deebi'a.`,
     },
     location: {
-      en: `Bole Dental Studio Location & Hours:\n\n- **Address:** Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa, Ethiopia.\n- **Hours:** Monday to Saturday: 8:30 AM – 7:00 PM (Sunday Closed for operatory sanitization).\n- **Phone:** +251 91 122 3344\n- **Landmark:** Across from Bole Medhanialem Cathedral, ample parking available at Morning Star Mall.`,
-      am: `የቦሌ ዴንታል ስቱዲዮ አድራሻ እና የስራ ሰዓት፦\n\n- **አድራሻ:** ቦሌ መድኃኔዓለም፣ ሞርኒንግ ስታር ሞል (Morning Star Mall) 3ኛ ፎቅ፣ አዲስ አበባ።\n- **የስራ ሰዓት:** ከሰኞ እስከ ቅዳሜ፦ ከጠዋቱ 2:30 እስከ ማታ 1:00 (እሁድ ዝግ ነው)።\n- **ስልክ:** +251 91 122 3344\n- **መለያ ቦታ:** ቦሌ መድኃኔዓለም ቤተክርስቲያን ፊት ለፊት።`,
-      om: `Teessoo fi Sa'aatii Hojii Bole Dental Studio:\n\n- **Teessoo:** Bole Medhanialem, Morning Star Mall Fooqii 3ffaa, Finfinnee.\n- **Sa'aatii:** Wiixata hanga Sanbataa: Ganama 2:30 hanga Galgala 1:00 (Dilbata cufaadha).\n- **Bilbila:** +251 91 122 3344\n- **Iddoo beekkamaa:** Bataskaana Bole Medhanialem fuuldura.`,
+      en: `${clinicName} Location & Hours:\n\n- **Address:** ${clinicLocation}.\n- **Hours:** Monday to Saturday: 8:30 AM – 7:00 PM (Sunday Closed for operatory sanitization).\n- **Phone:** ${clinicPhone}\n- **Landmark:** Across from main road, ample patient parking available.`,
+      am: `የ${clinicName} አድራሻ እና የስራ ሰዓት፦\n\n- **አድራሻ:** ${clinicLocation}።\n- **የስራ ሰዓት:** ከሰኞ እስከ ቅዳሜ፦ ከጠዋቱ 2:30 እስከ ማታ 1:00 (እሁድ ዝግ ነው)።\n- **ስልክ:** ${clinicPhone}\n- **መለያ ቦታ:** ዋናው መንገድ ዳር፣ ምቹ የመኪና ማቆሚያ አለው።`,
+      om: `Teessoo fi Sa'aatii Hojii ${clinicName}:\n\n- **Teessoo:** ${clinicLocation}.\n- **Sa'aatii:** Wiixata hanga Sanbataa: Ganama 2:30 hanga Galgala 1:00 (Dilbata cufaadha).\n- **Bilbila:** ${clinicPhone}.`,
     },
     rct: {
-      en: `Root Canal Treatment (RCT) at Bole Dental Studio:\n\n- **Anterior (Front Tooth):** 4,500 ETB\n- **Molar (Back Tooth):** 6,800 ETB\n- **Procedure:** Rotary endodontics, apex locator precision, antibacterial obturation.\n- **Pain Management:** Full local infiltration anesthesia for completely painless treatment.`,
-      am: `የጥርስ ነርቭ ህክምና (Root Canal Treatment - RCT) በቦሌ ዴንታል ስቱዲዮ፦\n\n- **የፊት ጥርስ (Anterior):** 4,500 ብር (ETB)\n- **የመንጋጋ ጥርስ (Molar):** 6,800 ብር (ETB)\n- **ሂደት:** በዘመናዊ ሮታሪ ማሽን እና አፔክስ ሎኬተር በከፍተኛ ጥንቃቄ ይከናወናል።\n- **ህመም ማስታገሻ:** ሙሉ ማደንዘዣ ስለሚሰጥ ምንም አይነት ህመም አይሰማዎትም።`,
-      om: `Yaalli Narvii Ilkaanii (RCT):\n\n- **Ilkaan Fuulduraa:** 4,500 ETB\n- **Ilkaan Qarriffaa/Mangaagaa:** 6,800 ETB\n- **Mala Yaalaa:** Meeshaa ammayyaa fi qoricha dhukkubbii balleessu waliin kennama.`,
+      en: `Root Canal Treatment (RCT) at ${clinicName}:\n\n- **Anterior (Front Tooth):** 4,500 ETB\n- **Molar (Back Tooth):** 6,800 ETB\n- **Procedure:** Rotary endodontics, apex locator precision, antibacterial obturation.\n- **Pain Management:** Full local infiltration anesthesia for completely painless treatment.`,
+      am: `የጥርስ ነርቭ ህክምና (Root Canal Treatment - RCT) በ${clinicName}፦\n\n- **የፊት ጥርስ (Anterior):** 4,500 ብር (ETB)\n- **የመንጋጋ ጥርስ (Molar):** 6,800 ብር (ETB)\n- **ሂደት:** በዘመናዊ ሮታሪ ማሽን እና አፔክስ ሎኬተር በከፍተኛ ጥንቃቄ ይከናወናል።\n- **ህመም ማስታገሻ:** ሙሉ ማደንዘዣ ስለሚሰጥ ምንም አይነት ህመም አይሰማዎትም።`,
+      om: `Yaalli Narvii Ilkaanii (RCT) ${clinicName} keessatti:\n\n- **Ilkaan Fuulduraa:** 4,500 ETB\n- **Ilkaan Qarriffaa/Mangaagaa:** 6,800 ETB\n- **Mala Yaalaa:** Meeshaa ammayyaa fi qoricha dhukkubbii balleessu waliin kennama.`,
     },
     braces: {
       en: `Orthodontic Alignment & Braces with Dr. Senait Tadesse:\n\n- **Consultation & Diagnostic Analysis:** 800 ETB\n- **Full Orthodontic Treatment:** 45,000 ETB to 95,000 ETB depending on complexity.\n- **Payment Flexibility:** Monthly installment plans available (typically 2,000 to 3,500 ETB per adjustment visit).\n- **Available Systems:** Ceramic clear aesthetic brackets and traditional stainless steel brackets.`,
@@ -649,14 +664,14 @@ export function resolveOfflineClinicalQuery(
       om: `Yaala Ilkaan Qajeelchuu (Braces) Dr. Senaayit Tadesse biratti:\n\n- **Qorannoo Duraa:** 800 ETB\n- **Waliigala Yaalaa:** 45,000 ETB hanga 95,000 ETB.\n- **Kaffaltii:** Ji'a ji'aan kaffaluun ni danda'ama (ji'atti 2,000 - 3,500 ETB).`,
     },
     doctors: {
-      en: `Attending Specialists at Bole Dental Studio:\n\n1. **Dr. Senait Tadesse (DDS):** Lead Clinical Specialist & Orthodontist (11 years experience). Specializes in orthodontic alignment, aesthetic restorations, and smile design. Available Monday to Saturday.\n2. **Dr. Dawit Bekele:** Oral & Maxillofacial Surgeon & Implantologist (9 years experience). Specializes in surgical extractions, dental implants, and bone reconstruction. Available Monday, Wednesday, Friday.`,
-      am: `በቦሌ ዴንታል ስቱዲዮ ውስጥ ያሉ ስፔሻሊስት ሀኪሞች፦\n\n1. **ዶ/ር ሰናይት ታደሰ፦** ዋና የጥርስ ህክምና ስፔሻሊስት እና ኦርቶዶንቲስት (11 ዓመት ልምድ)። የጥርስ ማስተካከል እና የውበት ህክምና ስፔሻሊስት። ከሰኞ እስከ ቅዳሜ ይገኛሉ።\n2. **ዶ/ር ዳዊት በቀለ፦** የቀዶ ጥገና እና የጥርስ ተከላ ስፔሻሊስት (9 ዓመት ልምድ)። የጥርስ ንቀላ እና ተከላ (Implants) ስፔሻሊስት። ሰኞ፣ ረቡዕ እና አርብ ይገኛሉ።`,
-      om: `Ogeessota Bole Dental Studio:\n\n1. **Dr. Senaayit Taaddasaa:** Ogeettii ilkaan qajeelchuu (Waggaa 11 muuxannoo). Wiixata hanga Sanbataatti jirti.\n2. **Dr. Daawwit Baqqalaa:** Ogeessa baqaqsanii yaaluu fi ilkaan dhaabuu (Waggaa 9 muuxannoo). Wiixata, Roobii fi Jimaata jira.`,
+      en: `Attending Specialists at ${clinicName}:\n\n1. **Dr. Senait Tadesse (DDS):** Lead Clinical Specialist & Orthodontist (11 years experience). Specializes in orthodontic alignment, aesthetic restorations, and smile design. Available Monday to Saturday.\n2. **Dr. Dawit Bekele:** Oral & Maxillofacial Surgeon & Implantologist (9 years experience). Specializes in surgical extractions, dental implants, and bone reconstruction. Available Monday, Wednesday, Friday.`,
+      am: `በ${clinicName} ውስጥ ያሉ ስፔሻሊስት ሀኪሞች፦\n\n1. **ዶ/ር ሰናይት ታደሰ፦** ዋና የጥርስ ህክምና ስፔሻሊስት እና ኦርቶዶንቲስት (11 ዓመት ልምድ)። የጥርስ ማስተካከል እና የውበት ህክምና ስፔሻሊስት። ከሰኞ እስከ ቅዳሜ ይገኛሉ።\n2. **ዶ/ር ዳዊት በቀለ፦** የቀዶ ጥገና እና የጥርስ ተከላ ስፔሻሊስት (9 ዓመት ልምድ)። የጥርስ ንቀላ እና ተከላ (Implants) ስፔሻሊስት። ሰኞ፣ ረቡዕ እና አርብ ይገኛሉ።`,
+      om: `Ogeessota ${clinicName}:\n\n1. **Dr. Senaayit Taaddasaa:** Ogeettii ilkaan qajeelchuu (Waggaa 11 muuxannoo). Wiixata hanga Sanbataatti jirti.\n2. **Dr. Daawwit Baqqalaa:** Ogeessa baqaqsanii yaaluu fi ilkaan dhaabuu (Waggaa 9 muuxannoo). Wiixata, Roobii fi Jimaata jira.`,
     },
     toothache: {
-      en: `Immediate First-Aid for Acute Toothache:\n\n1. Rinse gently with warm salt water to clear food debris.\n2. Gently floss around the painful tooth to dislodge trapped particles.\n3. Take over-the-counter pain relievers such as Ibuprofen (400mg) or Paracetamol (500mg).\n4. **CRITICAL WARNING:** NEVER place an aspirin tablet directly on your gum or tooth, as this causes painful chemical mucosal burns.\n5. Contact Bole Dental Studio immediately at +251 91 122 3344 for urgent chairside intervention.`,
-      am: `ለአጣዳፊ የጥርስ ህመም የመጀመሪያ እርዳታ፦\n\n1. ለብ ባለ የጨው ውሃ አፍዎን በቀስታ ይጉመጥመጡ።\n2. በህመምተኛው ጥርስ ዙሪያ ምግብ እንዳይቀር በክሮች (Dental Floss) ያጽዱ።\n3. ህመም ማስታገሻ (ኢቡፕሮፌን ወይም ፓራሲታሞል) ይውሰዱ።\n4. **አስፈላጊ ማስጠንቀቂያ፦** አስፕሪን በቀጥታ በድድዎ ወይም በጥርስዎ ላይ በፍጹም እንዳያስቀምጡ (ድድዎን ያቃጥላል)።\n5. በአስቸኳይ ወደ ቦሌ ዴንታል ስቱዲዮ በስልክ +251 91 122 3344 ይደውሉ።`,
-      om: `Dhukkubbii Ilkaanii Ariifachiisaaf:\n\n1. Bishaan ashaboo ho\'aa dhaan afaan qulqulleessaa.\n2. Qoricha dhukkubbii (Ibuprofen ykn Paracetamol) fudhadhaa.\n3. **AKEKKACHIISA:** Kiniinii Aspirin kallattiin irree ilkaan irratti hin kaayinaa.\n4. Battalumatti gara Bole Dental Studio bilbilaa: +251 91 122 3344.`,
+      en: `Immediate First-Aid for Acute Toothache:\n\n1. Rinse gently with warm salt water to clear food debris.\n2. Gently floss around the painful tooth to dislodge trapped particles.\n3. Take over-the-counter pain relievers such as Ibuprofen (400mg) or Paracetamol (500mg).\n4. **CRITICAL WARNING:** NEVER place an aspirin tablet directly on your gum or tooth, as this causes painful chemical mucosal burns.\n5. Contact ${clinicName} immediately at ${clinicPhone} for urgent chairside intervention.`,
+      am: `ለአጣዳፊ የጥርስ ህመም የመጀመሪያ እርዳታ፦\n\n1. ለብ ባለ የጨው ውሃ አፍዎን በቀስታ ይጉመጥመጡ።\n2. በህመምተኛው ጥርስ ዙሪያ ምግብ እንዳይቀር በክሮች (Dental Floss) ያጽዱ።\n3. ህመም ማስታገሻ (ኢቡፕሮፌን ወይም ፓራሲታሞል) ይውሰዱ።\n4. **አስፈላጊ ማስጠንቀቂያ፦** አስፕሪን በቀጥታ በድድዎ ወይም በጥርስዎ ላይ በፍጹም እንዳያስቀምጡ (ድድዎን ያቃጥላል)።\n5. በአስቸኳይ ወደ ${clinicName} በስልክ ${clinicPhone} ይደውሉ።`,
+      om: `Dhukkubbii Ilkaanii Ariifachiisaaf:\n\n1. Bishaan ashaboo ho\'aa dhaan afaan qulqulleessaa.\n2. Qoricha dhukkubbii (Ibuprofen ykn Paracetamol) fudhadhaa.\n3. **AKEKKACHIISA:** Kiniinii Aspirin kallattiin irree ilkaan irratti hin kaayinaa.\n4. Battalumatti gara ${clinicName} bilbilaa: ${clinicPhone}.`,
     },
     recalls: {
       en: (count: number) =>
@@ -667,9 +682,9 @@ export function resolveOfflineClinicalQuery(
         `Amma namoonni beellamni yaadachiisaa darbeef **${count}** jiru.\n\n- Beetaliheem Tsaggaayee (Qulqulleessa ji\'a 6 - guyyaa 14 darbe)\n- Yoonaas Alamuu (Qajeelcha Braces - guyyaa 21 darbe)\n\nKallattiin ergaa SMS erguu dandeessu.`,
     },
     booking: {
-      en: `How to Book an Appointment at Bole Dental Studio:\n\n1. **Select Procedure:** Choose Routine Cleaning (1,500 ETB), Consultation (500 ETB), RCT (4,500 - 6,800 ETB), or Emergency Relief.\n2. **Select Specialist:** Choose Dr. Senait Tadesse (Mon - Sat) or Dr. Dawit Bekele (Mon, Wed, Fri).\n3. **Select Date & Operatory Slot:** Choose an upcoming date and chair slot between 8:30 AM and 7:00 PM.\n4. **Pay 300 ETB Deposit:** Pay your reservation deposit via Telebirr or CBE Birr. The 300 ETB is 100% credited toward your final bill upon arrival.\n5. **Instant Confirmation:** You will immediately receive an official AfroMessage SMS confirmation on your mobile phone!\n\nYou can book directly through the online form above or call reception at +251 91 122 3344.`,
-      am: `በቦሌ ዴንታል ስቱዲዮ ቀጠሮ ለመያዝ የሚከተሉትን ደረጃዎች ይከተሉ፦\n\n1. **አገልግሎት ይምረጡ፦** መደበኛ የጥርስ ማጽዳት (1,500 ብር)፣ አጠቃላይ ምርመራ (500 ብር)፣ የነርቭ ህክምና ወይም ድንገተኛ ህመም።\n2. **ሀኪም ይምረጡ፦** ዶ/ር ሰናይት ታደሰ (ከሰኞ - ቅዳሜ) ወይም ዶ/ር ዳዊት በቀለ (ሰኞ፣ ረቡዕ፣ አርብ)።\n3. **ቀን እና ሰዓት ይምረጡ፦** ከሰኞ እስከ ቅዳሜ ከጠዋቱ 2:30 እስከ ማታ 1:00 ባለው ጊዜ ውስጥ ምቹ ሰዓት ይምረጡ።\n4. **የ 300 ብር ቅድመ ክፍያ ያስይዙ፦** በቴሌብር (Telebirr) ወይም በሲቢኢ ብር (CBE Birr) የ 300 ብር ማስያዣ ይክፈሉ። ይህ 300 ብር ለህክምና ሲመጡ ከጠቅላላ ክፍያዎ ላይ 100% ተቀናሽ ይደረጋል።\n5. **ፈጣን ማረጋገጫ፦** ክፍያው እንደተጠናቀቀ የቀጠሮ ማረጋገጫ በኤስኤምኤስ (AfroMessage SMS) በቀጥታ ወደ ስልክዎ ይላክልዎታ።\n\nበቀጥታ በስልክ ለመያዝ በ +251 91 122 3344 ይደውሉ።`,
-      om: `Bole Dental Studio keessatti beellama qabachuuf tartiiba armaan gadii hordofaa:\n\n1. **Gosa Yaalaa Filadhaa:** Qulqulleessa ilkaanii (1,500 ETB), qorannoo (500 ETB), yaala narvii ykn yaala ariifachiisaa.\n2. **Ogeessa Filadhaa:** Dr. Senaayit Taaddasaa (Wiixata - Sanbata) ykn Dr. Daawwit Baqqalaa (Wiixata, Roobii, Jimaata).\n3. **Guyyaa fi Sa\'aatii:** Wiixata hanga Sanbataatti ganama 2:30 hanga galgala 1:00 keessaa sa\'aatii mijataa filadhaa.\n4. **Kaffaltii Duraa 300 ETB:** Telebirr ykn CBE Birr dhaan kaffaltii qabsiisaa 300 ETB kaffalaa. Kaffaltiin kun 100% kaffaltii waliigalaa irraa hir\'ifama.\n5. **Mirkaneessa Battalaa:** Ergaan gabaabaa (SMS) AfroMessage kallattiin bilbila keessan irratti ergama.\n\nKallattiin bilbilaan qabachuuf: +251 91 122 3344.`,
+      en: `How to Book an Appointment at ${clinicName}:\n\n1. **Select Procedure:** Choose Routine Cleaning (1,500 ETB), Consultation (500 ETB), RCT (4,500 - 6,800 ETB), or Emergency Relief.\n2. **Select Specialist:** Choose Dr. Senait Tadesse (Mon - Sat) or Dr. Dawit Bekele (Mon, Wed, Fri).\n3. **Select Date & Operatory Slot:** Choose an upcoming date and chair slot between 8:30 AM and 7:00 PM.\n4. **Pay 300 ETB Deposit:** Pay your reservation deposit via Telebirr or CBE Birr. The 300 ETB is 100% credited toward your final bill upon arrival.\n5. **Instant Confirmation:** You will immediately receive an official AfroMessage SMS confirmation on your mobile phone!\n\nYou can book directly through the online form above or call reception at ${clinicPhone}.`,
+      am: `በ${clinicName} ቀጠሮ ለመያዝ የሚከተሉትን ደረጃዎች ይከተሉ፦\n\n1. **አገልግሎት ይምረጡ፦** መደበኛ የጥርስ ማጽዳት (1,500 ብር)፣ አጠቃላይ ምርመራ (500 ብር)፣ የነርቭ ህክምና ወይም ድንገተኛ ህመም።\n2. **ሀኪም ይምረጡ፦** ዶ/ር ሰናይት ታደሰ (ከሰኞ - ቅዳሜ) ወይም ዶ/ር ዳዊት በቀለ (ሰኞ፣ ረቡዕ፣ አርብ)።\n3. **ቀን እና ሰዓት ይምረጡ፦** ከሰኞ እስከ ቅዳሜ ከጠዋቱ 2:30 እስከ ማታ 1:00 ባለው ጊዜ ውስጥ ምቹ ሰዓት ይምረጡ።\n4. **የ 300 ብር ቅድመ ክፍያ ያስይዙ፦** በቴሌብር (Telebirr) ወይም በሲቢኢ ብር (CBE Birr) የ 300 ብር ማስያዣ ይክፈሉ። ይህ 300 ብር ለህክምና ሲመጡ ከጠቅላላ ክፍያዎ ላይ 100% ተቀናሽ ይደረጋል።\n5. **ፈጣን ማረጋገጫ፦** ክፍያው እንደተጠናቀቀ የቀጠሮ ማረጋገጫ በኤስኤምኤስ (AfroMessage SMS) በቀጥታ ወደ ስልክዎ ይላክልዎታ።\n\nበቀጥታ በስልክ ለመያዝ በ ${clinicPhone} ይደውሉ።`,
+      om: `${clinicName} keessatti beellama qabachuuf tartiiba armaan gadii hordofaa:\n\n1. **Gosa Yaalaa Filadhaa:** Qulqulleessa ilkaanii (1,500 ETB), qorannoo (500 ETB), yaala narvii ykn yaala ariifachiisaa.\n2. **Ogeessa Filadhaa:** Dr. Senaayit Taaddasaa (Wiixata - Sanbata) ykn Dr. Daawwit Baqqalaa (Wiixata, Roobii, Jimaata).\n3. **Guyyaa fi Sa\'aatii:** Wiixata hanga Sanbataatti ganama 2:30 hanga galgala 1:00 keessaa sa\'aatii mijataa filadhaa.\n4. **Kaffaltii Duraa 300 ETB:** Telebirr ykn CBE Birr dhaan kaffaltii qabsiisaa 300 ETB kaffalaa. Kaffaltiin kun 100% kaffaltii waliigalaa irraa hir\'ifama.\n5. **Mirkaneessa Battalaa:** Ergaan gabaabaa (SMS) AfroMessage kallattiin bilbila keessan irratti ergama.\n\nKallattiin bilbilaan qabachuuf: ${clinicPhone}.`,
     },
   };
 

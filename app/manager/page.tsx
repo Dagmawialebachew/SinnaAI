@@ -454,7 +454,7 @@ export default function DayCloseManagerPage() {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900">{tx.patientName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono">Bole Dental Operatory</p>
+                            <p className="text-[10px] text-slate-400 font-mono">{clinic.name} Operatory</p>
                           </div>
                         </div>
                       </td>

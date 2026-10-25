@@ -276,7 +276,7 @@ export default function SchedulePage() {
               Schedule
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Operatory Timeline &amp; Chair Management · Bole Medhanialem
+              Operatory Timeline &amp; Chair Management · {clinic.location.split(',')[0] || clinic.name}
             </p>
           </div>
 

@@ -129,8 +129,8 @@ const getInitialState = (): SinnaState => {
         recipientName: 'Abebe Kebede',
         recipientPhone: '+251 91 122 3344',
         templateType: 'confirmation',
-        contentAm: 'ሰላም አበበ፣ በ Bole Dental Studio ከ ዶ/ር ሰናይት ታደሰ ጋር ያደረጉት የቀጠሮ ቀን ነገ በ 10:00 ሰዓት ተረጋግጧል። 300 ብር ቅድመ ክፍያ ደርሷል። ቦሌ መድኃኒዓለም።',
-        contentEn: 'Hello Abebe, your appointment with Dr. Senait Tadesse at Bole Dental Studio is confirmed for tomorrow at 10:00 AM. 300 ETB deposit received. Bole Medhanialem.',
+        contentAm: `ሰላም አበበ፣ በ ${INITIAL_CLINICS['bole-dental'].name} ከ ዶ/ር ሰናይት ታደሰ ጋር ያደረጉት የቀጠሮ ቀን ነገ በ 10:00 ሰዓት ተረጋግጧል። 300 ብር ቅድመ ክፍያ ደርሷል። ${INITIAL_CLINICS['bole-dental'].location.split(',')[0]}።`,
+        contentEn: `Hello Abebe, your appointment with Dr. Senait Tadesse at ${INITIAL_CLINICS['bole-dental'].name} is confirmed for tomorrow at 10:00 AM. 300 ETB deposit received. ${INITIAL_CLINICS['bole-dental'].location.split(',')[0]}.`,
         timestamp: '10:05 AM',
       }
     ],
@@ -303,12 +303,18 @@ export const sinnaStore = {
   }) {
     const currentSlug = currentState.activeClinicSlug || 'bole-dental';
     const existing = currentState.clinics[currentSlug] || INITIAL_CLINICS[currentSlug] || INITIAL_CLINICS['bole-dental'];
+    const fallbackPrefix = (custom.name.trim() || existing.name)
+      .split(' ')
+      .map((w: string) => w[0])
+      .join('')
+      .slice(0, 3)
+      .toUpperCase() || 'BDS';
     const updated: Clinic = {
       ...existing,
       name: custom.name.trim() || existing.name,
       location: custom.location?.trim() || existing.location,
       phone: custom.phone?.trim() || existing.phone,
-      mrrPrefix: custom.mrrPrefix?.trim().toUpperCase() || existing.mrrPrefix || 'BDS',
+      mrrPrefix: custom.mrrPrefix?.trim().toUpperCase() || existing.mrrPrefix || fallbackPrefix,
       tinNumber: custom.tinNumber?.trim() || existing.tinNumber || '0049283711',
       telebirrMerchant: custom.telebirrMerchant?.trim() || existing.telebirrMerchant || '0911223344',
       accountName: custom.accountName?.trim() || `${custom.name.trim() || existing.name} PLC`,
@@ -417,10 +423,12 @@ export const sinnaStore = {
       return existingApt;
     }
 
+    const activeClinic = currentState.clinics[currentState.activeClinicSlug] || Object.values(currentState.clinics)[0] || INITIAL_CLINICS['bole-dental'];
+    const prefix = activeClinic.mrrPrefix || (activeClinic.name ? activeClinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase() : 'BDS');
     const isFullApt = 'id' in payload;
     const fiveDigits = Math.floor(10000 + Math.random() * 90000);
-    const defaultCardNo = `BDS-${fiveDigits}`;
-    const aptId = (isFullApt && payload.id && /^BDS-\d{4,5}$/.test(payload.id))
+    const defaultCardNo = `${prefix}-${fiveDigits}`;
+    const aptId = (isFullApt && payload.id && /^[A-Z]{2,4}-\d{4,5}$/.test(payload.id))
       ? payload.id
       : defaultCardNo;
     const depositPaid = isFullApt ? (payload.depositPaidETB || 0) : (payload.depositPaidETB || 0);
@@ -441,7 +449,7 @@ export const sinnaStore = {
         phone: payload.patientPhone,
       },
       chiefComplaint: payload.serviceName || 'Dental Examination & Consultation',
-      hpi: `Patient registered with BDS card number ${aptId}. Deposit paid: ${depositPaid} ETB.`,
+      hpi: `Patient registered with ${prefix} card number ${aptId}. Deposit paid: ${depositPaid} ETB.`,
       medicalHistory: {
         allergies: ['No known allergies documented on self-registration'],
         systemicDiseases: [],
@@ -587,10 +595,11 @@ export const sinnaStore = {
       );
     }
     const nowIso = new Date().toISOString();
+    const activeClinic = currentState.clinics[currentState.activeClinicSlug] || Object.values(currentState.clinics)[0] || INITIAL_CLINICS['bole-dental'];
     const aptId = `walkin-${Date.now()}`;
     const newApt: Appointment = {
       id: aptId,
-      clinicId: 'clinic-bole-001',
+      clinicId: activeClinic.id || 'clinic-bole-001',
       patientName: payload.patientName,
       patientPhone: payload.patientPhone,
       serviceId: 'srv-emergency',
@@ -612,8 +621,8 @@ export const sinnaStore = {
       recipientName: payload.patientName,
       recipientPhone: payload.patientPhone,
       templateType: 'confirmation',
-      contentAm: `ሰላም ${payload.patientName}፣ ወደ Bole Dental Studio እንኳን ደህና መጡ! ወደ መጠበቂያ ክፍል ገብተዋል። በቅርቡ ዶክተሩ ይጠሩዎታል።`,
-      contentEn: `Welcome ${payload.patientName} to Bole Dental Studio! You are checked in and waiting. The doctor will see you shortly.`,
+      contentAm: `ሰላም ${payload.patientName}፣ ወደ ${activeClinic.name} እንኳን ደህና መጡ! ወደ መጠበቂያ ክፍል ገብተዋል። በቅርቡ ዶክተሩ ይጠሩዎታል።`,
+      contentEn: `Welcome ${payload.patientName} to ${activeClinic.name}! You are checked in and waiting. The doctor will see you shortly.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -1330,13 +1339,14 @@ export const sinnaStore = {
         ? new Date(updates.startsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : 'scheduled time';
 
+      const activeClinic = currentState.clinics[currentState.activeClinicSlug] || Object.values(currentState.clinics)[0] || INITIAL_CLINICS['bole-dental'];
       const sms: SmsToastNotification = {
         id: `sms-${Date.now()}`,
         recipientName: name,
         recipientPhone: phone,
         templateType: 'reminder',
-        contentAm: `ሰላም ${name}፣ በ Bole Dental Studio ያደረጉት የቀጠሮ መረጃ ተዘምኗል። ቀን፡ ${dateStr} በ ${timeStr}። ቦሌ መድኃኒዓለም።`,
-        contentEn: `Hello ${name}, your appointment at Bole Dental Studio has been updated to ${dateStr} at ${timeStr}. Bole Medhanialem.`,
+        contentAm: `ሰላም ${name}፣ በ ${activeClinic.name} ያደረጉት የቀጠሮ መረጃ ተዘምኗል። ቀን፡ ${dateStr} በ ${timeStr}። ${activeClinic.location.split(',')[0]}።`,
+        contentEn: `Hello ${name}, your appointment at ${activeClinic.name} has been updated to ${dateStr} at ${timeStr}. ${activeClinic.location.split(',')[0]}.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
@@ -1382,13 +1392,14 @@ export const sinnaStore = {
     const apt = currentState.appointments.find((a) => a.id === appointmentId);
     if (!apt) return;
 
+    const activeClinic = currentState.clinics[currentState.activeClinicSlug] || Object.values(currentState.clinics)[0] || INITIAL_CLINICS['bole-dental'];
     const notification: SmsToastNotification = {
       id: `sms-postop-${Date.now()}`,
       recipientName: apt.patientName,
       recipientPhone: apt.patientPhone,
       templateType: 'receipt',
-      contentAm: customAm || `ውድ ${apt.patientName}፣ ከዛሬው የጥርስ ህክምና በኋላ ለ 30 ደቂቃ ጥጥ አጥብቀው ይያዙ። ለ 24 ሰዓት ሙቅ መጠጥ ወይም ምግብ አይውሰዱ። ህመም ከተሰማዎ በ ${apt.patientPhone} ያግኙን። ፈጣን ምቾት! Bole Dental Studio`,
-      contentEn: customEn || `Dear ${apt.patientName}, post-treatment care: bite firmly on gauze for 30 mins. Avoid hot liquids/rinsing for 24 hours. Contact us if discomfort persists. Bole Dental Studio.`,
+      contentAm: customAm || `ውድ ${apt.patientName}፣ ከዛሬው የጥርስ ህክምና በኋላ ለ 30 ደቂቃ ጥጥ አጥብቀው ይያዙ። ለ 24 ሰዓት ሙቅ መጠጥ ወይም ምግብ አይውሰዱ። ህመም ከተሰማዎ በ ${activeClinic.phone} ያግኙን። ፈጣን ምቾት! ${activeClinic.name}`,
+      contentEn: customEn || `Dear ${apt.patientName}, post-treatment care: bite firmly on gauze for 30 mins. Avoid hot liquids/rinsing for 24 hours. Contact us at ${activeClinic.phone} if discomfort persists. ${activeClinic.name}.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -1782,13 +1793,14 @@ export const sinnaStore = {
       timestamp: new Date().toISOString(),
     };
 
+    const activeClinic = currentState.clinics[currentState.activeClinicSlug] || Object.values(currentState.clinics)[0] || INITIAL_CLINICS['bole-dental'];
     const notification: SmsToastNotification = {
       id: `sms-contract-${Date.now()}`,
       recipientName: contract.patientName,
       recipientPhone: contract.patientPhone,
       templateType: 'receipt',
-      contentAm: `ደረሰኝ ቁጥር ${receiptNum} ደርሷል። ${payload.amountETB.toLocaleString()} ብር ለ ${contract.title} ተከፍሏል። የቀሪ ብሬስ ሂሳብ: ${newRemaining.toLocaleString()} ብር። ${newPrepaidCredit > 0 ? `${newPrepaidCredit.toLocaleString()} ብር የቅድሚያ ክሬዲት ተይዟል።` : ''} Bole Dental Studio`,
-      contentEn: `Payment complete! Receipt ${receiptNum}. Paid ${payload.amountETB.toLocaleString()} ETB for ${contract.title}. Remaining balance: ${newRemaining.toLocaleString()} ETB. ${newPrepaidCredit > 0 ? `Advance credit of ${newPrepaidCredit.toLocaleString()} ETB held.` : ''} Bole Dental Studio.`,
+      contentAm: `ደረሰኝ ቁጥር ${receiptNum} ደርሷል። ${payload.amountETB.toLocaleString()} ብር ለ ${contract.title} ተከፍሏል። የቀሪ ብሬስ ሂሳብ: ${newRemaining.toLocaleString()} ብር። ${newPrepaidCredit > 0 ? `${newPrepaidCredit.toLocaleString()} ብር የቅድሚያ ክሬዲት ተይዟል።` : ''} ${activeClinic.name}`,
+      contentEn: `Payment complete! Receipt ${receiptNum}. Paid ${payload.amountETB.toLocaleString()} ETB for ${contract.title}. Remaining balance: ${newRemaining.toLocaleString()} ETB. ${newPrepaidCredit > 0 ? `Advance credit of ${newPrepaidCredit.toLocaleString()} ETB held.` : ''} ${activeClinic.name}.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 

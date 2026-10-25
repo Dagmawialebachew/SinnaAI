@@ -318,7 +318,7 @@ export function getPatientVisitHistory(
         paymentMethod: 'Telebirr SuperApp',
         receiptNumber: 'RCP-2026-0039',
         status: 'completed',
-        dischargeNotes: 'New patient registration and baseline periodontal charting completed at Bole Dental Studio. Medical alerts confirmed.',
+        dischargeNotes: 'New patient registration and baseline periodontal charting completed at clinic operatory. Medical alerts confirmed.',
       },
     ];
   }

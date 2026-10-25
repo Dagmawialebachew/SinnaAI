@@ -855,7 +855,7 @@ export default function ReceptionDeskPage() {
                     <QrCode className="w-16 h-16 text-blue-600" />
                   </div>
                   <p className="text-xs font-semibold text-blue-900">
-                    Bole Dental Studio Telebirr: #0911223344
+                    {clinic.name} Telebirr: #{clinic.telebirrMerchant || clinic.phone}
                   </p>
                   <p className="text-[11px] text-slate-500">
                     Ask patient to scan QR or pay via Telebirr App
@@ -870,7 +870,7 @@ export default function ReceptionDeskPage() {
                     CBE Account: 1000123456789
                   </p>
                   <p className="text-slate-600">
-                    Account Name: Bole Dental Studio PLC
+                    Account Name: {clinic.accountName || `${clinic.name} PLC`}
                   </p>
                 </div>
               )}

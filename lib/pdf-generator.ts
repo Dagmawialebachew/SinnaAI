@@ -47,10 +47,10 @@ export interface ReportStatsData {
 export function getClinicalReportHTML(
   period: ReportPeriod,
   data: ReportStatsData,
-  clinic?: Clinic | { name?: string; location?: string; phone?: string }
+  clinic?: Clinic | { name?: string; location?: string; phone?: string; tinNumber?: string; mrrPrefix?: string }
 ): string {
   const clinicName = clinic?.name || 'Bole Dental Studio';
-  const tinNumber = '0049283711';
+  const tinNumber = (clinic as any)?.tinNumber || '0049283711';
   const dateStr = new Date().toISOString().slice(0, 10);
   const totalReceivables = data.receivables0_30 + data.receivables31_60;
 
@@ -308,7 +308,7 @@ export function getClinicalReportHTML(
         </div>
 
         <div style="margin-top: 8px; font-size: 6.5pt; color: #9CA3AF; text-align: center; border-top: 1px solid #F3F4F6; padding-top: 4px;">
-          Official Record · Bole Dental Studio · Ministry of Revenues TIN: 0049283711 · All values in Ethiopian Birr (ETB) · Page 1 of 1
+          Official Record · ${clinicName} · Ministry of Revenues TIN: ${tinNumber} · All values in Ethiopian Birr (ETB) · Page 1 of 1
         </div>
       </div>
 

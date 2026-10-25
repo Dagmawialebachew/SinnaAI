@@ -46,6 +46,8 @@ import { ChatLanguage } from '@/lib/clinical-rag-engine';
 interface PatientBookingPortalProps {
   clinicSlug?: string;
   initialLang?: BookingLang;
+  skipLanguageModal?: boolean;
+  initialServiceId?: string;
   onBackToApp?: () => void;
 }
 
@@ -159,15 +161,17 @@ const CATEGORIES: { id: ServiceCategory; labelEn: string; labelAm: string; label
 export function PatientBookingPortal({
   clinicSlug = 'bole-dental',
   initialLang = 'am',
+  skipLanguageModal = false,
+  initialServiceId,
   onBackToApp
 }: PatientBookingPortalProps) {
   const store = useSinnaStore();
-  const clinic = store.clinics[clinicSlug] || Object.values(store.clinics)[0];
+  const clinic = (clinicSlug && store.clinics[clinicSlug]) || store.clinics[store.activeClinicSlug] || Object.values(store.clinics)[0];
 
-  // Language & Modal State: Ask language first on load! Default to Amharic ('am')
+  // Language & Modal State: If language already selected upfront on landing page, skip prompt
   const [lang, setLang] = useState<BookingLang>(initialLang);
-  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(true);
-  const [hasSelectedLanguage, setHasSelectedLanguage] = useState<boolean>(false);
+  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(!skipLanguageModal);
+  const [hasSelectedLanguage, setHasSelectedLanguage] = useState<boolean>(skipLanguageModal);
   const t = BOOKING_DICTIONARY[lang];
 
   // Social Media Overlay State
@@ -189,7 +193,17 @@ export function PatientBookingPortal({
   // Wizard Step State (1: Services & Clinic Info, 2: Doctor, 3: Date & Time, 4: Patient Info & Confirmation)
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory>('all');
-  const [selectedService, setSelectedService] = useState<LocalizedService>(LOCALIZED_SERVICES[0]);
+  
+  // Find initial service matching initialServiceId if provided
+  const initialSrv = useMemo(() => {
+    if (initialServiceId) {
+      const found = LOCALIZED_SERVICES.find(s => s.id === initialServiceId || s.id?.toLowerCase().includes(initialServiceId.toLowerCase()));
+      if (found) return found;
+    }
+    return LOCALIZED_SERVICES[0];
+  }, [initialServiceId]);
+
+  const [selectedService, setSelectedService] = useState<LocalizedService>(initialSrv);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor>(clinic.doctors[0]);
 
   // Date State - Default to Amharic display label
@@ -362,7 +376,8 @@ export function PatientBookingPortal({
         return;
       }
 
-      const bdsCardNo = `BDS-${Math.floor(10000 + Math.random() * 90000)}`;
+      const prefix = clinic.mrrPrefix || (clinic.name ? clinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase() : 'BDS');
+      const bdsCardNo = `${prefix}-${Math.floor(10000 + Math.random() * 90000)}`;
       const createdApt = sinnaStore.createAppointment({
         id: bdsCardNo,
         clinicId: clinic.id,
@@ -443,13 +458,17 @@ export function PatientBookingPortal({
   }, [selectedCategory]);
 
   // Social Channels Directory with verified clinical endpoints & premium subtle gray styling
+  const tgHandle = clinic.telegramChannel ? (clinic.telegramChannel.startsWith('@') ? clinic.telegramChannel : `@${clinic.telegramChannel}`) : `@${clinic.slug}`;
+  const igHandle = clinic.instagramHandle ? (clinic.instagramHandle.startsWith('@') ? clinic.instagramHandle : `@${clinic.instagramHandle}`) : `@${clinic.slug}`;
+  const cleanPhone = clinic.phone ? clinic.phone.replace(/\D/g, '') : '251911223344';
+
   const SOCIAL_CHANNELS = [
     {
       id: 'telegram',
       title: 'Telegram Channel',
-      handle: '@boledental_addis',
+      handle: tgHandle,
       subtext: 'Direct patient liaison & instant updates',
-      href: 'https://t.me/boledental_addis',
+      href: `https://t.me/${tgHandle.replace('@', '')}`,
       icon: TelegramIcon,
       color: 'text-[#229ED9]',
       bgColor: 'bg-slate-100',
@@ -459,9 +478,9 @@ export function PatientBookingPortal({
     {
       id: 'instagram',
       title: 'Instagram Gallery',
-      handle: '@boledentalstudio',
+      handle: igHandle,
       subtext: 'Smile makeovers & hygiene tips',
-      href: 'https://instagram.com/boledentalstudio',
+      href: `https://instagram.com/${igHandle.replace('@', '')}`,
       icon: InstagramIcon,
       color: 'text-[#E1306C]',
       bgColor: 'bg-slate-100',
@@ -471,9 +490,9 @@ export function PatientBookingPortal({
     {
       id: 'tiktok',
       title: 'TikTok Studio',
-      handle: '@boledental',
+      handle: `@${clinic.slug}`,
       subtext: 'Short clinical walkthroughs & doctor Q&A',
-      href: 'https://tiktok.com/@boledental',
+      href: `https://tiktok.com/@${clinic.slug}`,
       icon: TikTokIcon,
       color: 'text-slate-900',
       bgColor: 'bg-slate-100',
@@ -483,9 +502,9 @@ export function PatientBookingPortal({
     {
       id: 'whatsapp',
       title: 'WhatsApp Consultation',
-      handle: '+251 91 122 3344',
+      handle: clinic.phone || '+251 91 122 3344',
       subtext: 'Direct digital desk for questions & records',
-      href: 'https://wa.me/251911223344',
+      href: `https://wa.me/${cleanPhone}`,
       icon: WhatsAppIcon,
       color: 'text-[#25D366]',
       bgColor: 'bg-slate-100',
@@ -495,9 +514,9 @@ export function PatientBookingPortal({
     {
       id: 'facebook',
       title: 'Facebook Page',
-      handle: 'Bole Dental Studio',
+      handle: clinic.name,
       subtext: 'Community updates & patient reviews',
-      href: 'https://facebook.com/boledentalstudio',
+      href: `https://facebook.com/${clinic.slug}`,
       icon: FacebookIcon,
       color: 'text-[#1877F2]',
       bgColor: 'bg-slate-100',
@@ -507,9 +526,9 @@ export function PatientBookingPortal({
     {
       id: 'phone',
       title: 'Direct Front Desk Hotline',
-      handle: '+251 91 122 3344',
+      handle: clinic.phone || '+251 91 122 3344',
       subtext: 'Immediate operatory triage & assistance',
-      href: 'tel:+251911223344',
+      href: `tel:${(clinic.phone || '+251911223344').replace(/\s+/g, '')}`,
       icon: Phone,
       color: 'text-emerald-600',
       bgColor: 'bg-slate-100',
@@ -643,7 +662,7 @@ export function PatientBookingPortal({
 
               <div className="pt-2 text-center text-[10px] text-slate-400 border-t border-slate-100 flex items-center justify-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span>Bole Dental Studio · Addis Ababa</span>
+                <span>{clinic.name} · {clinic.location.split(',')[0]}</span>
               </div>
             </div>
           </div>
@@ -673,7 +692,7 @@ export function PatientBookingPortal({
                   <span>Clinic Channels</span>
                 </div>
                 <h3 className="text-base font-bold text-slate-950 tracking-tight">
-                  Connect with Bole Dental Studio
+                  Connect with {clinic.name}
                 </h3>
                 <p className="text-[11px] text-slate-500">
                   Touch any channel to open directly without losing your booking
@@ -761,7 +780,7 @@ export function PatientBookingPortal({
         {/* MOBILE TOP NAVIGATION BAR */}
         <div className="bg-white border border-slate-200/90 shadow-2xs rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2">
 
-          {/* Back button: REMOVED on step 1, only visible on step 2, 3, 4 */}
+          {/* Back button: on step > 1 goes back in wizard. On step 1, if onBackToApp is provided, returns to clinic overview */}
           {step > 1 && !confirmedAppointment ? (
             <button
               type="button"
@@ -771,12 +790,22 @@ export function PatientBookingPortal({
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
+          ) : onBackToApp && !confirmedAppointment ? (
+            <button
+              type="button"
+              onClick={onBackToApp}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-colors shrink-0"
+              title="Return to clinic landing page"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back</span>
+            </button>
           ) : (
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 rounded-xl bg-slate-900 text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs">
-                BDS
+                {clinic.name ? clinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3) : 'BDS'}
               </div>
-              <span className="font-bold text-xs text-slate-900 tracking-tight whitespace-nowrap">Bole Dental</span>
+              <span className="font-bold text-xs text-slate-900 tracking-tight whitespace-nowrap">{clinic.name}</span>
             </div>
           )}
 
@@ -798,13 +827,24 @@ export function PatientBookingPortal({
               <Globe className="w-3 h-3 text-[#2563EB]" />
               <span>{lang}</span>
             </button>
-            <Link
-              href="/"
-              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors"
-              title="Return to clinic home"
-            >
-              <X className="w-4 h-4" />
-            </Link>
+            {onBackToApp ? (
+              <button
+                type="button"
+                onClick={onBackToApp}
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors"
+                title="Return to clinic landing page"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            ) : (
+              <Link
+                href="/"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors"
+                title="Return to clinic home"
+              >
+                <X className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         </div>
 
@@ -849,14 +889,14 @@ export function PatientBookingPortal({
           <div className="flex items-center justify-between gap-2.5">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className="w-11 h-11 rounded-2xl bg-slate-900 text-white font-mono font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
-                BDS
+                {clinic.mrrPrefix || (clinic.name ? clinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase() : 'BDS')}
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="font-bold text-slate-950 text-sm sm:text-base leading-tight tracking-tight truncate">
                   {clinic.name}
                 </h1>
                 <p className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
-                  Bole Medhanialem, Morning Star Mall 3rd Floor
+                  {clinic.location}
                 </p>
               </div>
             </div>
@@ -926,10 +966,10 @@ export function PatientBookingPortal({
                   <div className="min-w-0 flex-1 px-1 text-left">
                     <div className="flex items-center gap-1 text-[11px] font-bold text-slate-900 truncate">
                       <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                      <span className="truncate">Bole Medhanialem</span>
+                      <span className="truncate">{clinic.location.split(',')[0]}</span>
                     </div>
                     <p className="text-[10px] text-slate-500 truncate pl-4">
-                      Morning Star Mall, 3rd Floor
+                      {clinic.location}
                     </p>
                   </div>
 
@@ -962,7 +1002,7 @@ export function PatientBookingPortal({
                 <span>Socials</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               </button>
-              <span className="truncate text-slate-500 text-[10px] flex-1 text-center">Bole Medhanialem, Morning Star</span>
+              <span className="truncate text-slate-500 text-[10px] flex-1 text-center">{clinic.location}</span>
               <a
                 href={clinic.googleMapsUrl}
                 target="_blank"
@@ -1693,20 +1733,30 @@ export function PatientBookingPortal({
                 <Printer className="w-3.5 h-3.5 text-slate-500" />
                 <span>Print Receipt</span>
               </button>
-              <Link
-                href="/"
-                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs transition-colors"
-              >
-                <span>{t.returnHome}</span>
-              </Link>
+              {onBackToApp ? (
+                <button
+                  type="button"
+                  onClick={onBackToApp}
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  <span>{t.returnHome}</span>
+                </button>
+              ) : (
+                <Link
+                  href="/"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-2xs transition-colors"
+                >
+                  <span>{t.returnHome}</span>
+                </Link>
+              )}
             </div>
           </div>
         )}
 
         {/* Minimalist Clinical Footer */}
         <div className="text-center text-[10px] text-slate-400 font-mono py-2 space-y-0.5">
-          <p>Bole Dental Studio · Addis Ababa, Ethiopia</p>
-          <p>Bole Medhanialem, Morning Star Mall 3rd Floor</p>
+          <p>{clinic.name} · Addis Ababa, Ethiopia</p>
+          <p>{clinic.location}</p>
         </div>
 
       </div>

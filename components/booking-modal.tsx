@@ -205,8 +205,9 @@ export function BookingModal({
     const durationMins = service ? service.durationMinutes : 30;
     const endsAt = new Date(new Date(startsAt).getTime() + durationMins * 60000).toISOString();
 
+    const prefix = clinic.mrrPrefix || (clinic.name ? clinic.name.split(' ').map((w: string) => w[0]).join('').slice(0, 3).toUpperCase() : 'BDS');
     const fiveDigits = Math.floor(10000 + Math.random() * 90000);
-    const appointmentId = `BDS-${fiveDigits}`;
+    const appointmentId = `${prefix}-${fiveDigits}`;
     const receiptNum = amountCollectedETB > 0 ? `RCP-2026-${Math.floor(1000 + Math.random() * 9000)}` : undefined;
 
     const newAppointment: Appointment = {
@@ -263,7 +264,7 @@ export function BookingModal({
                 Schedule New Appointment & Intake
               </h3>
               <p className="text-[11px] text-slate-400">
-                Front Desk Intake · Bole Dental Studio (TIN: 0049283711)
+                Front Desk Intake · {clinic.name} (TIN: {clinic.tinNumber || '0049283711'})
               </p>
             </div>
           </div>

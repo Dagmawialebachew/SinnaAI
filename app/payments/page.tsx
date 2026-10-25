@@ -233,7 +233,7 @@ export default function PaymentsPage() {
 
   // New Payment Form State
   const [newPatientName, setNewPatientName] = useState('Tigist Alemu Desta');
-  const [newPatientMrn, setNewPatientMrn] = useState('BDS-00041');
+  const [newPatientMrn, setNewPatientMrn] = useState(`${clinic.mrrPrefix || 'BDS'}-00041`);
   const [newMethod, setNewMethod] = useState<PaymentMethodType>('Telebirr');
   const [newAmountETB, setNewAmountETB] = useState<number>(1500);
   const [newAllocation, setNewAllocation] = useState<'On account' | 'Treatment plan' | 'Consultation'>('On account');
@@ -1038,7 +1038,7 @@ export default function PaymentsPage() {
               {filteredPayments.length} of {paymentsList.length} transactions
             </span>
             <span className="text-[11px] text-slate-400">
-              Bole Medhanialem Fiscal Register · BDS-FSC-AA-03
+              {clinic.location.split(',')[0]} Fiscal Register · {clinic.mrrPrefix || 'BDS'}-FSC-AA-03
             </span>
           </div>
         </div>
