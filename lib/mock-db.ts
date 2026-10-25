@@ -1088,6 +1088,57 @@ export const INITIAL_LEDGER: LedgerTransaction[] = getDynamicMockData(new Date()
 
 export const INITIAL_TREATMENT_PLANS: TreatmentPlan[] = [
   {
+    id: 'PLAN-2026-0482',
+    title: 'Diagnostic Card Assessment & Enamel Caries Staging (#16)',
+    patientId: 'BDS-00482',
+    patientName: 'Kalkidan Yohannes',
+    patientInitials: 'KY',
+    patientPhone: '+251 91 199 8877',
+    status: 'to_quote',
+    currentStep: 1,
+    quoteId: 'PRES-2026-0482',
+    quoteStatus: 'draft',
+    quoteAmountETB: 2200,
+    agingDays: 0,
+    appointmentState: 'scheduled',
+    chartNotation: {
+      16: 'caries',
+    },
+    archType: 'permanent',
+    procedures: [
+      {
+        id: 'proc-ky-1',
+        name: 'Comprehensive Oral Diagnosis & Odontogram Mapping',
+        category: 'whole_mouth',
+        toothNumber: 'whole_mouth',
+        feeETB: 300,
+        assignedDoctorCode: 'ST',
+        status: 'completed',
+      },
+      {
+        id: 'proc-ky-2',
+        name: 'Class I Posterior Composite Restoration (#16)',
+        category: 'restorative',
+        toothNumber: 16,
+        feeETB: 2200,
+        assignedDoctorCode: 'ST',
+        status: 'pending',
+      },
+    ],
+    clinicalNotes: [
+      {
+        id: 'note-ky-1',
+        authorCode: 'ST',
+        authorName: 'Dr. Senait Tadesse',
+        type: 'visit',
+        content: 'New patient registered via Sinna Web Portal. 300 ETB Card fee paid via Telebirr. Chief complaint: cold sensitivity on #16. Deep occlusal fissure caries noted on visual inspection.',
+        createdAt: '10/22/2026, 03:30:00 PM',
+      },
+    ],
+    createdAt: '2026-10-22T15:30:00Z',
+    updatedAt: '2026-10-22T15:30:00Z',
+  },
+  {
     id: 'PLAN-2026-0041',
     title: 'Comprehensive Fixed Metallic Braces (Dual Arch)',
     patientId: 'apt-001',
