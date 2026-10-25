@@ -3,6 +3,9 @@ setlocal enabledelayedexpansion
 title Sinna Dental AI - Clinical Practice Suite
 color 0b
 
+:: Ensure working directory is always the script folder
+cd /d "%~dp0"
+
 echo.
 echo =====================================================================
 echo                 SINNA DENTAL AI - CLINICAL SHOWCASE
@@ -35,8 +38,7 @@ if %ERRORLEVEL% EQU 0 (
     if exist ".git\" (
         echo [*] Checking connection to GitHub for latest clinic updates...
         powershell -NoProfile -Command ^
-            "$test = Test-Connection -ComputerName github.com -Count 1 -Quiet -TimeoutSeconds 2; " ^
-            "if ($test) { exit 0 } else { exit 1 }"
+            "try { $req = [System.Net.WebRequest]::Create('https://github.com'); $req.Timeout = 2500; $res = $req.GetResponse(); exit 0 } catch { exit 1 }"
         if !ERRORLEVEL! EQU 0 (
             echo [*] Online: Pulling latest clinical updates from origin/main...
             git pull origin main --quiet
@@ -63,21 +65,38 @@ if not exist "node_modules\" (
     echo [OK] Packages ready.
 )
 
-:: 4. Determine Port (Default 3000, Fallback to 3001 if occupied)
+:: 4. Detect Port or Already Running Instance
 set PORT=3000
-netstat -ano | findstr /R /C:":%PORT% .*LISTENING" >nul 2>nul
+set SERVER_ALREADY_RUNNING=0
+
+:: Check if Sinna is already active on port 3000
+powershell -NoProfile -Command "(Invoke-WebRequest -Uri 'http://localhost:3000' -UseBasicParsing -TimeoutSec 2).StatusCode" 2>nul | findstr "200" >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
-    echo [*] Port 3000 is currently occupied. Switching to port 3001...
-    set PORT=3001
+    echo [OK] Sinna Dental AI server is already active on http://localhost:3000!
+    set SERVER_ALREADY_RUNNING=1
+    goto LAUNCH_APP
 )
 
-:: 5. Check for Production Build (.next directory)
+:: If port 3000 is occupied by something else, switch to 3001
+netstat -ano | findstr /R /C:":%PORT% .*LISTENING" >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    echo [*] Port 3000 is occupied. Switching to port 3001...
+    set PORT=3001
+    powershell -NoProfile -Command "(Invoke-WebRequest -Uri 'http://localhost:3001' -UseBasicParsing -TimeoutSec 2).StatusCode" 2>nul | findstr "200" >nul 2>nul
+    if !ERRORLEVEL! EQU 0 (
+        echo [OK] Sinna Dental AI server is already active on http://localhost:3001!
+        set SERVER_ALREADY_RUNNING=1
+        goto LAUNCH_APP
+    )
+)
+
+:: 5. Check for Production Build (.next\BUILD_ID)
 set LAUNCH_MODE=start
-if not exist ".next\" (
-    echo [*] First-time build: Generating optimized production bundle...
+if not exist ".next\BUILD_ID" (
+    echo [*] Optimized production build not detected. Generating bundle...
     call npm run build
     if !ERRORLEVEL! NEQ 0 (
-        echo [!] Build notice: Falling back to dev mode...
+        echo [!] Build warning: Falling back to dev mode...
         set LAUNCH_MODE=dev
     )
 ) else (
@@ -87,24 +106,26 @@ if not exist ".next\" (
 :: 6. Start Server Process in Background
 echo [*] Starting Sinna Dental AI on http://localhost:%PORT%...
 if "%LAUNCH_MODE%"=="start" (
-    start /min "Sinna-Server" cmd /c "npm run start -- -p %PORT%"
+    start /min "Sinna-Server" cmd /c "npx next start -p %PORT%"
 ) else (
-    start /min "Sinna-Server" cmd /c "npm run dev -- -p %PORT%"
+    start /min "Sinna-Server" cmd /c "npx next dev -p %PORT%"
 )
 
-:: 7. Wait for Server to be Responsive (PowerShell Healthcheck)
+:: 7. Wait for Server to be Responsive
 echo [*] Initializing clinical database and odontogram engine...
-powershell -NoProfile -Command ^
-    "$port = %PORT%; " ^
-    "$ready = $false; " ^
-    "for ($i = 0; $i -lt 30; $i++) { " ^
-    "    try { " ^
-    "        $res = Invoke-WebRequest -Uri \"http://127.0.0.1:$port/\" -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop; " ^
-    "        if ($res.StatusCode -eq 200) { $ready = $true; break } " ^
-    "    } catch { Start-Sleep -Milliseconds 600 } " ^
-    "} " ^
-    "if (-not $ready) { Start-Sleep -Seconds 2 }"
+set SERVER_READY=0
+for /L %%i in (1,1,30) do (
+    if !SERVER_READY! EQU 0 (
+        powershell -NoProfile -Command "(Invoke-WebRequest -Uri 'http://localhost:%PORT%' -UseBasicParsing -TimeoutSec 2).StatusCode" 2>nul | findstr "200" >nul 2>nul
+        if !ERRORLEVEL! EQU 0 (
+            set SERVER_READY=1
+        ) else (
+            timeout /t 1 >nul 2>nul
+        )
+    )
+)
 
+:LAUNCH_APP
 :: 8. Launch Dedicated Native App Window (Edge / Chrome App Mode)
 echo [OK] Clinical server is live! Launching dedicated app window...
 where msedge >nul 2>nul
