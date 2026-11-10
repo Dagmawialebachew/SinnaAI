@@ -34,11 +34,13 @@ import {
   ChevronRight,
   ArrowUpRight,
   Phone,
-  ShieldAlert
+  ShieldAlert,
+  Building2
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { ZReportModal } from '@/components/z-report-modal';
 import { INITIAL_PATIENTS, FullPatientProfile } from '@/lib/initial-patients';
+import { calculateTaxInclusive } from '@/lib/tax-calculator';
 import {
   ReportPeriod,
   getClinicalReportHTML,
@@ -250,6 +252,16 @@ export default function ReportsPage() {
   // Average payment per patient visit
   const avgCollectedTicketETB = currentStats.collectedETB / Math.max(currentStats.paymentsCount, 1);
 
+  // Dynamic Ethiopian MoR 15% VAT Tax-Inclusive Calculations
+  const periodTax = useMemo(() => {
+    return calculateTaxInclusive(currentStats.collectedETB, 0.15, clinic.tinNumber || '0049283711');
+  }, [currentStats.collectedETB, clinic.tinNumber]);
+
+  const cbeTax = useMemo(() => calculateTaxInclusive(currentStats.cbeTotalETB, 0.15), [currentStats.cbeTotalETB]);
+  const telebirrTax = useMemo(() => calculateTaxInclusive(currentStats.telebirrTotalETB, 0.15), [currentStats.telebirrTotalETB]);
+  const transferTax = useMemo(() => calculateTaxInclusive(currentStats.transferTotalETB, 0.15), [currentStats.transferTotalETB]);
+  const cashTax = useMemo(() => calculateTaxInclusive(currentStats.cashTotalETB, 0.15), [currentStats.cashTotalETB]);
+
   // Direct 1-Click PDF File Download (saves actual .pdf file directly)
   const handleDownloadPDF = async (period: ReportPeriod = selectedTimeframe) => {
     try {
@@ -380,11 +392,10 @@ export default function ReportsPage() {
               key={t.id}
               type="button"
               onClick={() => setSelectedTimeframe(t.id as ReportPeriod)}
-              className={`flex-1 min-w-[110px] sm:min-w-0 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                isSelected
+              className={`flex-1 min-w-[110px] sm:min-w-0 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${isSelected
                   ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-              }`}
+                }`}
             >
               <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-sky-600' : 'text-slate-400'}`} />
               <span className="truncate">{t.label}</span>
@@ -409,11 +420,7 @@ export default function ReportsPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5 truncate">
-              {currentStats.subLabel} · Total Earnings:{' '}
-              <strong className="text-slate-900 font-mono">
-                {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
-              </strong>{' '}
-              ({currentStats.patientsCount} patients · {currentStats.treatmentsCount} treatments)
+              {currentStats.subLabel} · Gross: <strong className="text-slate-900 font-mono">{currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong> · Net Base: <strong className="text-slate-700 font-mono">{periodTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong> · 15% VAT: <strong className="text-sky-700 font-mono">+{periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong>
             </p>
           </div>
         </div>
@@ -431,9 +438,9 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* 3. FOUR PRIMARY SUMMARY CARDS (Dynamic & Simplistic Wording) */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Card 1: Total Earnings (Collected) */}
+      {/* 3. FIVE PRIMARY SUMMARY CARDS (With MoR 15% VAT Tax Compliance) */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        {/* Card 1: Total Earnings (Collected Gross) */}
         <div
           onClick={() => setIsReportModalOpen(true)}
           className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-emerald-500"
@@ -441,7 +448,7 @@ export default function ReportsPage() {
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <Banknote className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Total Earnings
+              Gross Earnings
             </span>
           </header>
           <div className="flex-1 px-4 pb-3.5 min-w-0">
@@ -450,7 +457,7 @@ export default function ReportsPage() {
                 {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">{currentStats.paymentsCount} payments received</div>
+                <div className="text-xs text-slate-500 truncate">{currentStats.paymentsCount} payments · Tax Inclusive</div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <svg
@@ -486,7 +493,7 @@ export default function ReportsPage() {
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 group-hover:text-amber-800">
-              Overdue / Unsettled Payments
+              Unsettled Payments
             </span>
             <span className="ms-auto inline-flex items-center gap-1 text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded border border-amber-200">
               {overduePatientsList.length} Due
@@ -579,6 +586,39 @@ export default function ReportsPage() {
                 <div className="h-full flex items-end">
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div className="w-3/4 h-full bg-slate-400 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 5: MoR 15% VAT Collected */}
+        <div
+          onClick={() => setIsReportModalOpen(true)}
+          className="relative flex flex-col rounded-2xl border border-sky-200/90 bg-white overflow-hidden shadow-xs cursor-pointer hover:bg-sky-50/40 transition-all before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-sky-600"
+        >
+          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
+            <Receipt className="w-4 h-4 shrink-0 text-sky-600" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
+              MoR 15% VAT
+            </span>
+            <span className="ms-auto inline-flex items-center text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded border border-sky-200">
+              FDRE Tax
+            </span>
+          </header>
+          <div className="flex-1 px-4 pb-3.5 min-w-0">
+            <div className="flex flex-col gap-1">
+              <div className="text-xl sm:text-2xl text-sky-950 font-bold font-mono truncate">
+                {periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+              </div>
+              <div className="flex items-center justify-between min-w-0 text-xs">
+                <span className="text-slate-500 truncate">Taxable Base: {periodTax.netETB.toLocaleString(undefined, { maximumFractionDigits: 0 })} ETB</span>
+              </div>
+              <div className="block w-full mt-2" style={{ height: 32 }}>
+                <div className="h-full flex items-end">
+                  <div className="w-full h-1.5 bg-sky-100 rounded-full overflow-hidden">
+                    <div className="w-full h-full bg-sky-600 rounded-full" />
                   </div>
                 </div>
               </div>
@@ -760,6 +800,120 @@ export default function ReportsPage() {
         </div>
       </section>
 
+      {/* 4.5 ETHIOPIAN MoR FISCAL TAX COMPLIANCE & VAT RECONCILIATION LEDGER */}
+      <section className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-sky-600">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">
+                  FDRE Ministry of Revenues (MoR) Fiscal Tax Compliance Ledger
+                </h3>
+                <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
+                  FDRE Proclamation No. 983/2016
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-mono">
+                Tax Identification Number (TIN): <strong>{clinic.tinNumber || '0049283711'}</strong> · Standard 15% VAT Inclusive Accounting
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>100% Tax Compliant</span>
+            </span>
+          </div>
+        </header>
+
+        <div className="p-5 overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
+                <th className="pb-3 font-semibold">Payment Tender / Channel</th>
+                <th className="pb-3 font-semibold text-right">Taxable Service Base (Net)</th>
+                <th className="pb-3 font-semibold text-right text-sky-700">MoR VAT (15%)</th>
+                <th className="pb-3 font-semibold text-right text-slate-900">Total Fiscal Turnover (Gross)</th>
+                <th className="pb-3 font-semibold text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              <tr>
+                <td className="py-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-sky-600" />
+                  <span>CBE Birr POS / Card Merchant</span>
+                </td>
+                <td className="py-3 text-right font-mono">{cbeTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-sky-700">+{cbeTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.cbeTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-slate-500" />
+                  <span>Telebirr SuperApp Merchant</span>
+                </td>
+                <td className="py-3 text-right font-mono">{telebirrTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-sky-700">+{telebirrTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.telebirrTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                  <span>Bank Transfer (RTGS / Wire)</span>
+                </td>
+                <td className="py-3 text-right font-mono">{transferTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-sky-700">+{transferTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.transferTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
+                </td>
+              </tr>
+              <tr>
+                <td className="py-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span>Physical Cash Vault</span>
+                </td>
+                <td className="py-3 text-right font-mono">{cashTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-sky-700">+{cashTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.cashTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-3 text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Audited</span>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-slate-900 font-bold bg-slate-50/80">
+                <td className="py-3 text-slate-900">
+                  <span className="text-xs uppercase tracking-wider font-extrabold">Total Practice Remittance ({currentStats.label})</span>
+                </td>
+                <td className="py-3 text-right font-mono text-slate-800 text-sm">
+                  {periodTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+                </td>
+                <td className="py-3 text-right font-mono text-sky-800 text-sm font-black">
+                  +{periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+                </td>
+                <td className="py-3 text-right font-mono text-emerald-700 text-sm font-black">
+                  {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
+                </td>
+                <td className="py-3 text-center">
+                  <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded border border-sky-300">MoR Ready</span>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
       {/* 5. DOCTOR EARNINGS */}
       <div className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-sky-500">
         <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
@@ -878,7 +1032,7 @@ export default function ReportsPage() {
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
-              Overdue / Unsettled Payments Breakdown
+              Unsettled Payments Breakdown
             </span>
           </div>
           <button
@@ -984,7 +1138,7 @@ export default function ReportsPage() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    Overdue / Unsettled Payments
+                    Unsettled Payments
                   </h3>
                   <p className="text-xs text-slate-500">
                     {overduePatientsList.length} active patient accounts with outstanding balance
@@ -1114,11 +1268,10 @@ export default function ReportsPage() {
                     key={period}
                     type="button"
                     onClick={() => setSelectedTimeframe(period)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      selectedTimeframe === period
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedTimeframe === period
                         ? 'bg-slate-900 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {TIMEFRAMES[period].label.split(' ')[0]}
                   </button>

@@ -5,6 +5,7 @@ import { X, Printer, CheckCircle2, QrCode } from 'lucide-react';
 import { Clinic, Appointment, LedgerTransaction } from '@/lib/types';
 import { useSinnaStore } from '@/lib/store';
 import { printThermalReceipt } from '@/lib/smart-print';
+import { calculateTaxInclusive } from '@/lib/tax-calculator';
 
 interface ReceiptModalProps {
   clinic?: Clinic;
@@ -21,6 +22,7 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
 
   const receiptNumber = transaction?.receiptNumber || appointment.receiptNumber || 'RCP-2026-0089';
   const finalAmount = transaction?.amountETB || (appointment.totalDueETB - appointment.depositPaidETB);
+  const tax = calculateTaxInclusive(finalAmount, 0.15, clinic.tinNumber || '0049283711');
 
   const handlePrint = () => {
     printThermalReceipt({
@@ -30,7 +32,7 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
       serviceName: appointment.serviceName,
       amountETB: finalAmount,
       paymentMethod: transaction?.method || 'Telebirr / Cash',
-      tinNumber: '0049283711'
+      tinNumber: clinic.tinNumber || '0049283711'
     }, clinic);
   };
 
@@ -118,10 +120,23 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
             <div className="border-b-2 border-dashed border-slate-300 my-2"></div>
           </div>
 
+          {/* MoR Fiscal Tax-Inclusive Breakdown */}
+          <div className="space-y-1.5 text-[11px] pb-1">
+            <div className="flex justify-between text-slate-600">
+              <span>Taxable Base (Net Service Value):</span>
+              <span className="font-mono">{tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+            </div>
+            <div className="flex justify-between text-slate-600">
+              <span>VAT ({tax.vatRatePercent} Ministry of Revenues):</span>
+              <span className="font-mono">{tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+            </div>
+            <div className="border-b border-dashed border-slate-200 my-1"></div>
+          </div>
+
           <div className="space-y-1 text-xs">
             <div className="flex justify-between text-sm font-bold text-slate-950">
-              <span>AMOUNT PAID NOW:</span>
-              <span>{finalAmount.toLocaleString()} ETB</span>
+              <span>TOTAL PAID (TAX INCLUSIVE):</span>
+              <span className="text-brand-primary">{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
             </div>
             <div className="flex justify-between text-[11px] text-slate-500">
               <span>PAYMENT METHOD:</span>

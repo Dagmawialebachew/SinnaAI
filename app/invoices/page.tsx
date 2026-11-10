@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
 import { printFiscalInvoice } from '@/lib/smart-print';
+import { aggregateTaxInclusive, calculateTaxInclusive } from '@/lib/tax-calculator';
 
 export type InvoiceStatus = 'Issued' | 'Paid' | 'Partially paid' | 'Draft';
 
@@ -221,6 +222,15 @@ export default function InvoicesPage() {
   const [newTotal, setNewTotal] = useState('2500');
   const [newPaymentMethod, setNewPaymentMethod] = useState<'Telebirr' | 'CBE Birr' | 'Cash' | 'Chapa'>('Telebirr');
 
+  // Dynamic MoR 15% VAT Aggregate
+  const invoiceTaxSummary = useMemo(() => {
+    return aggregateTaxInclusive(
+      invoices.map((inv) => inv.totalETB),
+      0.15,
+      clinic.tinNumber || '0049283711'
+    );
+  }, [invoices, clinic.tinNumber]);
+
   // Filtered & Sorted list
   const filteredInvoices = useMemo(() => {
     return invoices
@@ -308,6 +318,22 @@ export default function InvoicesPage() {
               <Plus className="shrink-0 size-4 stroke-[2.5]" />
               <span>New invoice</span>
             </button>
+          </div>
+        </div>
+
+        {/* Ethiopian Fiscal Tax Summary Pill Badges */}
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <div className="inline-flex items-center gap-1.5 text-xs bg-slate-100 text-slate-800 px-3 py-1 rounded-lg border border-slate-200">
+            <span className="text-slate-500 font-medium">Gross Invoiced:</span>
+            <strong className="font-mono">{invoiceTaxSummary.grossETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
+          </div>
+          <div className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg border border-emerald-200">
+            <span className="text-emerald-600 font-medium">Taxable Net Base:</span>
+            <strong className="font-mono">{invoiceTaxSummary.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
+          </div>
+          <div className="inline-flex items-center gap-1.5 text-xs bg-sky-50 text-sky-800 px-3 py-1 rounded-lg border border-sky-200">
+            <span className="text-sky-600 font-medium">MoR 15% VAT:</span>
+            <strong className="font-mono">+{invoiceTaxSummary.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
           </div>
         </div>
       </header>
@@ -458,9 +484,12 @@ export default function InvoicesPage() {
                         <span className={`hidden md:inline text-xs font-mono font-medium ${invoice.isOverdue ? 'text-rose-600' : 'text-slate-500'}`}>
                           {invoice.dueDate}
                         </span>
-                        <div className="text-end min-w-[110px]">
+                        <div className="text-end min-w-[130px]">
                           <span className="font-mono font-bold text-slate-900 text-sm block">
                             {invoice.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 block">
+                            Net: {(invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })} · VAT: +{(invoice.totalETB - invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                           </span>
                           {invoice.balanceETB > 0 ? (
                             <span className="text-[11px] font-mono text-amber-600 block">

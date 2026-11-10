@@ -15,6 +15,7 @@ import {
 import { DayCloseReport, Clinic } from '@/lib/types';
 import { useSinnaStore } from '@/lib/store';
 import { smartPrint } from '@/lib/smart-print';
+import { calculateTaxInclusive } from '@/lib/tax-calculator';
 
 interface ZReportModalProps {
   report?: DayCloseReport | null;
@@ -61,6 +62,10 @@ export function ZReportModal({ report: reportProp, clinic: clinicProp, isOpen, o
   };
 
   const isBalanced = Math.abs(report.cashVarianceETB) < 0.01;
+  const totalTax = calculateTaxInclusive(report.totalCollectedETB, 0.15, report.tinNumber);
+  const cashTax = calculateTaxInclusive(report.cashExpectedETB, 0.15, report.tinNumber);
+  const telebirrTax = calculateTaxInclusive(report.telebirrTotalETB, 0.15, report.tinNumber);
+  const cbeTax = calculateTaxInclusive(report.cbeTotalETB, 0.15, report.tinNumber);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
@@ -166,6 +171,42 @@ export function ZReportModal({ report: reportProp, clinic: clinicProp, isOpen, o
               <div className="pt-2 border-t border-slate-200 flex justify-between text-sm font-bold text-slate-950">
                 <span>TOTAL REVENUE:</span>
                 <span className="text-brand-primary">{report.totalCollectedETB.toLocaleString()} ETB</span>
+              </div>
+            </div>
+
+            {/* MoR VAT Remittance & Fiscal Tax Ledger */}
+            <div className="space-y-2 border-b border-dashed border-slate-300 pb-4 bg-sky-50/60 -mx-5 px-5 py-3 border-t">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-sky-950 uppercase tracking-wider">MoR 15% VAT Reconciliation</span>
+                <span className="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded border border-sky-200">FDRE MoR Procl. 983</span>
+              </div>
+
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-600">Taxable Clinical Base (Net):</span>
+                <span className="font-bold text-slate-800">{totalTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+              </div>
+              <div className="flex justify-between text-xs text-sky-800">
+                <span className="font-semibold">MoR VAT Remittance (15%):</span>
+                <span className="font-black text-sky-950">+{totalTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+              </div>
+              <div className="flex justify-between text-xs font-bold pt-1 border-t border-sky-200 text-slate-900">
+                <span>Gross Fiscal Turnover:</span>
+                <span className="font-mono">{report.totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+              </div>
+
+              <div className="text-[9.5px] text-slate-500 pt-2 grid grid-cols-3 gap-1 border-t border-dashed border-sky-200">
+                <div>
+                  <span className="block text-slate-500 text-[8.5px]">Cash VAT</span>
+                  <span className="font-bold text-slate-800 font-mono">{cashTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ETB</span>
+                </div>
+                <div>
+                  <span className="block text-slate-500 text-[8.5px]">Telebirr VAT</span>
+                  <span className="font-bold text-slate-800 font-mono">{telebirrTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ETB</span>
+                </div>
+                <div>
+                  <span className="block text-slate-500 text-[8.5px]">CBE Birr VAT</span>
+                  <span className="font-bold text-slate-800 font-mono">{cbeTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ETB</span>
+                </div>
               </div>
             </div>
 

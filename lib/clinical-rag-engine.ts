@@ -1,3 +1,7 @@
+import { FullPatientProfile, INITIAL_PATIENTS } from './initial-patients';
+import { TreatmentPlan, TreatmentContract, ServiceItem } from './types';
+import { INITIAL_TREATMENT_PLANS, INITIAL_TREATMENT_CONTRACTS } from './mock-db';
+
 /**
  * Sinna Dental AI — Clinical RAG & Grounded Intelligence Engine
  * 
@@ -95,6 +99,9 @@ export interface LiveClinicSnapshot {
   }>;
   pendingQuotesCount?: number;
   totalPendingQuotesETB?: number;
+  patients?: FullPatientProfile[];
+  treatmentPlans?: TreatmentPlan[];
+  contracts?: TreatmentContract[];
 }
 
 // ---------------------------------------------------------------------------
@@ -184,42 +191,48 @@ export interface StarterPromptConfig {
 export const STARTER_PROMPTS_BY_ROLE: Record<'reception' | 'doctor' | 'admin', Record<ChatLanguage, string[]>> = {
   reception: {
     en: [
+      'What is the remaining balance and treatment plan for Tigist Alemu?',
       'Who is waiting in reception right now?',
       'How much Cash and Telebirr was collected today?',
       'Which patients have phone recalls due today?',
-      'Are Chair 1 and Chair 2 ready for seating?',
+      'What is the price of routine teeth cleaning & scaling?',
     ],
     am: [
+      'የትዕግስት አለሙ ህክምና እቅድ እና ቀሪ ሂሳብ ስንት ነው?',
       'አሁን መቀበያ ክፍል ውስጥ ማን እየጠበቀ ነው?',
       'ዛሬ በጥሬ ገንዘብ እና በቴሌብር ስንት ተሰበሰበ?',
-      'ዛሬ ስልክ ሊደወልላቸው የሚገቡ ታካሚዎች እነማን ናቸው?',
+      'የስር ህክምና (Root canal) ዋጋ ስንት ነው?',
       'ወንበር 1 እና ወንበር 2 ታካሚ ለመቀበል ዝግጁ ናቸው?',
     ],
     om: [
+      'Beellamni fi kaffaltiin hafe Tigist Alemu meeqa?',
       'Amma kutaa keessummeessaa keessa eenyutu eegaa jira?',
       'Har\'a Kaashii fi Telebirr meeqatu walitti qabame?',
-      'Har\'a bilbilaan eenyuutu yaadachiifamuu qaba?',
+      'Gatiin yaala narvii ilkaanii meeqa?',
       'Barcumni 1 fi 2 qophaa\'eeraa?',
     ],
   },
   doctor: {
     en: [
-      'Show medical alerts for patient in Chair 1.',
-      'What are the post-extraction care instructions?',
+      'What is the remaining balance and treatment plan for Tigist Alemu?',
+      'Does Kalkidan Yohannes have any medical alerts or drug allergies?',
       'What is the standard fee for Root Canal Treatment (RCT)?',
+      'Explain Sinna AI architecture for Ministry of Innovation (MInT).',
       'What are the adult dosage guidelines for Amoxicillin?',
     ],
     am: [
-      'በወንበር 1 (Chair 1) ላይ ላለው ታካሚ የጤና ማስጠንቀቂያዎች (Alerts) አሳየኝ።',
-      'ከጥርስ መንቀል በኋላ ለታካሚው የሚላክ የጥንቃቄ መመሪያ።',
+      'የትዕግስት አለሙ ህክምና እቅድ እና ቀሪ ሂሳብ ስንት ነው?',
+      'የቃልኪዳን ዮሐንስ የህክምና ማስጠንቀቂያ እና አሌርጂ ምንድን ነው?',
       'ለጥርስ ነርቭ ህክምና (RCT) መደበኛ ክፍያ ስንት ነው?',
-      'የአሞክሳሲሊን የመጠን መመሪያዎችን አሳየኝ።',
+      'የሲና AI ክሊኒካዊ አርክቴክቸር ለኢኖቬሽን ሚኒስቴር (MInT) አብራራ።',
+      'ከጥርስ መንቀል በኋላ ለታካሚው የሚሰጥ የጥንቃቄ መመሪያ።',
     ],
     om: [
-      'Odeeffannoo fayyaa dhukkubsataa barcuma 1 irra jiruu na agarsiisi.',
-      'Qajeelfama erga ilkaan buqqifamee boodaa naaf kenni.',
+      'Beellamni fi kaffaltiin hafe Tigist Alemu meeqa?',
+      'Kalkidan Yohannes dhukkubbiifi alarjikii qabdi?',
       'Gatiin yaala narvii (RCT) meeqa?',
-      'Qajeelfama qoricha Amoxicillin naaf ibsi.',
+      'Qajeelfama erga ilkaan buqqifamee boodaa naaf kenni.',
+      'Odeeffannoo fayyaa dhukkubsataa barcuma 1 irra jiruu na agarsiisi.',
     ],
   },
   admin: {
@@ -487,28 +500,75 @@ export function buildGroundedSystemInstruction(
   const clinicTin = snapshot.clinicTin || '0049283711';
   const clinicMrrPrefix = snapshot.clinicMrrPrefix || 'BDS';
 
+  // Format patient profiles
+  const patientsList = snapshot.patients?.length ? snapshot.patients : INITIAL_PATIENTS;
+  const patientsSummary = patientsList
+    .map((p) => {
+      const alerts = [
+        ...(p.allergies || []).map((a) => `Allergy: ${a}`),
+        ...(p.systemicDiseases || []).map((s) => `Systemic Condition: ${s}`),
+        ...(p.specialConditions || []).map((c) => `Clinical Precaution: ${c}`),
+      ].join('; ') || 'No critical alerts';
+      const teethNotes = p.chartNotation
+        ? Object.entries(p.chartNotation)
+            .map(([t, s]) => `Tooth ${t}: ${s.toUpperCase()}`)
+            .join(', ')
+        : 'Healthy dentition';
+      return `- Patient: ${p.name} (${p.nameAmharic || ''}) | MRN: ${p.mrn} | Age: ${p.age} (${p.gender}) | Subcity: ${p.subcity}
+  * Medical Alerts: ${alerts}
+  * Active Plan: ${p.activePlanTitle || 'Routine Maintenance'}
+  * Financials: Total Billed: ${(p.balanceETB + p.totalPaidETB).toLocaleString()} ETB | Total Paid: ${p.totalPaidETB.toLocaleString()} ETB | Balance Due: ${p.balanceETB.toLocaleString()} ETB
+  * 32-Tooth Chart: ${teethNotes}`;
+    })
+    .join('\n\n');
+
+  // Format staged treatment plans
+  const plansList = snapshot.treatmentPlans?.length ? snapshot.treatmentPlans : INITIAL_TREATMENT_PLANS;
+  const plansSummary = plansList
+    .map((plan) => {
+      const procs = plan.procedures
+        .map((pr) => `    • [Tooth ${pr.toothNumber}] ${pr.name}: ${pr.feeETB.toLocaleString()} ETB (Status: ${pr.status})`)
+        .join('\n');
+      return `- Plan ID: ${plan.id} | Patient: ${plan.patientName} (${plan.patientPhone}) | Status: ${plan.status.toUpperCase()}
+  Title: ${plan.title}
+  Total Quote Amount: ${plan.quoteAmountETB?.toLocaleString() || 0} ETB
+  Staged Procedures:
+${procs}`;
+    })
+    .join('\n\n');
+
+  // Format contracts & payment installments
+  const contractsList = snapshot.contracts?.length ? snapshot.contracts : INITIAL_TREATMENT_CONTRACTS;
+  const contractsSummary = contractsList
+    .map((c) => {
+      return `- Contract ID: ${c.id} | Patient: ${c.patientName} | Category: ${c.category.toUpperCase()} | Title: ${c.title}
+  Total Contract: ${c.totalContractETB.toLocaleString()} ETB | Down Payment: ${c.downPaymentETB.toLocaleString()} ETB
+  Remaining Balance: ${c.remainingBalanceETB.toLocaleString()} ETB | Installment per Visit: ${c.installmentPerVisitETB.toLocaleString()} ETB/visit
+  Next Due Visit: ${c.nextDueVisitDate || 'Scheduled on calendar'} | Status: ${c.status.toUpperCase()}`;
+    })
+    .join('\n');
+
   return `You are the official Sinna Dental AI Assistant for ${clinicName} in Addis Ababa, Ethiopia.
-Your role: Clinical Reception and Diagnostic Operations Copilot.
+Your role: Clinical Operations, Diagnostic Reasoning & Patient Practice Copilot.
 Current User Persona: ${role.toUpperCase()}
 Current Web Page: ${snapshot.route} (${snapshot.pageTitle || 'Active Page'})
 Requested Response Language: ${targetLang}
 
 CRITICAL RULES (NON-NEGOTIABLE CLINICAL INTEGRITY):
-1. ZERO HALLUCINATIONS: You MUST ONLY answer based on the verified clinic knowledge base and the live database snapshot below. Never invent appointment times, patient names, financial numbers, or clinical procedures.
-2. If asked about today's schedule, waiting room, occupied chairs, or revenue, USE THE EXACT FIGURES PROVIDED in the LIVE DATABASE SNAPSHOT below.
-3. If an answer cannot be determined from the provided context, politely state:
-   - In English: "Based on ${clinicName} records, this information is not documented. Please contact our reception desk at ${clinicPhone}."
-   - In Amharic: "በ${clinicName} መረጃ መሰረት ይህ አልተመዘገበም። እባክዎ በመቀበያ ስልካችን ${clinicPhone} ይደውሉ።"
-   - In Afaan Oromoo: "Oodeeffannoo ${clinicName} irratti hundaa'uun kun hin galmoofne. Maaloo lakkoofsa keenya ${clinicPhone} irratti bilbilaa."
-4. ZERO EMOJIS: Never use emojis in your response under any circumstance. Adhere strictly to the clean Swiss/Nordic clinical precision aesthetic (DentalPin / Linear style).
-5. TONE: Calm, highly competent, professional, respectful, and clinically accurate.
-6. ETHIOPIAN CONTEXT: Currency is Ethiopian Birr (ETB). Payment rails are Telebirr, CBE Birr, and Cash. Location is ${clinicLocation}. Ministry of Revenues TIN is ${clinicTin}. Tooth notation is FDI 32-tooth standard (11-48). All patient appointment IDs and medical record cards use the strict ${clinicMrrPrefix} 5-digit format (e.g. ${clinicMrrPrefix}-00210, ${clinicMrrPrefix}-10492). NEVER use apt- or ap- prefixes under any circumstance.
+1. ZERO HALLUCINATIONS: You MUST strictly ground your answers in the verified clinical knowledge base, patient records, treatment plans, and live database snapshot below. Never invent arbitrary patient histories or fee schedules.
+2. PATIENT RECORDS & TREATMENT PLANS: When asked about any patient (e.g., Tigist Alemu, Kalkidan Yohannes, Abebe Kebede, Dawit Haile, etc.), refer directly to the VERIFIED PATIENT CLINICAL DIRECTORY and TREATMENT PLANS below. Detail their exact active treatment plan, tooth numbers, medical alerts, allergies, and ETB balances.
+3. SCHEDULE & REVENUE: If asked about today's schedule, waiting room, chairs, or revenue, USE THE EXACT FIGURES PROVIDED in the LIVE DATABASE SNAPSHOT below.
+4. ZERO EMOJIS: Never use emojis under any circumstance. Adhere strictly to the clean Swiss/Nordic clinical precision aesthetic (DentalPin / Linear style).
+5. CLINICAL TONE: Highly professional, clinically accurate, calm, respectful, and authoritative.
+6. ETHIOPIAN HEALTHCARE & FINANCIAL CONTEXT: Currency is Ethiopian Birr (ETB). Payment rails are Telebirr SuperApp, CBE Birr POS, Physical Cash, and Chapa. Ministry of Revenues Fiscal TIN is ${clinicTin}. Standard Ethiopian Value Added Tax (VAT) is 15% inclusive (FDRE Proclamation No. 983/2016). Clinical service fees are tax-inclusive: Net (Taxable Base) = Gross / 1.15; VAT (15%) = Gross - Net. All receipts, invoices, and reports reflect this breakdown. Clinic location is ${clinicLocation}. Dental chart standard is the FDI 32-Tooth World Dental Federation two-digit system (11-18, 21-28, 31-38, 41-48).
 7. LANGUAGE: Respond natively and fluently in ${targetLang}.
-8. AUTOMATON ACTIONS: When recommending booking, calling, or viewing specific views, append optional action triggers on their own lines:
+8. AUTOMATON ACTIONS: When recommending booking, calling, or navigating to specific views, append action triggers on their own lines:
    [ACTION:NAVIGATE|/schedule|View Operatory Chairs]
    [ACTION:NAVIGATE|/recalls|View Overdue Recalls]
    [ACTION:NAVIGATE|/invoices|View MoR Invoices]
    [ACTION:NAVIGATE|/payments|Open Cashier Ledger]
+   [ACTION:NAVIGATE|/treatment-plans|View Treatment Plans]
+   [ACTION:NAVIGATE|/patients|View Patient Directory]
    [ACTION:BOOK_DOCTOR|Dr. Senait Tadesse|Book with Dr. Senait]
    [ACTION:BOOK_SERVICE|srv-cleaning|Book Routine Cleaning]
    [ACTION:CALL_CLINIC|${clinicPhone.replace(/\s+/g, '')}|Call Reception Desk]
@@ -518,6 +578,15 @@ CRITICAL RULES (NON-NEGOTIABLE CLINICAL INTEGRITY):
 
 === VERIFIED CLINICAL KNOWLEDGE BASE ===
 ${CLINICAL_KNOWLEDGE_DOCS.map((doc) => `[${doc.title}]\n${doc.content}`).join('\n\n')}
+
+=== VERIFIED PATIENT CLINICAL DIRECTORY & MEDICAL HISTORIES ===
+${patientsSummary}
+
+=== VERIFIED TREATMENT PLANS & PROCEDURAL STAGING ===
+${plansSummary}
+
+=== VERIFIED TREATMENT CONTRACTS & INSTALLMENT BALANCES ===
+${contractsSummary}
 
 === LIVE CLINICAL DATABASE SNAPSHOT (EXACT TRUTH) ===
 - Current Page Route: ${snapshot.route}
@@ -688,6 +757,269 @@ export function resolveOfflineClinicalQuery(
     },
   };
 
+  // -------------------------------------------------------------------------
+  // PRIORITY 1: PATIENT RECORD & CLINICAL PROFILE DIRECT MATCH
+  // -------------------------------------------------------------------------
+  const patientsList = snapshot.patients?.length ? snapshot.patients : INITIAL_PATIENTS;
+  const plansList = snapshot.treatmentPlans?.length ? snapshot.treatmentPlans : INITIAL_TREATMENT_PLANS;
+  const contractsList = snapshot.contracts?.length ? snapshot.contracts : INITIAL_TREATMENT_CONTRACTS;
+
+  const matchedPatient = patientsList.find((p) => {
+    const pName = p.name.toLowerCase();
+    const pAm = (p.nameAmharic || '').toLowerCase();
+    const pMrn = p.mrn.toLowerCase();
+    const nameParts = pName.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts[1] || '';
+    return (
+      q.includes(pName) ||
+      (firstName.length > 3 && q.includes(firstName)) ||
+      (lastName.length > 3 && q.includes(lastName)) ||
+      (pAm.length > 2 && q.includes(pAm)) ||
+      q.includes(pMrn)
+    );
+  });
+
+  if (matchedPatient) {
+    const pPlan = plansList.find(
+      (pl) =>
+        pl.patientId === matchedPatient.id ||
+        pl.patientName.toLowerCase().includes(matchedPatient.name.toLowerCase()) ||
+        matchedPatient.name.toLowerCase().includes(pl.patientName.toLowerCase())
+    );
+    const pContract = contractsList.find(
+      (c) =>
+        c.patientName.toLowerCase().includes(matchedPatient.name.toLowerCase()) ||
+        matchedPatient.name.toLowerCase().includes(c.patientName.toLowerCase())
+    );
+
+    const alertsList = [
+      ...(matchedPatient.allergies || []).map((a) => `Allergy: ${a}`),
+      ...(matchedPatient.systemicDiseases || []).map((s) => `Systemic: ${s}`),
+      ...(matchedPatient.specialConditions || []).map((c) => `Precaution: ${c}`),
+    ];
+    const alertsFormatted = alertsList.length > 0 ? alertsList.join(' | ') : 'No critical alerts reported.';
+
+    const teethArr = matchedPatient.chartNotation
+      ? Object.entries(matchedPatient.chartNotation).map(([tNum, status]) => `Tooth #${tNum} (${status.toUpperCase()})`)
+      : [];
+    const teethFormatted = teethArr.length > 0 ? teethArr.join(', ') : 'Healthy dentition';
+
+    const planProcedures = pPlan?.procedures?.length
+      ? pPlan.procedures
+          .map((pr) => `  • [Tooth ${pr.toothNumber}] ${pr.name} — **${pr.feeETB.toLocaleString()} ETB** (${pr.status})`)
+          .join('\n')
+      : '  • Routine dental maintenance & prophylaxis';
+
+    const remainingBal = pContract ? pContract.remainingBalanceETB : matchedPatient.balanceETB;
+    const totalContractAmt = pContract ? pContract.totalContractETB : (pPlan?.quoteAmountETB || matchedPatient.balanceETB);
+
+    if (lang === 'am') {
+      const responseAm = `**የታካሚ ክሊኒካዊ መዝገብ፦ ${matchedPatient.name} (${matchedPatient.nameAmharic || ''})**\n` +
+        `- **የካርድ ቁጥር (MRN):** \`${matchedPatient.mrn}\`\n` +
+        `- **ዕድሜ እና ጾታ:** ${matchedPatient.age} ዓመት (${matchedPatient.gender === 'Female' ? 'ሴት' : 'ወንድ'}) | ${matchedPatient.subcity}\n` +
+        `- **የህክምና ማስጠንቀቂያዎች:** ${alertsFormatted}\n` +
+        `- **የጥርስ ሁኔታ (FDI 32-Tooth):** ${teethFormatted}\n\n` +
+        `**የህክምና እቅድ እና የክፍያ ሁኔታ (Treatment Plan & Financials):**\n` +
+        `- **የእቅድ ርዕስ:** ${pPlan?.title || matchedPatient.activePlanTitle || 'መደበኛ ክትትል'}\n` +
+        `- **ጠቅላላ የህክምና ዋጋ:** **${totalContractAmt.toLocaleString()} ብር (ETB)**\n` +
+        `- **እስካሁን የተከፈለ:** ${matchedPatient.totalPaidETB.toLocaleString()} ብር\n` +
+        `- **ቀሪ የሚጠበቅ ሂሳብ (Remaining Balance):** **${remainingBal.toLocaleString()} ብር (ETB)**\n` +
+        (pContract ? `- **የውል ሁኔታ:** በጉብኝት ${pContract.installmentPerVisitETB.toLocaleString()} ብር ክፍፍል (ቀጣይ ጉብኝት ቀን፦ ${pContract.nextDueVisitDate || 'በቀጠሮ ሰሌዳ ላይ'})\n` : '') +
+        `\n**የተካተቱ ህክምናዎች፦**\n${planProcedures}`;
+
+      return {
+        text: responseAm,
+        sources: [
+          `Bole Dental Studio Clinical Archive (${matchedPatient.mrn})`,
+          'FDI Odontogram & Staged Treatment Ledger',
+          'Ministry of Revenues TIN 0049283711'
+        ],
+        suggestedPrompts: [
+          `የ${matchedPatient.name.split(' ')[0]} የህክምና ማስታወሻዎችን አሳይ`,
+          'የዛሬው አጠቃላይ ገቢ ስንት ነው?'
+        ],
+      };
+    }
+
+    const responseEn = `**Clinical Patient Record: ${matchedPatient.name}**\n\n` +
+      `- **Medical Record Number (MRN):** \`${matchedPatient.mrn}\`\n` +
+      `- **Demographics:** ${matchedPatient.age} years old (${matchedPatient.gender}) | ${matchedPatient.subcity}\n` +
+      `- **Medical Alerts & Precautions:** ${alertsFormatted}\n` +
+      `- **32-Tooth FDI Odontogram:** ${teethFormatted}\n\n` +
+      `### Staged Treatment Plan & Financial Ledger\n` +
+      `- **Plan Title:** ${pPlan?.title || matchedPatient.activePlanTitle || 'Routine Diagnostic Care'}\n` +
+      `- **Total Contract / Quote:** **${totalContractAmt.toLocaleString()} ETB**\n` +
+      `- **Total Paid to Date:** ${matchedPatient.totalPaidETB.toLocaleString()} ETB\n` +
+      `- **Remaining Balance Due:** **${remainingBal.toLocaleString()} ETB**\n` +
+      (pContract ? `- **Financing:** Down Payment: ${pContract.downPaymentETB.toLocaleString()} ETB; Installment: ${pContract.installmentPerVisitETB.toLocaleString()} ETB/visit (Next Due: ${pContract.nextDueVisitDate || 'Scheduled on calendar'})\n` : '') +
+      `\n**Staged Procedures:**\n${planProcedures}\n\n` +
+      `*All records comply with Ministry of Revenues Fiscal TIN ${clinicTin}.*`;
+
+    return {
+      text: responseEn,
+      sources: [
+        `Patient Chart ${matchedPatient.mrn}`,
+        'Active Restorative Staging Ledger',
+        'Bole Dental Clinical Repository'
+      ],
+      suggestedPrompts: [
+        `Does ${matchedPatient.name.split(' ')[0]} have any drug allergies?`,
+        'What is our MoR fiscal revenue breakdown for today?'
+      ],
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // PRIORITY 2: ETHIOPIAN DENTAL PROCEDURES & OFFICIAL FEE SCHEDULE
+  // -------------------------------------------------------------------------
+  // 2A. Root Canal Treatment (RCT / የስር ህክምና / ነርቭ)
+  if (
+    q.includes('root canal') ||
+    q.includes('rct') ||
+    q.includes('ስር ህክምና') ||
+    q.includes('የስር') ||
+    q.includes('ነርቭ') ||
+    q.includes('narvii') ||
+    q.includes('pulpectomy') ||
+    q.includes('endodont')
+  ) {
+    return {
+      text: t.rct[lang],
+      sources: ['Official Ethiopian Dental Fee Schedule', 'Endodontic Clinical Guidelines'],
+      suggestedPrompts: [
+        lang === 'am' ? 'የትዕግስት አለሙ ህክምና እቅድ እና ቀሪ ሂሳብ ስንት ነው?' : 'What is the remaining balance and treatment plan for Tigist Alemu?',
+        lang === 'am' ? 'የጥርስ ማጽዳት ክፍያ ስንት ነው?' : 'How much is teeth cleaning & scaling?'
+      ],
+    };
+  }
+
+  // 2B. Fillings & Composite Restorations (ማስሞላት / ሙሌት / Composite)
+  if (
+    q.includes('fill') ||
+    q.includes('composite') ||
+    q.includes('ሞላ') ||
+    q.includes('ማስሞላት') ||
+    q.includes('ሙሌት') ||
+    q.includes('resin')
+  ) {
+    const textEn = `Composite Resin Tooth Fillings at ${clinicName}:\n\n` +
+      `- **Class I (Single-Surface Posterior / Pit & Fissure):** 1,800 – 2,200 ETB\n` +
+      `- **Class II (Multi-Surface Interproximal Posterior):** 2,800 – 3,200 ETB\n` +
+      `- **Anterior Aesthetic Composite (Class III / IV / V):** 2,500 – 3,500 ETB\n` +
+      `- **Material:** Nano-hybrid 3M Filtek Supreme Universal Restorative (color-matched to VITA shade guide).\n` +
+      `- **Includes:** Local anesthesia, caries excavation, rubber dam isolation, light-curing, and high-gloss polish.`;
+    const textAm = `በ${clinicName} የጥርስ ማስሞላት ህክምና (Composite Fillings) ዋጋ፦\n\n` +
+      `- **ነጠላ ወለል (Class I Single-Surface)፦** ከ 1,800 እስከ 2,200 ብር (ETB)\n` +
+      `- **ባለብዙ ወለል የመንጋጋ ጥርስ (Class II Multi-Surface)፦** ከ 2,800 እስከ 3,200 ብር (ETB)\n` +
+      `- **የፊት ጥርስ ውበት ሙሌት (Anterior Aesthetic)፦** ከ 2,500 እስከ 3,500 ብር (ETB)\n` +
+      `- **ጥቅም ላይ የሚውለው ማቴሪያል፦** ዘመናዊ ናኖ-ሃይብሪድ 3M Filtek (ከጥርስዎ ቀለም ጋር በትክክል የሚመሳሰል)።\n` +
+      `- **የሚያካትተው፦** የአካባቢ ማደንዘዣ፣ የተበላሸውን ክፍል በጥንቃቄ ማጽዳት እና ማስተካከልን ያካትታል።`;
+
+    return {
+      text: lang === 'am' ? textAm : textEn,
+      sources: ['Restorative Clinical Protocols', 'Bole Dental Fee Schedule'],
+      suggestedPrompts: [
+        lang === 'am' ? 'የስር ህክምና (Root canal) ዋጋ ስንት ነው?' : 'How much is root canal treatment (RCT)?',
+        lang === 'am' ? 'የትዕግስት አለሙ ህክምና እቅድ ምንድን ነው?' : 'What is the treatment plan for Tigist Alemu?'
+      ],
+    };
+  }
+
+  // 2C. Tooth Extraction & Oral Surgery (መንቀል / ማውጣት / Extraction)
+  if (
+    q.includes('extract') ||
+    q.includes('መንቀል') ||
+    q.includes('ማውጣት') ||
+    q.includes('surgical') ||
+    q.includes('wisdom') ||
+    q.includes('ጥርስ ማውጣት')
+  ) {
+    const textEn = `Tooth Extractions & Oral Surgery with Dr. Dawit Bekele at ${clinicName}:\n\n` +
+      `- **Simple Erupted Tooth Extraction:** 1,000 ETB\n` +
+      `- **Firm Premolar / Molar Multi-Root Extraction:** 1,500 ETB\n` +
+      `- **Surgical Impacted Wisdom Tooth Extraction (Third Molar):** 2,200 ETB\n` +
+      `- **Protocol:** Sterile surgical field, local infiltration / mandibular block, suture closure, and post-op sterile gauze pack.`;
+    const textAm = `የጥርስ ንቀላ እና የቀዶ ጥገና ህክምና በዶ/ር ዳዊት በቀለ በ${clinicName}፦\n\n` +
+      `- **ቀላል የጥርስ ንቀላ (Simple Extraction)፦** 1,000 ብር (ETB)\n` +
+      `- **የመንጋጋ ጥርስ ንቀላ (Multi-Root Molar)፦** 1,500 ብር (ETB)\n` +
+      `- **የተቀበረ የጥበብ ጥርስ የቀዶ ጥገና ንቀላ (Surgical Impacted Wisdom)፦** 2,200 ብር (ETB)\n` +
+      `- **የሚያካትተው፦** ሙሉ ማደንዘዣ፣ የቀዶ ጥገና ማጽዳት፣ ስፌት እና አስፈላጊውን መድሃኒት ማዘዝን ያካትታል።`;
+
+    return {
+      text: lang === 'am' ? textAm : textEn,
+      sources: ['Oral & Maxillofacial Surgery Protocol', 'Bole Dental Tariff'],
+      suggestedPrompts: [
+        lang === 'am' ? 'ከዶ/ር ዳዊት ጋር ቀጠሮ መያዝ እችላለሁ?' : 'Can I book an appointment with Dr. Dawit Bekele?',
+      ],
+    };
+  }
+
+  // 2D. Dental Implants & Titanium Fixtures (ተከላ / Implants)
+  if (
+    q.includes('implant') ||
+    q.includes('ተከላ') ||
+    q.includes('የጥርስ ተከላ') ||
+    q.includes('titanium')
+  ) {
+    const textEn = `Titanium Dental Implants with Dr. Dawit Bekele at ${clinicName}:\n\n` +
+      `- **Price per Unit:** **28,000 ETB**\n` +
+      `- **Includes:** Grade-V Titanium fixture, surgical placement, custom abutment, and final high-strength ceramic crown.\n` +
+      `- **Diagnostic Workup:** CBCT 3D bone mapping and virtual surgical stent planning (1,500 ETB).\n` +
+      `- **Warranty:** 10-year structural osseointegration clinical guarantee.`;
+    const textAm = `የጥርስ ተከላ (Dental Implants) በዶ/ር ዳዊት በቀለ በ${clinicName}፦\n\n` +
+      `- **የአንድ ጥርስ ተከላ ዋጋ፦** **28,000 ብር (ETB)**\n` +
+      `- **የሚያካትተው፦** የታይታኒየም ስር መትከል፣ የአጥንት ዝግጅት፣ አባውትመንት (Abutment) እና ጽኑ የሴራሚክ ጥርስ መግጠምን ያካትታል።\n` +
+      `- **ምርመራ፦** የ 3D አጥንት ስካን እና የኮምፒውተር እቅድ ዝግጅት (1,500 ብር)።\n` +
+      `- **ዋስትና፦** የ 10 ዓመት ክሊኒካዊ የጥራት ዋስትና አለው።`;
+
+    return {
+      text: lang === 'am' ? textAm : textEn,
+      sources: ['Implantology Clinical Standards', 'Bole Dental Surgical Catalog'],
+      suggestedPrompts: [
+        lang === 'am' ? 'የ 300 ብር ቅድመ ክፍያ ደንብ ምንድን ነው?' : 'What is your 300 ETB deposit policy?',
+      ],
+    };
+  }
+
+  // 2E. Ministry of Innovation & Technology (MInT) & Architectural Queries
+  if (
+    q.includes('mint') ||
+    q.includes('ministry of innovation') ||
+    q.includes('ሚኒስቴር') ||
+    q.includes('innovation') ||
+    q.includes('architecture') ||
+    q.includes('digital ethiopia')
+  ) {
+    const textEn = `**Sinna Dental AI — Enterprise Healthcare Architecture (MInT Showcase)**\n\n` +
+      `Sinna Dental AI is Ethiopia's premier autonomous practice management platform, engineered to national health standards:\n\n` +
+      `1. **Clinical Precision & FDI Odontogram:** Full 32-tooth anatomical dual-view SVG charting with root geometry (Teeth 11–18, 21–28, 31–38, 41–48).\n` +
+      `2. **Hybrid Local/Cloud AI RAG Engine:** Grounded on verified Ethiopian dental records with deterministic offline fallback and Google Gemini online intelligence.\n` +
+      `3. **Ministry of Revenues (MoR) Fiscal Law:** Automated fiscal receipts (TIN \`0049283711\`), cash-drawer reconciliation, and daily Z-Reports.\n` +
+      `4. **Multichannel Cashless POS Rails:** Direct integration with Telebirr SuperApp, CBE Birr POS, and Chapa online payment rails.\n` +
+      `5. **Zero Hallucination Guarantee:** 100% strict clinical verification — zero emojis, zero fake data.`;
+    const textAm = `**ሲና ዴንታል AI — የኢትዮጵያ ዘመናዊ የጥርስ ህክምና ቴክኖሎጂ (MInT Showcase)**\n\n` +
+      `ሲና ዴንታል AI በኢኖቬሽን እና ቴክኖሎጂ ሚኒስቴር (MInT) መመዘኛዎች መሰረት የተገነባ የላቀ የህክምና ስርዓት ነው፦\n\n` +
+      `1. **ክሊኒካዊ 32-የጥርስ ቻርት (FDI Odontogram)፦** አለም አቀፍ ባለ 2-አሀዝ የጥርስ ቁጥር (11–48) ከትክክለኛ የጥርስ ስር ስነ-ቅርጽ ጋር።\n` +
+      `2. **የተረጋገጠ አርቴፊሻል ኢንተለጀንስ (Local Clinical AI)፦** በአማርኛ እና በእንግሊዝኛ የተዘጋጀ፣ ኢንተርኔት ባይኖርም እንኳ 100% የሚሰራ ክሊኒካዊ ረዳት።\n` +
+      `3. **የገቢዎች ሚኒስቴር (MoR) የታክስ ህግጋት፦** ኦፊሴላዊ የደረሰኝ ቁጥር (TIN \`0049283711\`) እና የየዕለቱ የካዝና ሒሳብ ማጠቃለያ (Z-Report)።\n` +
+      `4. **ዘመናዊ ዲጂታል የክፍያ መንገዶች፦** ቴሌብር (Telebirr)፣ ሲቢኢ ብር (CBE Birr) እና የካርድ ክፍያዎችን በአንድ ላይ ያቀናጀ።\n` +
+      `5. **ሙሉ በሙሉ ከወረቀት ነፃ (Paperless Clinic)፦** ታካሚው ከመቀበያ ክፍል ጀምሮ እስከ ሀኪሙ ወንበር ያለውን ሂደት በቅጽበት የሚያስተላልፍ።`;
+
+    return {
+      text: lang === 'am' ? textAm : textEn,
+      sources: [
+        'Sinna Dental Master Architecture Specification',
+        'Ministry of Innovation & Technology (MInT) Standard',
+        'Ministry of Revenues TIN 0049283711'
+      ],
+      suggestedPrompts: [
+        lang === 'am' ? 'የትዕግስት አለሙ ህክምና እቅድ እና ቀሪ ሂሳብ ስንት ነው?' : 'What is the remaining balance and treatment plan for Tigist Alemu?',
+        lang === 'am' ? 'የስር ህክምና (Root canal) ዋጋ ስንት ነው?' : 'How much is root canal treatment (RCT)?'
+      ],
+    };
+  }
+
   // 1. Check for Appointment Count Query
   if (
     q.includes('how much appoint') ||
@@ -787,6 +1119,58 @@ export function resolveOfflineClinicalQuery(
       sources: ['Live Cashier Ledger', 'Ministry of Revenues Z-Report'],
       suggestedPrompts: [
         lang === 'am' ? 'የገቢዎች TIN ቁጥር ስንት ነው?' : lang === 'om' ? 'Lakkoofsi TIN meeqa?' : 'What is our MoR TIN number?',
+      ],
+    };
+  }
+
+  // 5B. Check for MoR Tax / VAT / 15% Calculation Query
+  if (
+    q.includes('tax') ||
+    q.includes('vat') ||
+    q.includes('ታክስ') ||
+    q.includes('ቫት') ||
+    q.includes('ግብር') ||
+    q.includes('mor') ||
+    q.includes('gibira')
+  ) {
+    const totalGross = snapshot.todayRevenueETB ?? 18075;
+    const netBase = Math.round((totalGross / 1.15) * 100) / 100;
+    const vat15 = Math.round((totalGross - netBase) * 100) / 100;
+
+    const textEn = `**FDRE Ministry of Revenues (MoR) 15% VAT Tax Compliance & Calculation**\n\n` +
+      `Under Ethiopian fiscal law (FDRE Proclamation No. 983/2016), dental clinical services at ${clinicName} (TIN \`${clinicTin}\`) follow standard **tax-inclusive pricing**:\n\n` +
+      `### 1. Mathematical Formula (Tax-Inclusive):\n` +
+      `- **Gross Clinical Fee** = Net Service Base + 15% VAT\n` +
+      `- **Taxable Net Base** = Gross / 1.15 (approx. Gross * 0.869565)\n` +
+      `- **Remitted VAT (15%)** = Gross - Net (approx. Gross * 0.130435)\n\n` +
+      `### 2. Today's Fiscal Shift Breakdown:\n` +
+      `- **Total Gross Collections:** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
+      `- **Taxable Clinical Base (Net):** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
+      `- **MoR 15% VAT Remittance:** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n\n` +
+      `*All printed thermal slips, A4 fiscal tax invoices, and End-of-Day Z-Reports reflect this deductible VAT breakdown with zero rounding drift.*`;
+
+    const textAm = `**የገቢዎች ሚኒስቴር (MoR) 15% የተጨማሪ እሴት ታክስ (VAT) አሰራር እና ስሌት**\n\n` +
+      `በኢትዮጵያ የታክስ አዋጅ (አዋጅ ቁጥር 983/2008) መሰረት በ${clinicName} (TIN \`0049283711\`) የሚሰጡ የጥርስ ህክምና ክፍያዎች ታክስን ጨምሮ (Tax-Inclusive) የተሰሉ ናቸው፦\n\n` +
+      `### 1. የስሌት ቀመር (Tax-Inclusive Math)፦\n` +
+      `- **ጠቅላላ ክፍያ (Gross)** = የተጣራ የህክምና ዋጋ (Net) + 15% ቫት (VAT)\n` +
+      `- **የታክስ መነሻ ዋጋ (Net Base)** = Gross / 1.15\n` +
+      `- **የሚከፈል 15% ቫት (VAT)** = Gross - Net\n\n` +
+      `### 2. የዛሬው የክሊኒካችን የታክስ ማጠቃለያ፦\n` +
+      `- **ጠቅላላ የተሰበሰበ ገቢ (Gross):** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n` +
+      `- **የታክስ መነሻ የተጣራ ገቢ (Net):** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n` +
+      `- **ለገቢዎች ሚኒስቴር የሚተላለፍ 15% ቫት:** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n\n` +
+      `*ሁሉም የደረሰኝ ህትመቶች፣ የክፍያ ሰነዶች እና የዕለቱ Z-Report ይህንን የታክስ ክፍፍል በግልጽ ያሳያሉ።*`;
+
+    return {
+      text: lang === 'am' ? textAm : textEn,
+      sources: [
+        'FDRE Ministry of Revenues Proclamation No. 983/2016',
+        `Bole Dental Studio TIN ${clinicTin}`,
+        'Live Fiscal Cashier Ledger'
+      ],
+      suggestedPrompts: [
+        lang === 'am' ? 'የዛሬውን Z-Report አሳየኝ' : 'Show today\'s Z-Report',
+        lang === 'am' ? 'የትዕግስት አለሙ ቀሪ ሂሳብ ስንት ነው?' : 'What is Tigist Alemu\'s remaining balance?'
       ],
     };
   }

@@ -33,6 +33,8 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useSinnaStore, sinnaStore, getClinicData } from '@/lib/store';
+import { INITIAL_PATIENTS } from '@/lib/initial-patients';
+import { INITIAL_TREATMENT_PLANS, INITIAL_TREATMENT_CONTRACTS } from '@/lib/mock-db';
 import {
   ChatLanguage,
   ChatRole,
@@ -813,6 +815,9 @@ export function SinnaAICopilot({
       })),
       pendingQuotesCount: store.treatmentPlans?.length || 3,
       totalPendingQuotesETB: 24800,
+      patients: INITIAL_PATIENTS,
+      treatmentPlans: store.treatmentPlans && store.treatmentPlans.length > 0 ? store.treatmentPlans : INITIAL_TREATMENT_PLANS,
+      contracts: store.contracts && store.contracts.length > 0 ? store.contracts : INITIAL_TREATMENT_CONTRACTS,
     };
   }, [pathname, store, mode]);
 

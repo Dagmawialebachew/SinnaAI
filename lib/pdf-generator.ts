@@ -1,6 +1,7 @@
 'use client';
 
 import { Clinic } from '@/lib/types';
+import { calculateTaxInclusive } from '@/lib/tax-calculator';
 
 export type ReportPeriod = 'daily' | 'weekly' | 'monthly' | '3month' | '6month';
 
@@ -53,6 +54,7 @@ export function getClinicalReportHTML(
   const tinNumber = (clinic as any)?.tinNumber || '0049283711';
   const dateStr = new Date().toISOString().slice(0, 10);
   const totalReceivables = data.receivables0_30 + data.receivables31_60;
+  const tax = calculateTaxInclusive(data.collectedETB, 0.15, tinNumber);
 
   // Title formatting per period
   const reportTitles: Record<ReportPeriod, string> = {
@@ -172,10 +174,18 @@ export function getClinicalReportHTML(
                 <td style="padding: 4px 8px; text-align: right; font-weight: 600; font-family: monospace;">${data.cashTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
               <tr style="font-weight: 700; background: #FAFAFA; border-top: 1.5px solid #111827;">
-                <td colspan="2" style="padding: 5px 8px; font-family: 'Montserrat', sans-serif;">Total Collections:</td>
-                <td style="padding: 5px 8px; text-align: right; font-family: 'Montserrat', sans-serif; font-size: 9pt; color: #111827;">
+                <td colspan="2" style="padding: 4px 8px; font-family: 'Montserrat', sans-serif;">Total Collections (Gross):</td>
+                <td style="padding: 4px 8px; text-align: right; font-family: 'Montserrat', sans-serif; font-size: 8.5pt; color: #111827;">
                   ${data.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                 </td>
+              </tr>
+              <tr style="font-size: 7.5pt; color: #4B5563; background: #F8FAFC;">
+                <td colspan="2" style="padding: 3px 8px;">Taxable Clinical Base (Net):</td>
+                <td style="padding: 3px 8px; text-align: right; font-family: monospace;">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</td>
+              </tr>
+              <tr style="font-size: 7.5pt; color: #0369A1; font-weight: 600; background: #F0F9FF;">
+                <td colspan="2" style="padding: 3px 8px;">MoR 15% VAT Remittance (TIN ${tinNumber}):</td>
+                <td style="padding: 3px 8px; text-align: right; font-family: monospace;">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</td>
               </tr>
             </tbody>
           </table>
@@ -213,32 +223,41 @@ export function getClinicalReportHTML(
           </table>
         </div>
 
-        <!-- 6. SUMMARY STATS: 3 BIG CLEAN FIGURES (Exactly like the sample image) -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 10px; text-align: left; padding: 6px 0;">
-          <div style="border-left: 2px solid #111827; padding-left: 10px;">
-            <div style="font-family: 'Montserrat', sans-serif; font-size: 13pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
+        <!-- 6. SUMMARY STATS: 4 CLEAN FIGURES (With MoR 15% VAT Tax Compliance) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; text-align: left; padding: 6px 0;">
+          <div style="border-left: 2px solid #111827; padding-left: 8px;">
+            <div style="font-family: 'Montserrat', sans-serif; font-size: 11pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
               ${data.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
-            <div style="font-size: 7.5pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Total Collections (Realized)
+            <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
+              Gross Collections
             </div>
           </div>
 
-          <div style="border-left: 2px solid #111827; padding-left: 10px;">
-            <div style="font-family: 'Montserrat', sans-serif; font-size: 13pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
-              ${data.productionETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+          <div style="border-left: 2px solid #0284C7; padding-left: 8px;">
+            <div style="font-family: 'Montserrat', sans-serif; font-size: 11pt; font-weight: 800; color: #0284C7; letter-spacing: -0.01em;">
+              +${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
-            <div style="font-size: 7.5pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Total Clinical Production
+            <div style="font-size: 7pt; color: #0284C7; font-weight: 600; margin-top: 1px;">
+              MoR 15% VAT Remittance
             </div>
           </div>
 
-          <div style="border-left: 2px solid #111827; padding-left: 10px;">
-            <div style="font-family: 'Montserrat', sans-serif; font-size: 13pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
+          <div style="border-left: 2px solid #10B981; padding-left: 8px;">
+            <div style="font-family: 'Montserrat', sans-serif; font-size: 11pt; font-weight: 800; color: #10B981; letter-spacing: -0.01em;">
+              ${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+            </div>
+            <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
+              Taxable Net Revenue
+            </div>
+          </div>
+
+          <div style="border-left: 2px solid #F59E0B; padding-left: 8px;">
+            <div style="font-family: 'Montserrat', sans-serif; font-size: 11pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
               ${totalReceivables.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
-            <div style="font-size: 7.5pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Overdue / Unsettled Payments
+            <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
+              Unsettled Receivables
             </div>
           </div>
         </div>
@@ -376,7 +395,7 @@ export async function downloadClinicalReportPDF(
 
     const dateStr = new Date().toISOString().slice(0, 10);
     const filename = `BoleDental_${period.toUpperCase()}_Report_${dateStr}.pdf`;
-    
+
     // Direct file download - no window.print()
     pdf.save(filename);
   } finally {

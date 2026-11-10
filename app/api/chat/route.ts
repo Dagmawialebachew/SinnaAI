@@ -28,36 +28,56 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY?.trim();
 
-    // 1. Invoke Real Gemini Model via RAG Grounded System Instruction
+    // 1. Invoke Real Gemini Model via Grounded System Instruction
     if (apiKey) {
-      const client = new GoogleGenAI({ apiKey });
       const systemInstruction = buildGroundedSystemInstruction(
         lang as ChatLanguage,
         role as ChatRole,
         snapshot
       );
 
-      // Model priority: flash-lite-latest (fast & active quota), 3.5-flash-lite, 3.7-flash, 3.8-flash
+      // Model priority: 3.5-flash-lite (ultra-fast 1.5s), 3.5-flash, flash-lite-latest, flash-latest
       const candidateModels = [
-        'gemini-flash-lite-latest',
         'gemini-3.5-flash-lite',
-        'gemini-3.7-flash',
-        'gemini-3.8-flash',
+        'gemini-3.5-flash',
+        'gemini-flash-lite-latest',
+        'gemini-flash-latest',
       ];
 
       for (const model of candidateModels) {
         try {
-          const genResult = await client.models.generateContent({
-            model,
-            contents: message,
-            config: {
-              systemInstruction,
-              temperature: 0.2, // High clinical precision to prevent hallucination
-              maxOutputTokens: 2048,
-            },
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('TIMEOUT_AFTER_6S')), 6000)
+          );
+
+          // Direct Google AI Studio REST call with full system instruction
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const fetchPromise = fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: systemInstruction }],
+              },
+              contents: [
+                { role: 'user', parts: [{ text: message }] },
+              ],
+              generationConfig: {
+                temperature: 0.2, // High clinical precision
+                maxOutputTokens: 2048,
+              },
+            }),
+          }).then(async (res) => {
+            if (!res.ok) {
+              const errBody = await res.text();
+              throw new Error(`HTTP ${res.status}: ${errBody}`);
+            }
+            return res.json();
           });
 
-          const outputText = genResult.text;
+          const data = await Promise.race([fetchPromise, timeoutPromise]);
+          const outputText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
           if (outputText && outputText.trim().length > 10) {
             const { cleanText, actions, suggestedPrompts } = parseAssistantResponse(outputText);
             const isBookingQuery = /book|appointment|ቀጠሮ|beellam|schedule/i.test(message);
@@ -76,7 +96,7 @@ export async function POST(req: NextRequest) {
                     }
                   : undefined,
                 sources: [
-                  `Gemini AI (${model} RAG Grounded)`,
+                  `Google Gemini AI (${model})`,
                   'Bole Dental Verified Database',
                   snapshot.pageTitle || 'Live Operatory State'
                 ],
@@ -89,7 +109,7 @@ export async function POST(req: NextRequest) {
             );
           }
         } catch (geminiError: any) {
-          console.warn(`Sinna AI: Model ${model} unavailable (${geminiError?.status || geminiError?.message}), trying next model...`);
+          console.warn(`Sinna AI: Model ${model} failed (${geminiError?.message || geminiError}), trying next...`);
         }
       }
     }

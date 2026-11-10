@@ -1,6 +1,7 @@
 'use client';
 
 import { Clinic } from './types';
+import { calculateTaxInclusive } from './tax-calculator';
 
 export interface PrintDocumentOptions {
   title: string;
@@ -154,6 +155,7 @@ export function printTreatmentQuote(quote: {
   const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
   const clinicPhone = clinic?.phone || '+251 91 122 3344';
   const tinNumber = clinic?.tinNumber || '0049283711';
+  const tax = calculateTaxInclusive(quote.amountETB, 0.15, tinNumber);
 
   const html = `
     <div style="max-width: 100%; margin: 0 auto;">
@@ -253,17 +255,17 @@ export function printTreatmentQuote(quote: {
 
       <!-- Financial Totals Summary -->
       <div style="display: flex; justify-content: flex-end; margin-top: 12px;" class="avoid-break">
-        <div style="width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-          <div style="display: flex; justify-content: space-between; font-size: 9pt; color: #475569; margin-bottom: 4px;">
-            <span>Subtotal:</span>
-            <span class="font-mono font-semibold">${quote.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+        <div style="width: 340px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #475569; margin-bottom: 4px;">
+            <span>Taxable Service Base (Net):</span>
+            <span class="font-mono font-medium">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #64748b; margin-bottom: 8px;">
-            <span>Healthcare Medical Exemption (VAT 0%):</span>
-            <span class="font-mono">0.00 ETB</span>
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #0284c7; margin-bottom: 6px;">
+            <span>VAT (15% Ministry of Revenues):</span>
+            <span class="font-mono font-medium">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
           </div>
-          <div style="border-top: 2px solid #0f172a; padding-top: 8px; display: flex; justify-content: space-between; font-size: 12pt; font-weight: 800; color: #0f172a;">
-            <span>Total Estimate:</span>
+          <div style="border-top: 2px solid #0f172a; padding-top: 8px; display: flex; justify-content: space-between; font-size: 11pt; font-weight: 800; color: #0f172a;">
+            <span>Total Estimate (Tax Inclusive):</span>
             <span class="font-mono" style="color: #0284c7;">${quote.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
           </div>
         </div>
@@ -331,6 +333,7 @@ export function printFiscalInvoice(invoice: {
   const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
   const clinicPhone = clinic?.phone || '+251 91 122 3344';
   const tinNumber = clinic?.tinNumber || '0049283711';
+  const tax = calculateTaxInclusive(invoice.totalETB, 0.15, tinNumber);
   const paidETB = invoice.totalETB - invoice.balanceETB;
   const itemsList = invoice.items && invoice.items.length > 0
     ? invoice.items
@@ -443,14 +446,18 @@ export function printFiscalInvoice(invoice: {
 
       <!-- Financial Tax Breakdown -->
       <div style="display: flex; justify-content: flex-end; margin-top: 12px;" class="avoid-break">
-        <div style="width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-          <div style="display: flex; justify-content: space-between; font-size: 9pt; color: #475569; margin-bottom: 4px;">
-            <span>Gross Amount:</span>
-            <span class="font-mono font-semibold">${invoice.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+        <div style="width: 340px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #475569; margin-bottom: 4px;">
+            <span>Taxable Base (Net Fee):</span>
+            <span class="font-mono font-medium">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #64748b; margin-bottom: 4px;">
-            <span>VAT (0% Healthcare Exemption):</span>
-            <span class="font-mono">0.00 ETB</span>
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #0284c7; margin-bottom: 4px;">
+            <span>VAT (15% Ministry of Revenues):</span>
+            <span class="font-mono font-medium">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
+          </div>
+          <div style="border-top: 1px dashed #cbd5e1; padding-top: 6px; display: flex; justify-content: space-between; font-size: 9.5pt; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+            <span>Total Gross (Tax Inclusive):</span>
+            <span class="font-mono">${invoice.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
           </div>
           <div style="border-top: 1px solid #cbd5e1; padding-top: 6px; display: flex; justify-content: space-between; font-size: 10pt; font-weight: 700; color: #059669; margin-bottom: 4px;">
             <span>Amount Settled / Paid:</span>
@@ -710,6 +717,7 @@ export function printThermalReceipt(data: {
   const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Fl';
   const clinicPhone = clinic?.phone || '+251 91 122 3344';
   const tin = clinic?.tinNumber || data.tinNumber || '0049283711';
+  const tax = calculateTaxInclusive(data.amountETB, 0.15, tin);
 
   const html = `
     <div style="font-family: monospace; text-align: center; font-size: 10px; line-height: 1.35; padding: 2px;">
@@ -748,17 +756,18 @@ export function printThermalReceipt(data: {
       </div>
       
       <div class="divider"></div>
-      <div style="display: flex; justify-content: space-between; font-size: 9.5px;">
-        <span>SUBTOTAL:</span>
-        <span>${data.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
-      </div>
       <div style="display: flex; justify-content: space-between; font-size: 9px; color: #475569;">
-        <span>VAT (0% Healthcare):</span>
-        <span>0.00 ETB</span>
+        <span>TAXABLE BASE (NET):</span>
+        <span style="font-family: monospace;">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
       </div>
+      <div style="display: flex; justify-content: space-between; font-size: 9px; color: #0284c7;">
+        <span>VAT (15% MoR TAX):</span>
+        <span style="font-family: monospace;">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+      </div>
+      <div class="divider"></div>
       <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; margin-top: 3px;">
-        <span>TOTAL PAID:</span>
-        <span>${data.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+        <span>TOTAL PAID (INCL VAT):</span>
+        <span style="font-family: monospace;">${data.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 9px; color: #0284c7; margin-top: 2px;">
         <span>METHOD:</span>
@@ -810,6 +819,7 @@ export function printTreatmentPlan(plan: {
   const clinicLocation = clinic?.location || 'Bole Medhanialem, Morning Star Mall 3rd Floor, Addis Ababa';
   const clinicPhone = clinic?.phone || '+251 91 122 3344';
   const tinNumber = clinic?.tinNumber || '0049283711';
+  const tax = calculateTaxInclusive(plan.totalFeeETB, 0.15, tinNumber);
 
   const html = `
     <div style="max-width: 100%; margin: 0 auto;">
@@ -892,9 +902,17 @@ export function printTreatmentPlan(plan: {
 
       <!-- Total -->
       <div style="display: flex; justify-content: flex-end; margin-top: 12px;" class="avoid-break">
-        <div style="width: 320px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
-          <div style="display: flex; justify-content: space-between; font-size: 11pt; font-weight: 800; color: #0f172a;">
-            <span>Total Plan Investment:</span>
+        <div style="width: 340px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #475569; margin-bottom: 4px;">
+            <span>Taxable Clinical Base (Net):</span>
+            <span class="font-mono font-medium">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #0284c7; margin-bottom: 6px;">
+            <span>VAT (15% Ministry of Revenues):</span>
+            <span class="font-mono font-medium">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+          </div>
+          <div style="border-top: 2px solid #0f172a; padding-top: 8px; display: flex; justify-content: space-between; font-size: 11pt; font-weight: 800; color: #0f172a;">
+            <span>Total Plan (Tax Inclusive):</span>
             <span class="font-mono" style="color: #0284c7;">${plan.totalFeeETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
           </div>
         </div>
