@@ -923,16 +923,16 @@ export default function PaymentsPage() {
                     </div>
 
                     {/* Allocation Subtext */}
-                    <div className="shrink-0 hidden sm:flex flex-col items-end gap-0.5 max-w-[200px]">
-                      <span className="text-xs text-slate-500 font-mono">
+                    <div className="shrink-0 hidden sm:flex flex-col items-end gap-0.5">
+                      <span className="text-xs text-slate-500 font-mono whitespace-nowrap">
                         {item.onAccountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB{' '}
                         <span className="opacity-60">· {item.allocationLabel}</span>
                       </span>
                     </div>
 
                     {/* Formatted Amount */}
-                    <div className="shrink-0 text-end min-w-[110px]">
-                      <span className={`font-mono font-semibold ${item.isRefunded ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+                    <div className="shrink-0 text-end min-w-[125px]">
+                      <span className={`font-mono font-semibold whitespace-nowrap ${item.isRefunded ? 'line-through text-slate-400' : 'text-slate-900'}`}>
                         {item.amountETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                       </span>
                     </div>

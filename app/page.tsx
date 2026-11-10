@@ -1063,7 +1063,7 @@ export default function HomePage() {
                         Status
                       </span>
                       <span className="text-xs font-bold text-amber-700 mt-0.5 block truncate">
-                        Waiting in Lounge
+                        Waiting
                       </span>
                     </div>
                   </div>
@@ -1135,15 +1135,14 @@ export default function HomePage() {
                       }
                       handleFinishTreatment(1, chair1Apt.id);
                     }}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center flex items-center justify-center gap-2 shadow-2xs ${
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center flex items-center justify-center gap-2 shadow-2xs whitespace-nowrap ${
                       isOwner
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'text-emerald-950 hover:bg-emerald-100 bg-white border border-emerald-300 active:scale-98'
                     }`}
-                    title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Done → Send to Cashier'}
                   >
-                    <CheckCircle2 className={`w-4 h-4 ${isOwner ? 'text-slate-400' : 'text-emerald-600'}`} />
-                    <span>{isOwner ? 'Done → Send to Cashier (Doctor Only)' : 'Done → Send to Cashier'}</span>
+                    <CheckCircle2 className={`w-4 h-4 shrink-0 ${isOwner ? 'text-slate-400' : 'text-emerald-600'}`} />
+                    <span>{isOwner ? 'Complete (Doctor Only)' : 'Complete · Send to Cashier'}</span>
                   </button>
                 </>
               ) : pendingChair1Req ? (
@@ -1155,15 +1154,14 @@ export default function HomePage() {
                       if (isOwner) return;
                       sinnaStore.acceptSeatingRequest();
                     }}
-                    className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center shadow-xs flex items-center justify-center gap-2 ${
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center shadow-xs flex items-center justify-center gap-2 whitespace-nowrap ${
                       isOwner
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98'
                     }`}
-                    title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Accept and seat in Chair 1'}
                   >
-                    <Check className="w-4 h-4" />
-                    <span>{isOwner ? 'Doctor Handshake (Locked)' : 'Accept & Seat in Chair 1'}</span>
+                    <Check className="w-4 h-4 shrink-0" />
+                    <span>{isOwner ? 'Accept (Locked)' : 'Seat Chair 1'}</span>
                   </button>
                   <button
                     type="button"
@@ -1172,12 +1170,11 @@ export default function HomePage() {
                       if (isOwner) return;
                       sinnaStore.declineSeatingRequest();
                     }}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-colors text-center shadow-2xs border ${
+                    className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition-colors text-center shadow-2xs border whitespace-nowrap ${
                       isOwner
                         ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
                         : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200 active:scale-98'
                     }`}
-                    title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Decline seating request'}
                   >
                     Decline
                   </button>
@@ -1193,18 +1190,17 @@ export default function HomePage() {
                     }
                     sinnaStore.assignPatientToChair(waitingPatients[0].id, 1);
                   }}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center shadow-xs flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-colors text-center shadow-xs flex items-center justify-center gap-2 whitespace-nowrap ${
                     isOwner
                       ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                       : 'text-white bg-slate-900 hover:bg-slate-800 active:scale-98'
                   }`}
-                  title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Call & Seat in Chair 1'}
                 >
-                  <Armchair className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>
+                  <Armchair className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="truncate">
                     {isOwner
-                      ? 'Chair 1 Seating (Doctor Only)'
-                      : `Call & Seat ${waitingPatients[0].patientName.split(' ')[0]} in Chair 1`}
+                      ? 'Chair 1 Seating (Locked)'
+                      : `Seat ${waitingPatients[0].patientName.split(' ')[0]} · Chair 1`}
                   </span>
                 </button>
               ) : (
@@ -1361,7 +1357,7 @@ export default function HomePage() {
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${filterTab === 'waiting' ? 'bg-white' : 'bg-amber-500'}`} />
-            <span>Waiting in Lounge ({waitingPatients.length})</span>
+            <span>Waiting ({waitingPatients.length})</span>
           </button>
 
           <button
@@ -1387,7 +1383,7 @@ export default function HomePage() {
             }`}
           >
             <Globe className={`w-3 h-3 ${filterTab === 'online' ? 'text-white' : 'text-sky-600'}`} />
-            <span>Online Bookings ({onlinePatients.length})</span>
+            <span>Online ({onlinePatients.length})</span>
           </button>
         </div>
 
@@ -1473,17 +1469,16 @@ export default function HomePage() {
                     }
                   }}
                   className={`px-4 sm:px-6 py-3.5 transition-all cursor-pointer group border-l-[4px] ${borderLeftClass}`}
-                  title={isDoctor ? "Click to view full patient clinical profile & history" : "Click to view patient details & quick actions"}
                 >
                   {/* Desktop 12-Column Grid Layout */}
                   <div className="hidden md:grid grid-cols-12 gap-3 items-center">
                     {/* Col 1 (2 cols): TIME & OPERATORY */}
                     <div className="col-span-2 flex flex-col items-start gap-1">
-                      <span className="px-2.5 py-1 text-xs font-bold font-mono text-slate-800 bg-white border border-slate-200/90 rounded-lg shadow-2xs group-hover:border-slate-300 transition-colors">
+                      <span className="px-2.5 py-1 text-xs font-bold font-mono text-slate-800 bg-white border border-slate-200/90 rounded-lg shadow-2xs group-hover:border-slate-300 transition-colors whitespace-nowrap">
                         {timeDisplay}
                       </span>
                       <span
-                        className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
+                        className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border whitespace-nowrap ${
                           assignedChair === 1
                             ? 'bg-blue-50 text-blue-700 border-blue-200'
                             : 'bg-purple-50 text-purple-700 border-purple-200'
@@ -1503,12 +1498,12 @@ export default function HomePage() {
                           {apt.patientName}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400">
-                            <Phone className="w-2.5 h-2.5 text-slate-400" />
-                            {apt.patientPhone || '+251 91 123 4567'}
+                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 whitespace-nowrap shrink-0">
+                            <Phone className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                            <span>{apt.patientPhone || '+251 91 123 4567'}</span>
                           </span>
                           <span className="text-slate-300">·</span>
-                          <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/80">
+                          <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200/80 whitespace-nowrap shrink-0">
                             {mrn}
                           </span>
                         </div>
@@ -1522,10 +1517,10 @@ export default function HomePage() {
                       </p>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <span className="text-[11px] text-slate-400 truncate">
-                          Doctor: {apt.doctorName}
+                          {apt.doctorName}
                         </span>
                         {isOnline && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs font-amharic">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-2xs font-amharic whitespace-nowrap shrink-0">
                             <Globe className="w-2.5 h-2.5 text-sky-600 shrink-0" />
                             <span>{isDoctor ? 'በኦንላይን' : 'በኦንላይን · 300 ETB'}</span>
                           </span>
@@ -1534,15 +1529,15 @@ export default function HomePage() {
                     </div>
 
                     {/* Col 4 (2 cols): STATUS & BILLING (Dynamic Due & Paid Amounts) */}
-                    <div className="col-span-2 flex flex-col items-start gap-1">
+                    <div className="col-span-2 flex flex-col items-start gap-1 min-w-0">
                       {isDoctorCancelled ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs whitespace-nowrap shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse shrink-0" />
                           Cancelled · Waiting
                         </span>
                       ) : (
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap border ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap shrink-0 border ${
                             apt.status === 'in_progress'
                               ? 'bg-blue-50 text-blue-700 border-blue-200 shadow-2xs'
                               : apt.status === 'checked_in'
@@ -1553,19 +1548,19 @@ export default function HomePage() {
                           }`}
                         >
                           {apt.status === 'in_progress' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse shrink-0" />
                           )}
                           {apt.status === 'checked_in' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
                           )}
                           {apt.status === 'completed' && (
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                           )}
                           <span>
                             {apt.status === 'in_progress'
                               ? 'In Operatory'
                               : apt.status === 'checked_in'
-                              ? 'Waiting in Lounge'
+                              ? 'Waiting'
                               : apt.status === 'completed'
                               ? 'Completed'
                               : 'Confirmed'}
@@ -1575,7 +1570,7 @@ export default function HomePage() {
 
                       {/* Dynamic Amount Due & Paid Breakdown */}
                       {isDoctor ? (
-                        <span className="text-[10px] font-mono text-slate-400">
+                        <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">
                           {apt.serviceName.includes('Cleaning') ? 'Restorative Operatory' :
                            apt.serviceName.includes('Root') ? 'Endodontic Operatory' :
                            apt.serviceName.includes('Aesthetic') ? 'Cosmetic Operatory' :
@@ -1584,23 +1579,22 @@ export default function HomePage() {
                       ) : (
                         <div className="flex flex-col gap-0.5">
                           {isSettled ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap shrink-0">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
                               <span>Settled · Paid {depositPaid.toLocaleString()} ETB</span>
                             </span>
                           ) : depositPaid > 0 ? (
-                            <div className="flex items-center gap-1 text-[10px] font-mono">
-                              <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                            <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono">
+                              <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 whitespace-nowrap shrink-0">
                                 Paid {depositPaid.toLocaleString()}
                               </span>
-                              <span className="text-slate-300">·</span>
-                              <span className="font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-200">
+                              <span className="font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 whitespace-nowrap shrink-0">
                                 Due {balanceRemaining.toLocaleString()} ETB
                               </span>
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                              <span>Due: {totalDue.toLocaleString()} ETB</span>
+                            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 whitespace-nowrap shrink-0">
+                              <span>Due {totalDue.toLocaleString()} ETB</span>
                             </span>
                           )}
                         </div>
@@ -1625,21 +1619,20 @@ export default function HomePage() {
                                 }
                                 sinnaStore.checkInAppointment(apt.id);
                               }}
-                              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 ml-auto ${
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0 ${
                                 isOwner
                                   ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                                   : 'text-white bg-slate-900 hover:bg-slate-800 active:scale-98'
                               }`}
-                              title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Check In patient to waiting lounge'}
                             >
-                              <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                               <span>{isOwner ? 'Check In (Locked)' : 'Check In'}</span>
                             </button>
                           )}
 
                           {apt.status === 'checked_in' && (
                             apt.seatingStatus === 'requested' ? (
-                              <span className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl flex items-center gap-1.5 ml-auto animate-pulse">
+                              <span className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl flex items-center gap-1.5 ml-auto animate-pulse whitespace-nowrap shrink-0">
                                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                                 <span>Awaiting Doctor</span>
                               </span>
@@ -1647,40 +1640,36 @@ export default function HomePage() {
                               <button
                                 type="button"
                                 disabled={true}
-                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto"
-                                title="Owner Oversight Mode: Patient seating is managed by Reception & Dr. Senait."
+                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                               >
-                                <Armchair className="w-3 h-3 text-slate-400" />
+                                <Armchair className="w-3 h-3 text-slate-400 shrink-0" />
                                 <span>Seat Chair {assignedChair} (Locked)</span>
                               </button>
                             ) : assignedChair === 1 && isChair1Busy ? (
                               <button
                                 type="button"
                                 disabled={true}
-                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto"
-                                title={`Dr. Senait is currently conducting treatment for ${chair1Apt?.patientName || 'a customer'} in Chair 1.`}
+                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                               >
-                                <Clock className="w-3 h-3 text-slate-400" />
-                                <span>Dr. Senait Busy</span>
+                                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                                <span>Chair 1 Busy</span>
                               </button>
                             ) : assignedChair === 2 && isChair2Busy ? (
                               <button
                                 type="button"
                                 disabled={true}
-                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto"
-                                title={`Chair 2 is currently occupied with ${chair2Apt?.patientName || 'a customer'}.`}
+                                className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                               >
-                                <Clock className="w-3 h-3 text-slate-400" />
+                                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                                 <span>Chair 2 Busy</span>
                               </button>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => sinnaStore.requestSeatInChair(apt.id, assignedChair)}
-                                className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 ml-auto active:scale-98"
-                                title={`Request seating in Chair ${assignedChair} (${apt.doctorName || 'Dr. Senait Tadesse'})`}
+                                className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-2xs flex items-center gap-1.5 ml-auto active:scale-98 whitespace-nowrap shrink-0"
                               >
-                                <Armchair className="w-3 h-3" />
+                                <Armchair className="w-3 h-3 shrink-0" />
                                 <span>Seat Chair {assignedChair}</span>
                               </button>
                             )
@@ -1741,26 +1730,26 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px] text-slate-400">
-                      <span>{apt.patientPhone || '+251 91 123 4567'}</span>
-                      <span className="font-mono text-slate-500">{mrn}</span>
+                      <span className="whitespace-nowrap">{apt.patientPhone || '+251 91 123 4567'}</span>
+                      <span className="font-mono text-slate-500 whitespace-nowrap">{mrn}</span>
                     </div>
 
                     {/* Mobile Dynamic Billing Strip (Reception) */}
                     {!isDoctor && (
                       <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px] font-mono">
                         {isSettled ? (
-                          <span className="font-bold text-emerald-700 flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span className="font-bold text-emerald-700 flex items-center gap-1 whitespace-nowrap">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                             <span>Settled · Paid {depositPaid.toLocaleString()} ETB</span>
                           </span>
                         ) : depositPaid > 0 ? (
-                          <span className="font-semibold text-slate-600 flex items-center gap-1.5">
-                            <span className="text-emerald-700 font-bold">Paid: {depositPaid.toLocaleString()}</span>
+                          <span className="font-semibold text-slate-600 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-emerald-700 font-bold whitespace-nowrap">Paid {depositPaid.toLocaleString()}</span>
                             <span className="text-slate-300">·</span>
-                            <span className="text-rose-700 font-bold">Due: {balanceRemaining.toLocaleString()} ETB</span>
+                            <span className="text-rose-700 font-bold whitespace-nowrap">Due {balanceRemaining.toLocaleString()} ETB</span>
                           </span>
                         ) : (
-                          <span className="font-bold text-slate-700">Due: {totalDue.toLocaleString()} ETB</span>
+                          <span className="font-bold text-slate-700 whitespace-nowrap">Due {totalDue.toLocaleString()} ETB</span>
                         )}
                       </div>
                     )}
@@ -1779,21 +1768,20 @@ export default function HomePage() {
                               }
                               sinnaStore.checkInAppointment(apt.id);
                             }}
-                            className={`w-full py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                            className={`w-full py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap ${
                               isOwner
                                 ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                                 : 'text-white bg-slate-900 hover:bg-slate-800 active:scale-98'
                             }`}
-                            title={isOwner ? 'Owner Oversight Mode (Read-Only)' : 'Check In patient'}
                           >
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                             <span>{isOwner ? 'Check In (Locked)' : 'Check In'}</span>
                           </button>
                         )}
 
                         {apt.status === 'checked_in' && (
                           apt.seatingStatus === 'requested' ? (
-                            <div className="w-full py-1.5 px-2.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-center gap-1.5 animate-pulse">
+                            <div className="w-full py-1.5 px-2.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-center gap-1.5 animate-pulse whitespace-nowrap">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
                               <span>Awaiting Doctor</span>
                             </div>
@@ -1801,39 +1789,36 @@ export default function HomePage() {
                             <button
                               type="button"
                               disabled={true}
-                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
-                              title="Owner Oversight Mode: Seating is managed by Reception & Dr. Senait."
+                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1 whitespace-nowrap"
                             >
-                              <Armchair className="w-3 h-3 text-slate-400" />
+                              <Armchair className="w-3 h-3 text-slate-400 shrink-0" />
                               <span>Seat Chair {assignedChair} (Locked)</span>
                             </button>
                           ) : assignedChair === 1 && isChair1Busy ? (
                             <button
                               type="button"
                               disabled={true}
-                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
-                              title={`Dr. Senait is currently conducting treatment for ${chair1Apt?.patientName || 'a customer'} in Chair 1.`}
+                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1 whitespace-nowrap"
                             >
-                              <Clock className="w-3 h-3 text-slate-400" />
-                              <span>Dr. Senait Busy</span>
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>Chair 1 Busy</span>
                             </button>
                           ) : assignedChair === 2 && isChair2Busy ? (
                             <button
                               type="button"
                               disabled={true}
-                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
-                              title={`Chair 2 is currently occupied with ${chair2Apt?.patientName || 'a customer'}.`}
+                              className="w-full py-1.5 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1 whitespace-nowrap"
                             >
-                              <Clock className="w-3 h-3 text-slate-400" />
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                               <span>Chair 2 Busy</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => sinnaStore.requestSeatInChair(apt.id, assignedChair)}
-                              className="w-full py-1.5 px-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all flex items-center justify-center gap-1 active:scale-98 shadow-2xs"
+                              className="w-full py-1.5 px-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all flex items-center justify-center gap-1 active:scale-98 shadow-2xs whitespace-nowrap"
                             >
-                              <Armchair className="w-3 h-3" />
+                              <Armchair className="w-3 h-3 shrink-0" />
                               <span>Seat Chair {assignedChair}</span>
                             </button>
                           )

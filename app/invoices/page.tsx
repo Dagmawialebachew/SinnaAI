@@ -400,8 +400,7 @@ export default function InvoicesPage() {
             <button
               type="button"
               onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-              className="rounded-md font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 border border-slate-200/90 text-slate-700 bg-white hover:bg-slate-50 shadow-2xs"
-              title="Toggle sort order"
+              className="rounded-md font-medium inline-flex items-center transition-colors px-2.5 py-1.5 text-xs gap-1.5 border border-slate-200/90 text-slate-700 bg-white hover:bg-slate-50 shadow-2xs whitespace-nowrap"
             >
               <ArrowUpDown className="shrink-0 size-3.5 text-slate-500" />
               <span>Amount ({sortOrder === 'desc' ? 'High to Low' : 'Low to High'})</span>
@@ -484,20 +483,20 @@ export default function InvoicesPage() {
                         <span className={`hidden md:inline text-xs font-mono font-medium ${invoice.isOverdue ? 'text-rose-600' : 'text-slate-500'}`}>
                           {invoice.dueDate}
                         </span>
-                        <div className="text-end min-w-[130px]">
-                          <span className="font-mono font-bold text-slate-900 text-sm block">
+                        <div className="text-end min-w-[145px]">
+                          <span className="font-mono font-bold text-slate-900 text-sm block whitespace-nowrap">
                             {invoice.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                           </span>
-                          <span className="text-[10px] font-mono text-slate-400 block">
-                            Net: {(invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })} · VAT: +{(invoice.totalETB - invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          <span className="text-[10px] font-mono text-slate-400 block whitespace-nowrap">
+                            Net {(invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })} · VAT +{(invoice.totalETB - invoice.totalETB / 1.15).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                           </span>
                           {invoice.balanceETB > 0 ? (
-                            <span className="text-[11px] font-mono text-amber-600 block">
-                              Balance: {invoice.balanceETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
+                            <span className="text-[11px] font-mono text-amber-600 block whitespace-nowrap">
+                              Due {invoice.balanceETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                             </span>
                           ) : (
-                            <span className="text-[10px] font-mono text-emerald-600 block">
-                              Paid in Full
+                            <span className="text-[10px] font-mono text-emerald-600 block whitespace-nowrap">
+                              Paid
                             </span>
                           )}
                         </div>

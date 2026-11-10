@@ -3621,12 +3621,11 @@ export default function PatientsPage() {
                       sinnaStore.openPatientDrawer(patient.id);
                     }
                   }}
-                  className={`p-4 flex items-center justify-between transition-colors cursor-pointer group ${
+                  className={`p-4 flex items-center justify-between gap-3 transition-colors cursor-pointer group ${
                     isCancelled
                       ? 'bg-rose-50/50 hover:bg-rose-50/80 border-l-4 border-l-rose-500'
                       : 'hover:bg-slate-50/70'
                   }`}
-                  title={isDoctor ? "Click to view detailed personal profile and clinical chart" : "Click to view patient details & quick actions"}
                 >
                   {/* Left: Avatar + Primary Info + BDS MRN */}
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -3641,13 +3640,13 @@ export default function PatientsPage() {
 
                       {/* Live Chair / Waiting indicator beacon */}
                       {isInChair && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full ring-2 ring-white animate-pulse" title="Currently seated in chair" />
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full ring-2 ring-white animate-pulse" />
                       )}
                       {!isInChair && isWaiting && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" title="Checked in / Waiting in reception" />
+                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse" />
                       )}
                       {!isInChair && !isWaiting && info.isOnline && (
-                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-sky-500 rounded-full ring-2 ring-white" title="Online reservation" />
+                        <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-sky-500 rounded-full ring-2 ring-white" />
                       )}
                     </div>
 
@@ -3659,19 +3658,19 @@ export default function PatientsPage() {
                           {displayName}
                         </p>
                         {patient.nameAmharic && (
-                          <span className="text-[10px] text-slate-400 font-amharic hidden sm:inline">
+                          <span className="text-[10px] text-slate-400 font-amharic hidden sm:inline whitespace-nowrap">
                             ({patient.nameAmharic})
                           </span>
                         )}
-                        <span className="font-mono text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
+                        <span className="font-mono text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs whitespace-nowrap shrink-0">
                           {patient.mrn || 'BDS-00000'}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5">
-                        <span>{patient.phone}</span>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-mono mt-0.5 flex-wrap">
+                        <span className="whitespace-nowrap">{patient.phone}</span>
                         <span className="text-slate-300">·</span>
-                        <span className="font-sans text-[11px] text-slate-400">{patient.age}y · {patient.gender}</span>
+                        <span className="font-sans text-[11px] text-slate-400 whitespace-nowrap">{patient.age}y · {patient.gender}</span>
                         {info.service && (
                           <>
                             <span className="text-slate-300 hidden md:inline">·</span>
@@ -3684,51 +3683,51 @@ export default function PatientsPage() {
                     </div>
                   </div>
 
-                  {/* Middle / Right: Clean Essential Badges Only (Schedule & Online, No fluff) + Chevron */}
-                  <div className="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
+                  {/* Middle / Right: Clean Essential Badges Only */}
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                     {/* Live Cancelled Notice */}
                     {isCancelled && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
-                        Cancelled Seating
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 shadow-2xs whitespace-nowrap shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse shrink-0" />
+                        <span>Cancelled</span>
                       </span>
                     )}
 
                     {/* Schedule / Visit Badge */}
                     {info.isToday ? (
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                        <Calendar className="w-3 h-3 text-emerald-600" />
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1 shadow-2xs whitespace-nowrap shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
+                        <Calendar className="w-3 h-3 text-emerald-600 shrink-0" />
                         <span>Today {info.time}</span>
                       </span>
                     ) : info.isTomorrow ? (
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-300 flex items-center gap-1 shadow-2xs">
-                        <Clock className="w-3 h-3 text-sky-600" />
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-300 flex items-center gap-1 shadow-2xs whitespace-nowrap shrink-0">
+                        <Clock className="w-3 h-3 text-sky-600 shrink-0" />
                         <span>Tomorrow {info.time}</span>
                       </span>
                     ) : info.isUpcoming ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 hidden md:flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-slate-500" />
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 hidden md:flex items-center gap-1 whitespace-nowrap shrink-0">
+                        <Calendar className="w-3 h-3 text-slate-500 shrink-0" />
                         <span>Upcoming</span>
                       </span>
                     ) : null}
 
                     {/* Online Reservation Badge */}
                     {info.isOnline && (
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-900 border border-indigo-200 flex items-center gap-1 shadow-2xs font-amharic hidden sm:inline-flex">
-                        <Globe className="w-3 h-3 text-indigo-600" />
-                        <span>በኦንላይን የተያዘ (300 ETB)</span>
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-900 border border-indigo-200 flex items-center gap-1 shadow-2xs font-amharic hidden sm:inline-flex whitespace-nowrap shrink-0">
+                        <Globe className="w-3 h-3 text-indigo-600 shrink-0" />
+                        <span>በኦንላይን (300 ETB)</span>
                       </span>
                     )}
 
-                    {/* Debt / Balance Badge: ONLY shown for Reception & Owner */}
+                    {/* Debt / Balance Badge */}
                     {!isDoctor && patient.balanceETB > 0 && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs">
-                        {patient.balanceETB.toLocaleString()} ETB Due
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs whitespace-nowrap shrink-0">
+                        Due {patient.balanceETB.toLocaleString()} ETB
                       </span>
                     )}
 
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-1 transition-all shrink-0" />
                   </div>
                 </div>
               );

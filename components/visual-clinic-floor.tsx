@@ -262,17 +262,17 @@ export function VisualClinicFloor({
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Live Clinic Floor
+              Clinic Floor
             </h2>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Live Clinic View
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              Live
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             {isDoctorRole
-              ? 'Real-time visual map of the Waiting Room and Dental Operatory Chairs.'
-              : 'Real-time visual map of the Waiting Room, Dental Chairs, and Cashier Desk.'}
+              ? 'Waiting lounge & operatory'
+              : 'Waiting lounge, chairs & cashier'}
           </p>
         </div>
 
@@ -342,7 +342,7 @@ export function VisualClinicFloor({
                 <p className="text-[10px] text-slate-500">Reception Lounge</p>
               </div>
             </div>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap shrink-0">
               {waitingPatients.length} Waiting
             </span>
           </div>
@@ -404,12 +404,12 @@ export function VisualClinicFloor({
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                        <p className="text-[10px] text-slate-500 font-mono mt-0.5 whitespace-nowrap">
                           {apt.patientPhone || '+251 91 123 4567'}
                         </p>
                       </div>
                       {isRequested ? (
-                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-200/90 border border-amber-400 px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-900 bg-amber-200/90 border border-amber-400 px-2.5 py-1 rounded-full shadow-2xs whitespace-nowrap shrink-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping shrink-0" />
                           <span>Waiting</span>
                         </span>
@@ -421,23 +421,23 @@ export function VisualClinicFloor({
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 shrink-0 whitespace-nowrap">
                           <Clock className="w-3 h-3 text-amber-600 shrink-0" />
-                          Waiting Lounge
+                          Waiting
                         </span>
                       )}
                     </div>
 
-                    <div className="text-[11px] text-slate-600 bg-white p-2 rounded-xl border border-slate-100 font-medium flex items-center justify-between">
+                    <div className="text-[11px] text-slate-600 bg-white p-2 rounded-xl border border-slate-100 font-medium flex items-center justify-between gap-2">
                       <span className="truncate">{apt.serviceName}</span>
                       {isRequested ? (
-                        <span className="text-[10px] text-amber-900 font-bold bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300/80 shrink-0">
+                        <span className="text-[10px] text-amber-900 font-bold bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300/80 whitespace-nowrap shrink-0">
                           Chair {assignedChair}
                         </span>
                       ) : isCancelled ? (
-                        <span className="text-[10px] text-rose-600 font-bold shrink-0">
-                          Doctor busy at {apt.seatingCancelledAt || 'recent'}
+                        <span className="text-[10px] text-rose-600 font-bold whitespace-nowrap shrink-0">
+                          Busy · {apt.seatingCancelledAt || 'recent'}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-semibold text-slate-500 shrink-0">
+                        <span className="text-[10px] font-semibold text-slate-500 whitespace-nowrap shrink-0">
                           {isDoctorRole ? 'Chair 1 · Dr. Senait' : assignedChair === 1 ? 'Chair 1 · Dr. Senait' : 'Chair 2 · Dr. Dawit'}
                         </span>
                       )}
@@ -448,11 +448,10 @@ export function VisualClinicFloor({
                       {isRequested ? (
                         <div className="flex items-center gap-2">
                           <div
-                            className="flex-1 py-2 px-3 rounded-xl text-[10px] font-bold text-center bg-amber-500/15 text-amber-950 border border-amber-300 flex items-center justify-center gap-1.5 shadow-2xs select-none"
-                            title="Waiting"
+                            className="flex-1 py-2 px-3 rounded-xl text-[10px] font-bold text-center bg-amber-500/15 text-amber-950 border border-amber-300 flex items-center justify-center gap-1.5 shadow-2xs select-none whitespace-nowrap"
                           >
                             <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
-                            <span>Waiting for {assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'} to accept...</span>
+                            <span>Waiting for {assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'}</span>
                           </div>
 
                         </div>
@@ -462,33 +461,33 @@ export function VisualClinicFloor({
                             <button
                               type="button"
                               disabled={true}
-                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none"
+                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none whitespace-nowrap"
                             >
-                              <span>Seat in Chair {isDoctorRole ? 1 : assignedChair} (Locked)</span>
+                              <span>Seat Chair {isDoctorRole ? 1 : assignedChair} (Locked)</span>
                             </button>
                           ) : (isDoctorRole ? 1 : assignedChair) === 1 && isChair1Busy ? (
                             <button
                               type="button"
                               disabled={true}
-                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
+                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1 whitespace-nowrap"
                             >
                               <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                              <span>Dr. Senait Busy (Chair 1)</span>
+                              <span className="whitespace-nowrap">Chair 1 Busy</span>
                             </button>
                           ) : (isDoctorRole ? 1 : assignedChair) === 2 && isChair2Busy ? (
                             <button
                               type="button"
                               disabled={true}
-                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
+                              className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1 whitespace-nowrap"
                             >
                               <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                              <span>Chair 2 Busy</span>
+                              <span className="whitespace-nowrap">Chair 2 Busy</span>
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handleSeatInChair(apt.id, isDoctorRole ? 1 : assignedChair)}
-                              className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center transition-colors shadow-2xs text-white ${isCancelled
+                              className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center transition-colors shadow-2xs text-white whitespace-nowrap ${isCancelled
                                 ? 'bg-rose-600 hover:bg-rose-700'
                                 : (isDoctorRole ? 1 : assignedChair) === 1
                                   ? 'bg-blue-600 hover:bg-blue-700'
@@ -497,9 +496,7 @@ export function VisualClinicFloor({
                             >
                               {isCancelled
                                 ? `Re-Request Chair ${isDoctorRole ? 1 : assignedChair}`
-                                : isDoctorRole
-                                  ? `Seat in Chair 1 (Dr. Senait)`
-                                  : `Seat in Chair ${assignedChair} (${assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'})`}
+                                : `Seat Chair ${isDoctorRole ? 1 : assignedChair}`}
                             </button>
                           )}
 
@@ -511,11 +508,10 @@ export function VisualClinicFloor({
                                 if (isOwnerRole) return;
                                 sinnaStore.reassignDoctorAndChair(apt.id, otherDoctorName, otherChair);
                               }}
-                              className={`py-1.5 px-2.5 rounded-xl text-[10px] font-bold border shadow-2xs transition-colors shrink-0 ${isOwnerRole
+                              className={`py-1.5 px-2.5 rounded-xl text-[10px] font-bold border shadow-2xs transition-colors shrink-0 whitespace-nowrap ${isOwnerRole
                                 ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
                                 : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200'
                                 }`}
-                              title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : `Switch assigned doctor/operatory to Chair ${otherChair} (${otherDoctorName})`}
                             >
                               Chair {otherChair}
                             </button>
@@ -587,16 +583,15 @@ export function VisualClinicFloor({
                 <div
                   onClick={() => handleOpenPatient(chair1Apt.id)}
                   className="w-full bg-white/95 p-3.5 rounded-2xl border border-emerald-300/80 hover:border-emerald-400 space-y-2 text-left shadow-2xs cursor-pointer transition-all"
-                  title="Click to view patient profile and clinical chart"
                 >
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                          Current Patient in Chair
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 whitespace-nowrap">
+                          Current Patient
                         </span>
                         {Boolean(chair1Apt.isOnlineBooking || chair1Apt.source === 'online' || chair1Apt.source === 'copilot' || (chair1Apt.notes && chair1Apt.notes.includes('Online')) || (chair1Apt.notes && chair1Apt.notes.includes('Booked via'))) && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic" title="በኦንላይን የተያዘ ቀጠሮ">
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic whitespace-nowrap shrink-0">
                             <Globe className="w-2.5 h-2.5 text-sky-600" />
                             <span>በኦንላይን</span>
                           </span>
@@ -606,8 +601,8 @@ export function VisualClinicFloor({
                         {chair1Apt.patientName}
                       </h4>
                     </div>
-                    <span className="text-[10px] font-mono text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-emerald-600" />
+                    <span className="text-[10px] font-mono text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 whitespace-nowrap shrink-0">
+                      <Clock className="w-3 h-3 text-emerald-600 shrink-0" />
                       Active
                     </span>
                   </div>
@@ -628,22 +623,22 @@ export function VisualClinicFloor({
               ) : isDoctorRole && pendingChair1Req ? (
                 <div className="w-full bg-white/95 p-3.5 rounded-2xl border border-amber-300 space-y-2 text-left shadow-2xs">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
-                    Incoming Seating Request
+                    Incoming Request
                   </span>
                   <h4 className="text-sm font-bold text-slate-950 leading-tight">
                     {pendingChair1Req.patientName}
                   </h4>
                   <p className="text-[11px] text-slate-600">
-                    {pendingChair1Req.serviceName} · Dispatched by {pendingChair1Req.requestedBy || 'Helen'}
+                    {pendingChair1Req.serviceName} · {pendingChair1Req.requestedBy || 'Helen'}
                   </p>
                 </div>
               ) : (
                 <div className="py-4 text-center space-y-1.5">
-                  <p className="text-xs font-bold text-slate-800">Waiting for Next Patient</p>
+                  <p className="text-xs font-bold text-slate-800">Ready for Patient</p>
                   <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
                     {waitingList.length > 0
-                      ? `Next in line from lounge: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
-                      : 'Operatory clean & sanitized. Instruments prepped for Dr. Senait.'}
+                      ? `Next: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
+                      : 'Operatory ready · Dr. Senait'}
                   </p>
                 </div>
               )}
@@ -663,10 +658,10 @@ export function VisualClinicFloor({
                           router.push(`/patients?patientId=${chair1Apt.id}`);
                         }
                       }}
-                      className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98"
+                      className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98 whitespace-nowrap"
                     >
-                      <User className="w-3.5 h-3.5" />
-                      <span>Clinical Profile &amp; Chart</span>
+                      <User className="w-3.5 h-3.5 shrink-0" />
+                      <span>Clinical Chart</span>
                     </button>
                     <button
                       type="button"
@@ -678,14 +673,13 @@ export function VisualClinicFloor({
                         }
                         handleFinishTreatment(1, chair1Apt.id);
                       }}
-                      className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${isOwnerRole
+                      className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap ${isOwnerRole
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-300 active:scale-98'
                         }`}
-                      title={isOwnerRole ? 'Owner Oversight Mode (Read-Only): Dr. Senait completes treatments.' : 'Done → Send to Cashier'}
                     >
-                      <CheckCircle2 className={`w-3.5 h-3.5 ${isOwnerRole ? 'text-slate-400' : 'text-emerald-600'}`} />
-                      <span>{isOwnerRole ? 'Done → Send to Cashier (Doctor Only)' : 'Done → Send to Cashier'}</span>
+                      <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isOwnerRole ? 'text-slate-400' : 'text-emerald-600'}`} />
+                      <span>{isOwnerRole ? 'Send to Cashier (Doctor Only)' : 'Complete · Send to Cashier'}</span>
                     </button>
                   </>
                 ) : (
@@ -696,9 +690,9 @@ export function VisualClinicFloor({
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse shrink-0" />
-                      <span className="text-[11px] font-semibold text-slate-800 truncate">Room 1 · In Treatment</span>
+                      <span className="text-[11px] font-semibold text-slate-800 whitespace-nowrap">In Treatment</span>
                     </div>
-                    <span className="text-[10px] text-emerald-800 font-mono font-bold bg-emerald-100/80 px-2 py-0.5 rounded-full shrink-0">
+                    <span className="text-[10px] text-emerald-800 font-mono font-bold bg-emerald-100/80 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                       Dr. Senait
                     </span>
                   </div>
@@ -708,9 +702,9 @@ export function VisualClinicFloor({
                   <div className="flex items-center justify-between text-[11px] font-semibold text-amber-900 bg-amber-50 border border-amber-200 p-2 rounded-xl">
                     <span className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
-                      <span>Doctor Seating Gate</span>
+                      <span>Seating Request</span>
                     </span>
-                    <span className="text-[10px] font-mono text-amber-700 font-bold uppercase">
+                    <span className="text-[10px] font-mono text-amber-700 font-bold uppercase whitespace-nowrap">
                       Chair 1
                     </span>
                   </div>
@@ -722,14 +716,13 @@ export function VisualClinicFloor({
                         if (isOwnerRole) return;
                         sinnaStore.acceptSeatingRequest();
                       }}
-                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center shadow-xs flex items-center justify-center gap-1.5 transition-colors ${isOwnerRole
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center shadow-xs flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap ${isOwnerRole
                         ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                         : 'text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98'
                         }`}
-                      title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Dr. Senait accepts patient into Chair 1'}
                     >
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{isOwnerRole ? 'Doctor Handshake (Locked)' : 'Accept & Seat in Chair 1'}</span>
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      <span>{isOwnerRole ? 'Accept (Locked)' : 'Seat Chair 1'}</span>
                     </button>
                     <button
                       type="button"
@@ -738,20 +731,19 @@ export function VisualClinicFloor({
                         if (isOwnerRole) return;
                         sinnaStore.declineSeatingRequest();
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-semibold text-center shadow-2xs transition-colors border ${isOwnerRole
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold text-center shadow-2xs transition-colors border whitespace-nowrap ${isOwnerRole
                         ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
                         : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200 active:scale-98'
                         }`}
-                      title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Decline seating request'}
                     >
                       Decline
                     </button>
                   </div>
                 </div>
               ) : !isDoctorRole && pendingChair1Req ? (
-                <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2">
+                <div className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2 whitespace-nowrap">
                   <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
-                  <span>Waiting for Dr. Senait to accept...</span>
+                  <span>Awaiting Dr. Senait</span>
                 </div>
               ) : waitingList.length > 0 ? (
                 <button
@@ -768,24 +760,23 @@ export function VisualClinicFloor({
                       handleSeatInChair(waitingList[0].id, 1);
                     }
                   }}
-                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${isOwnerRole
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 whitespace-nowrap ${isOwnerRole
                     ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                     : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
                     }`}
-                  title={isOwnerRole ? 'Owner Oversight Mode: Seating is managed by active duty staff.' : 'Seat next waiting patient in Chair 1'}
                 >
-                  <Armchair className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>
+                  <Armchair className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="truncate">
                     {isOwnerRole
-                      ? `Chair 1 Dispatch (Locked - Owner View)`
+                      ? `Chair 1 Dispatch (Locked)`
                       : isDoctorRole
-                        ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 1`
+                        ? `Seat ${waitingList[0].patientName.split(' ')[0]} · Chair 1`
                         : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 1`}
                   </span>
                 </button>
               ) : (
                 <div className="text-[11px] text-slate-400 text-center py-2 font-medium">
-                  Ready to seat next patient from Waiting Room
+                  Waiting lounge empty
                 </div>
               )}
             </div>
@@ -843,16 +834,15 @@ export function VisualClinicFloor({
                   <div
                     onClick={() => handleOpenPatient(chair2Apt.id)}
                     className="w-full bg-white/95 p-3.5 rounded-2xl border border-blue-300/80 hover:border-blue-400 space-y-2 text-left shadow-2xs cursor-pointer transition-all"
-                    title="Click to view patient profile and clinical chart"
                   >
                     <div className="flex items-start justify-between">
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                            Current Patient in Chair
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 whitespace-nowrap">
+                            Current Patient
                           </span>
                           {Boolean(chair2Apt.isOnlineBooking || chair2Apt.source === 'online' || chair2Apt.source === 'copilot' || (chair2Apt.notes && chair2Apt.notes.includes('Online')) || (chair2Apt.notes && chair2Apt.notes.includes('Booked via'))) && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic" title="በኦንላይን የተያዘ ቀጠሮ">
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic whitespace-nowrap shrink-0">
                               <Globe className="w-2.5 h-2.5 text-sky-600" />
                               <span>በኦንላይን</span>
                             </span>
@@ -862,8 +852,8 @@ export function VisualClinicFloor({
                           {chair2Apt.patientName}
                         </h4>
                       </div>
-                      <span className="text-[10px] font-mono text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-blue-600" />
+                      <span className="text-[10px] font-mono text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 whitespace-nowrap shrink-0">
+                        <Clock className="w-3 h-3 text-blue-600 shrink-0" />
                         Active
                       </span>
                     </div>
@@ -883,22 +873,22 @@ export function VisualClinicFloor({
                 ) : isDoctorRole && pendingChair2Req ? (
                   <div className="w-full bg-white/95 p-3.5 rounded-2xl border border-amber-300 space-y-2 text-left shadow-2xs">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
-                      Incoming Seating Request
+                      Incoming Request
                     </span>
                     <h4 className="text-sm font-bold text-slate-950 leading-tight">
                       {pendingChair2Req.patientName}
                     </h4>
                     <p className="text-[11px] text-slate-600">
-                      {pendingChair2Req.serviceName} · Dispatched by {pendingChair2Req.requestedBy || 'Helen'}
+                      {pendingChair2Req.serviceName} · {pendingChair2Req.requestedBy || 'Helen'}
                     </p>
                   </div>
                 ) : (
                   <div className="py-4 text-center space-y-1.5">
-                    <p className="text-xs font-bold text-slate-800">Waiting for Next Patient</p>
+                    <p className="text-xs font-bold text-slate-800">Ready for Patient</p>
                     <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
                       {waitingList.length > 0
-                        ? `Next in line from lounge: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
-                        : 'Surgical operatory clean & sanitized. Instruments prepped for Dr. Dawit.'}
+                        ? `Next: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
+                        : 'Operatory ready · Dr. Dawit'}
                     </p>
                   </div>
                 )}
@@ -918,10 +908,10 @@ export function VisualClinicFloor({
                             router.push(`/patients?patientId=${chair2Apt.id}`);
                           }
                         }}
-                        className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98"
+                        className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98 whitespace-nowrap"
                       >
-                        <User className="w-3.5 h-3.5" />
-                        <span>Clinical Profile &amp; Chart</span>
+                        <User className="w-3.5 h-3.5 shrink-0" />
+                        <span>Clinical Chart</span>
                       </button>
                       <button
                         type="button"
@@ -933,14 +923,13 @@ export function VisualClinicFloor({
                           }
                           handleFinishTreatment(2, chair2Apt.id);
                         }}
-                        className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${isOwnerRole
+                        className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs whitespace-nowrap ${isOwnerRole
                           ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                           : 'bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 active:scale-98'
                           }`}
-                        title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Done → Send to Cashier'}
                       >
-                        <CheckCircle2 className={`w-3.5 h-3.5 ${isOwnerRole ? 'text-slate-400' : 'text-blue-600'}`} />
-                        <span>{isOwnerRole ? 'Done → Send to Cashier (Doctor Only)' : 'Done → Send to Cashier'}</span>
+                        <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isOwnerRole ? 'text-slate-400' : 'text-blue-600'}`} />
+                        <span>{isOwnerRole ? 'Send to Cashier (Doctor Only)' : 'Complete · Send to Cashier'}</span>
                       </button>
                     </>
                   ) : (
@@ -951,17 +940,17 @@ export function VisualClinicFloor({
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
-                        <span className="text-[11px] font-semibold text-slate-800 truncate">Room 2 · In Treatment</span>
+                        <span className="text-[11px] font-semibold text-slate-800 whitespace-nowrap">In Treatment</span>
                       </div>
-                      <span className="text-[10px] text-blue-800 font-mono font-bold bg-blue-100/80 px-2 py-0.5 rounded-full shrink-0">
+                      <span className="text-[10px] text-blue-800 font-mono font-bold bg-blue-100/80 px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                         Dr. Dawit
                       </span>
                     </div>
                   )
                 ) : pendingChair2Req ? (
-                  <div className="text-[11px] text-blue-900 bg-blue-50/80 border border-blue-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2">
+                  <div className="text-[11px] text-blue-900 bg-blue-50/80 border border-blue-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2 whitespace-nowrap">
                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping shrink-0" />
-                    <span>Waiting for Dr. Dawit to accept...</span>
+                    <span>Awaiting Dr. Dawit</span>
                   </div>
                 ) : waitingList.length > 0 ? (
                   <button
@@ -978,24 +967,23 @@ export function VisualClinicFloor({
                         handleSeatInChair(waitingList[0].id, 2);
                       }
                     }}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${isOwnerRole
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 whitespace-nowrap ${isOwnerRole
                       ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                       : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
                       }`}
-                    title={isOwnerRole ? 'Owner Oversight Mode: Seating is managed by active duty staff.' : 'Seat next waiting patient in Chair 2'}
                   >
-                    <Armchair className="w-3.5 h-3.5 text-blue-400" />
-                    <span>
+                    <Armchair className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                    <span className="truncate">
                       {isOwnerRole
-                        ? `Chair 2 Dispatch (Locked - Owner View)`
+                        ? `Chair 2 Dispatch (Locked)`
                         : isDoctorRole
-                          ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 2`
+                          ? `Seat ${waitingList[0].patientName.split(' ')[0]} · Chair 2`
                           : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 2`}
                     </span>
                   </button>
                 ) : (
                   <div className="text-[11px] text-slate-400 text-center py-2 font-medium">
-                    Ready to seat next patient from Waiting Room
+                    Waiting lounge empty
                   </div>
                 )}
               </div>
@@ -1018,7 +1006,7 @@ export function VisualClinicFloor({
                   <p className="text-[10px] text-slate-500">Collect Bill</p>
                 </div>
               </div>
-              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${cashierQueue.length > 0
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 ${cashierQueue.length > 0
                 ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
                 : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                 }`}>
@@ -1033,9 +1021,9 @@ export function VisualClinicFloor({
                   <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2 shadow-2xs">
                     <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <p className="text-xs font-bold text-slate-800">All Patient Bills Settled</p>
+                  <p className="text-xs font-bold text-slate-800">All Settled</p>
                   <p className="text-[11px] text-slate-400 mt-0.5 max-w-[210px] leading-relaxed">
-                    No completed patients waiting for cashier checkout. MoR fiscal registry is up to date.
+                    No pending cashier bills.
                   </p>
                 </div>
               ) : (
@@ -1198,16 +1186,16 @@ export function VisualClinicFloor({
 
                       {/* DUE AMOUNT */}
                       <div className="text-right">
-                        <div className="bg-slate-900 group-hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-2xs transition-colors inline-block">
+                        <div className="bg-slate-900 group-hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-2xs transition-colors inline-block whitespace-nowrap">
                           <span className="text-[8px] font-bold text-slate-300 uppercase block tracking-wider leading-none">
                             DUE
                           </span>
-                          <span className="text-xs font-black font-mono text-white leading-tight">
+                          <span className="text-xs font-black font-mono text-white leading-tight whitespace-nowrap">
                             {balanceDue.toLocaleString()} ETB
                           </span>
                         </div>
                         {(apt.depositPaidETB || 0) > 0 && (
-                          <span className="text-[9px] font-mono font-bold text-emerald-700 block mt-0.5 text-right">
+                          <span className="text-[9px] font-mono font-bold text-emerald-700 block mt-0.5 text-right whitespace-nowrap">
                             Paid: {apt.depositPaidETB.toLocaleString()} ETB
                           </span>
                         )}

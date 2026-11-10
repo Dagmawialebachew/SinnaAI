@@ -120,23 +120,23 @@ export function ReceiptModal({ clinic: clinicProp, appointment, transaction, isO
             <div className="border-b-2 border-dashed border-slate-300 my-2"></div>
           </div>
 
-          {/* MoR Fiscal Tax-Inclusive Breakdown */}
+          {/* VAT Breakdown */}
           <div className="space-y-1.5 text-[11px] pb-1">
             <div className="flex justify-between text-slate-600">
-              <span>Taxable Base (Net Service Value):</span>
-              <span className="font-mono">{tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+              <span>Net:</span>
+              <span className="font-mono whitespace-nowrap">{tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
             </div>
             <div className="flex justify-between text-slate-600">
-              <span>VAT ({tax.vatRatePercent} Ministry of Revenues):</span>
-              <span className="font-mono">{tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+              <span>VAT ({tax.vatRatePercent}):</span>
+              <span className="font-mono whitespace-nowrap">{tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
             </div>
             <div className="border-b border-dashed border-slate-200 my-1"></div>
           </div>
 
           <div className="space-y-1 text-xs">
             <div className="flex justify-between text-sm font-bold text-slate-950">
-              <span>TOTAL PAID (TAX INCLUSIVE):</span>
-              <span className="text-brand-primary">{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+              <span>TOTAL PAID:</span>
+              <span className="text-brand-primary whitespace-nowrap">{finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
             </div>
             <div className="flex justify-between text-[11px] text-slate-500">
               <span>PAYMENT METHOD:</span>

@@ -267,20 +267,20 @@ export function AppShell({ children }: AppShellProps) {
         {/* 2. ORGANIZED LEFT SIDEBAR */}
         <aside className="hidden lg:flex lg:flex-col w-60 bg-white border-r border-slate-200/90 shrink-0 sticky top-0 h-screen z-30">
           {/* Logo Header */}
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+          <div className="px-4 py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs shrink-0">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2C7.5 2 4 4.5 4 8c0 3.5 1.5 6 3 9 1 2 2 5 5 5s4-3 5-5c1.5-3 3-5.5 3-9 0-3.5-3.5-6-8-6z" />
                 </svg>
               </div>
-              <span className="font-bold text-slate-900 text-base tracking-tight">
+              <span className="font-bold text-slate-900 text-sm tracking-tight whitespace-nowrap">
                 Sinna Dental
               </span>
             </div>
 
             {/* Role Badge */}
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider whitespace-nowrap shrink-0 ${
               isDoctor
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : isOwner
@@ -306,7 +306,7 @@ export function AppShell({ children }: AppShellProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                         item.active
                           ? 'bg-blue-50 text-blue-700 shadow-2xs'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
@@ -322,7 +322,7 @@ export function AppShell({ children }: AppShellProps) {
                       </div>
                       {item.badge && (
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${item.badgeColor}`}
+                          className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold whitespace-nowrap shrink-0 ${item.badgeColor}`}
                         >
                           {item.badge}
                         </span>
@@ -393,7 +393,7 @@ export function AppShell({ children }: AppShellProps) {
               </div>
             </div>
 
-            {/* Quick 3-Role Switcher (Simple, Plain Words) */}
+            {/* Quick 3-Role Switcher */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/80">
               <span className="text-[11px] font-bold text-slate-400 px-2 hidden sm:inline uppercase tracking-wider">
                 Role:
@@ -401,64 +401,60 @@ export function AppShell({ children }: AppShellProps) {
               <button
                 type="button"
                 onClick={() => sinnaStore.switchRole('reception')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
                   !isDoctor && !isOwner
                     ? 'bg-white text-emerald-700 shadow-2xs font-bold border border-emerald-200/80'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
-                title="Receptionist: Waiting room, seating, phone calls, cashier payments"
               >
-                <span className={`w-2 h-2 rounded-full ${!isDoctor && !isOwner ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                <span className={`w-2 h-2 rounded-full shrink-0 ${!isDoctor && !isOwner ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                 <span>Reception</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => sinnaStore.switchRole('doctor')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
                   isDoctor
                     ? 'bg-white text-blue-700 shadow-2xs font-bold border border-blue-200/80'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
-                title="Doctor: Patient care, 32-tooth dental chart, treatments, quotes"
               >
-                <span className={`w-2 h-2 rounded-full ${isDoctor ? 'bg-blue-600' : 'bg-slate-300'}`} />
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isDoctor ? 'bg-blue-600' : 'bg-slate-300'}`} />
                 <span>Doctor</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => sinnaStore.switchRole('admin')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
                   isOwner
                     ? 'bg-slate-900 text-white shadow-2xs font-bold'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                 }`}
-                title="Owner & Manager: Clinic overview, cashier ledger, MoR taxes, earnings, settings"
               >
-                <span className={`w-2 h-2 rounded-full ${isOwner ? 'bg-amber-400' : 'bg-slate-300'}`} />
+                <span className={`w-2 h-2 rounded-full shrink-0 ${isOwner ? 'bg-amber-400' : 'bg-slate-300'}`} />
                 <span>Owner</span>
               </button>
             </div>
 
-            {/* Right Action Icons (Help, Theme, Log out) */}
+            {/* Right Action Icons */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setSmsDrawerOpen(true)}
                 className="relative p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors"
-                title="AfroMessage SMS Transmissions"
+                aria-label="SMS Logs"
               >
                 <Bell className="w-4 h-4" />
               </button>
 
               <button
                 type="button"
-                onClick={() => alert(`Sinna Dental OS Help: ${clinic.name} clinical operations hotline: ${clinic.phone || '+251 91 122 3344'}.`)}
-                className="inline-flex items-center gap-1 p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 text-xs transition-colors"
-                title="Help & Documentation"
+                onClick={() => alert(`${clinic.name} hotline: ${clinic.phone || '+251 91 122 3344'}`)}
+                className="inline-flex items-center gap-1 p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 text-xs transition-colors whitespace-nowrap"
               >
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">Help</span>
               </button>
 
@@ -467,22 +463,19 @@ export function AppShell({ children }: AppShellProps) {
                 onClick={() => {
                   sinnaStore.resetToToday();
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200/80 shadow-2xs group"
-                title="Reset clinic records & anchor all schedules to today's date"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200/80 shadow-2xs group whitespace-nowrap"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 group-hover:-rotate-90 transition-transform duration-300" />
+                <RotateCcw className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-600 group-hover:-rotate-90 transition-transform duration-300 shrink-0" />
                 <span>Reset</span>
               </button>
 
               <div className="h-4 w-px bg-slate-200" />
 
-              {/* Log out Button (Exact match from Screenshot 1 & 2 top right) */}
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-                title="Log out from current clinical station"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors whitespace-nowrap"
               >
-                <LogOut className="w-3.5 h-3.5 text-slate-400" />
+                <LogOut className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="hidden sm:inline">Log out</span>
               </Link>
             </div>
