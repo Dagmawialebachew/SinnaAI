@@ -31,10 +31,10 @@ import { useSinnaStore, sinnaStore } from '@/lib/store';
 import { Appointment, OperatoryChair } from '@/lib/types';
 
 // Custom Medical Vector Illustration of Dental Operatory Chair
-function DentalChairIllustration({ 
-  status, 
-  className = "w-20 h-20" 
-}: { 
+function DentalChairIllustration({
+  status,
+  className = "w-20 h-20"
+}: {
   status: 'occupied' | 'available' | 'sanitizing';
   className?: string;
 }) {
@@ -54,18 +54,18 @@ function DentalChairIllustration({
 
       {/* Chair Seat Base */}
       <rect x="30" y="58" width="40" height="12" rx="4" fill={fillColor} stroke={baseColor} strokeWidth="2.5" />
-      
+
       {/* Reclined Ergonomic Backrest */}
-      <path 
-        d="M32 60 L20 30 C19 27 21 24 24 24 L34 24 C37 24 39 26 40 29 L48 60 Z" 
-        fill={fillColor} 
-        stroke={baseColor} 
-        strokeWidth="2.5" 
+      <path
+        d="M32 60 L20 30 C19 27 21 24 24 24 L34 24 C37 24 39 26 40 29 L48 60 Z"
+        fill={fillColor}
+        stroke={baseColor}
+        strokeWidth="2.5"
       />
 
       {/* Headrest */}
       <rect x="18" y="14" width="18" height="9" rx="3.5" fill={fillColor} stroke={baseColor} strokeWidth="2" />
-      
+
       {/* Patient Cushion Overlay */}
       <path d="M26 30 L32 54" stroke={accentColor} strokeWidth="2" strokeLinecap="round" />
       <line x1="36" y1="62" x2="64" y2="62" stroke={accentColor} strokeWidth="2" strokeLinecap="round" />
@@ -253,7 +253,7 @@ export function VisualClinicFloor({
       {/* ------------------------------------------------------------------- */}
       {/* OWNER OVERSIGHT BANNER: Clean Clinical & Fiscal Read-Only Indicator */}
       {/* ------------------------------------------------------------------- */}
-    
+
 
       {/* ------------------------------------------------------------------- */}
       {/* TOP HEADER: Clean Clinical Precision & Status Counter               */}
@@ -311,12 +311,10 @@ export function VisualClinicFloor({
                 }
                 setWalkInModalOpen(true);
               }}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-xs ml-auto md:ml-2 ${
-                isOwnerRole
-                  ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                  : 'bg-brand-primary hover:bg-brand-hover text-white active:scale-95'
-              }`}
-              title={isOwnerRole ? 'Owner Oversight Mode (Read-Only): Check-in is handled by Reception.' : 'Register and check in a walk-in patient'}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all shadow-xs ml-auto md:ml-2 ${isOwnerRole
+                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                : 'bg-brand-primary hover:bg-brand-hover text-white active:scale-95'
+                }`}
             >
               <UserPlus className="w-3.5 h-3.5" />
               <span>{isOwnerRole ? '+ Check In (Front Desk Only)' : '+ Check In Patient'}</span>
@@ -345,7 +343,7 @@ export function VisualClinicFloor({
               </div>
             </div>
             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-              {waitingPatients.length} Waiting in Lounge
+              {waitingPatients.length} Waiting
             </span>
           </div>
 
@@ -379,26 +377,23 @@ export function VisualClinicFloor({
                   <div
                     key={apt.id}
                     onClick={() => handleOpenPatient(apt.id)}
-                    className={`p-3.5 rounded-2xl border transition-all hover:shadow-card space-y-2.5 cursor-pointer group active:scale-[0.99] ${
-                      isRequested
-                        ? 'bg-gradient-to-br from-amber-50 via-amber-100/40 to-white border-2 border-amber-400 ring-2 ring-amber-400/20 shadow-md'
-                        : isCancelled
+                    className={`p-3.5 rounded-2xl border transition-all hover:shadow-card space-y-2.5 cursor-pointer group active:scale-[0.99] ${isRequested
+                      ? 'bg-gradient-to-br from-amber-50 via-amber-100/40 to-white border-2 border-amber-400 ring-2 ring-amber-400/20 shadow-md'
+                      : isCancelled
                         ? 'bg-rose-50/50 hover:bg-rose-50/80 border-rose-300 ring-1 ring-rose-300/40'
                         : 'bg-slate-50 hover:bg-white border-slate-200 hover:border-blue-300'
-                    }`}
-                    title="Click to view patient profile & triage details in side panel"
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <h4
-                            className={`text-xs font-bold leading-tight transition-colors ${
-                              isRequested
-                                ? 'text-amber-950 group-hover:text-amber-800'
-                                : isCancelled
+                            className={`text-xs font-bold leading-tight transition-colors ${isRequested
+                              ? 'text-amber-950 group-hover:text-amber-800'
+                              : isCancelled
                                 ? 'text-rose-600 group-hover:text-rose-700 underline decoration-rose-300'
                                 : 'text-slate-900 group-hover:text-blue-600'
-                            }`}
+                              }`}
                           >
                             {apt.patientName}
                           </h4>
@@ -459,7 +454,7 @@ export function VisualClinicFloor({
                             <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
                             <span>Waiting for {assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'} to accept...</span>
                           </div>
-                      
+
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
@@ -468,7 +463,6 @@ export function VisualClinicFloor({
                               type="button"
                               disabled={true}
                               className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none"
-                              title="Owner Oversight Mode: Patient seating is managed by Reception & Dr. Senait."
                             >
                               <span>Seat in Chair {isDoctorRole ? 1 : assignedChair} (Locked)</span>
                             </button>
@@ -477,7 +471,6 @@ export function VisualClinicFloor({
                               type="button"
                               disabled={true}
                               className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
-                              title={`Dr. Senait is currently conducting treatment for ${chair1Apt?.patientName || 'a customer'} in Chair 1. No one can send another patient to her chair while she is conducting another customer.`}
                             >
                               <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                               <span>Dr. Senait Busy (Chair 1)</span>
@@ -487,7 +480,6 @@ export function VisualClinicFloor({
                               type="button"
                               disabled={true}
                               className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none flex items-center justify-center gap-1"
-                              title={`Chair 2 is currently occupied with ${chair2Apt?.patientName || 'a customer'}. Please wait until released.`}
                             >
                               <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                               <span>Chair 2 Busy</span>
@@ -496,20 +488,18 @@ export function VisualClinicFloor({
                             <button
                               type="button"
                               onClick={() => handleSeatInChair(apt.id, isDoctorRole ? 1 : assignedChair)}
-                              className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center transition-colors shadow-2xs text-white ${
-                                isCancelled
-                                  ? 'bg-rose-600 hover:bg-rose-700'
-                                  : (isDoctorRole ? 1 : assignedChair) === 1
+                              className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-bold text-center transition-colors shadow-2xs text-white ${isCancelled
+                                ? 'bg-rose-600 hover:bg-rose-700'
+                                : (isDoctorRole ? 1 : assignedChair) === 1
                                   ? 'bg-blue-600 hover:bg-blue-700'
                                   : 'bg-emerald-600 hover:bg-emerald-700'
-                              }`}
-                              title={isDoctorRole ? 'Seat in Chair 1 (Dr. Senait)' : `Dispatch seating request to ${assignedDoctorName} (Chair ${assignedChair})`}
+                                }`}
                             >
                               {isCancelled
                                 ? `Re-Request Chair ${isDoctorRole ? 1 : assignedChair}`
                                 : isDoctorRole
-                                ? `Seat in Chair 1 (Dr. Senait)`
-                                : `Seat in Chair ${assignedChair} (${assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'})`}
+                                  ? `Seat in Chair 1 (Dr. Senait)`
+                                  : `Seat in Chair ${assignedChair} (${assignedChair === 1 ? 'Dr. Senait' : 'Dr. Dawit'})`}
                             </button>
                           )}
 
@@ -521,11 +511,10 @@ export function VisualClinicFloor({
                                 if (isOwnerRole) return;
                                 sinnaStore.reassignDoctorAndChair(apt.id, otherDoctorName, otherChair);
                               }}
-                              className={`py-1.5 px-2.5 rounded-xl text-[10px] font-bold border shadow-2xs transition-colors shrink-0 ${
-                                isOwnerRole
-                                  ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
-                                  : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200'
-                              }`}
+                              className={`py-1.5 px-2.5 rounded-xl text-[10px] font-bold border shadow-2xs transition-colors shrink-0 ${isOwnerRole
+                                ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
+                                : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200'
+                                }`}
                               title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : `Switch assigned doctor/operatory to Chair ${otherChair} (${otherDoctorName})`}
                             >
                               Chair {otherChair}
@@ -544,13 +533,12 @@ export function VisualClinicFloor({
         {/* ================================================================= */}
         {/* ZONE 2: CHAIR 1 — ROOM 1 (DR. SENAIT TADESSE)                     */}
         {/* ================================================================= */}
-        <div className={`rounded-2xl border-2 flex flex-col shadow-xs overflow-hidden transition-all relative ${
-          chair1Apt
-            ? 'bg-gradient-to-b from-[#E4F7EE] via-[#ECF9F2] to-white border-emerald-400/80 ring-1 ring-emerald-500/20'
-            : isDoctorRole && pendingChair1Req
+        <div className={`rounded-2xl border-2 flex flex-col shadow-xs overflow-hidden transition-all relative ${chair1Apt
+          ? 'bg-gradient-to-b from-[#E4F7EE] via-[#ECF9F2] to-white border-emerald-400/80 ring-1 ring-emerald-500/20'
+          : isDoctorRole && pendingChair1Req
             ? 'bg-gradient-to-b from-amber-50/70 via-amber-50/30 to-white border-amber-400/80 ring-1 ring-amber-500/20'
             : 'bg-gradient-to-b from-[#F2FBF6] via-white to-white border-emerald-300/60 ring-1 ring-emerald-400/10'
-        }`}>
+          }`}>
           {/* Subtle Geometric Star Accent Watermark */}
           <div className="absolute -right-5 -top-5 w-32 h-32 pointer-events-none text-emerald-500/10 select-none">
             <svg viewBox="0 0 200 200" fill="currentColor" className="w-full h-full">
@@ -624,7 +612,7 @@ export function VisualClinicFloor({
                     </span>
                   </div>
 
-                 
+
 
                   <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-slate-700">
                     <div className="text-[11px]">
@@ -690,11 +678,10 @@ export function VisualClinicFloor({
                         }
                         handleFinishTreatment(1, chair1Apt.id);
                       }}
-                      className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${
-                        isOwnerRole
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                          : 'bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-300 active:scale-98'
-                      }`}
+                      className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${isOwnerRole
+                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                        : 'bg-white hover:bg-emerald-50 text-emerald-950 border border-emerald-300 active:scale-98'
+                        }`}
                       title={isOwnerRole ? 'Owner Oversight Mode (Read-Only): Dr. Senait completes treatments.' : 'Done → Send to Cashier'}
                     >
                       <CheckCircle2 className={`w-3.5 h-3.5 ${isOwnerRole ? 'text-slate-400' : 'text-emerald-600'}`} />
@@ -735,11 +722,10 @@ export function VisualClinicFloor({
                         if (isOwnerRole) return;
                         sinnaStore.acceptSeatingRequest();
                       }}
-                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center shadow-xs flex items-center justify-center gap-1.5 transition-colors ${
-                        isOwnerRole
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                          : 'text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98'
-                      }`}
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center shadow-xs flex items-center justify-center gap-1.5 transition-colors ${isOwnerRole
+                        ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                        : 'text-white bg-emerald-600 hover:bg-emerald-700 active:scale-98'
+                        }`}
                       title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Dr. Senait accepts patient into Chair 1'}
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -752,11 +738,10 @@ export function VisualClinicFloor({
                         if (isOwnerRole) return;
                         sinnaStore.declineSeatingRequest();
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-semibold text-center shadow-2xs transition-colors border ${
-                        isOwnerRole
-                          ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
-                          : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200 active:scale-98'
-                      }`}
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold text-center shadow-2xs transition-colors border ${isOwnerRole
+                        ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
+                        : 'text-slate-700 bg-white hover:bg-slate-100 border-slate-200 active:scale-98'
+                        }`}
                       title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Decline seating request'}
                     >
                       Decline
@@ -783,11 +768,10 @@ export function VisualClinicFloor({
                       handleSeatInChair(waitingList[0].id, 1);
                     }
                   }}
-                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${
-                    isOwnerRole
-                      ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                      : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
-                  }`}
+                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${isOwnerRole
+                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
+                    }`}
                   title={isOwnerRole ? 'Owner Oversight Mode: Seating is managed by active duty staff.' : 'Seat next waiting patient in Chair 1'}
                 >
                   <Armchair className="w-3.5 h-3.5 text-emerald-400" />
@@ -795,8 +779,8 @@ export function VisualClinicFloor({
                     {isOwnerRole
                       ? `Chair 1 Dispatch (Locked - Owner View)`
                       : isDoctorRole
-                      ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 1`
-                      : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 1`}
+                        ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 1`
+                        : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 1`}
                   </span>
                 </button>
               ) : (
@@ -812,215 +796,212 @@ export function VisualClinicFloor({
         {/* ZONE 3: CHAIR 2 — ROOM 2 (DR. DAWIT BEKELE - RECEPTION ONLY)       */}
         {/* ================================================================= */}
         {!isDoctorRole && (
-          <div className={`rounded-2xl border-2 flex flex-col shadow-xs overflow-hidden transition-all relative ${
-          chair2Apt
+          <div className={`rounded-2xl border-2 flex flex-col shadow-xs overflow-hidden transition-all relative ${chair2Apt
             ? 'bg-gradient-to-b from-[#E8F1FC] via-[#F0F6FD] to-white border-blue-400/80 ring-1 ring-blue-500/20'
             : 'bg-gradient-to-b from-[#F2F7FC] via-white to-white border-blue-300/60 ring-1 ring-blue-400/10'
-        }`}>
-          {/* Subtle Geometric Star Accent Watermark */}
-          <div className="absolute -right-5 -top-5 w-32 h-32 pointer-events-none text-blue-500/10 select-none">
-            <svg viewBox="0 0 200 200" fill="currentColor" className="w-full h-full">
-              <path d="M100 0 C100 55, 145 100, 200 100 C145 100, 100 145, 100 200 C100 145, 55 100, 0 100 C55 100, 100 55, 100 0 Z" />
-            </svg>
-          </div>
-
-          <div className="p-3.5 bg-white/70 border-b border-blue-200/60 flex items-center justify-between relative z-10 backdrop-blur-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                C2
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-slate-900 leading-tight">Chair 2</h3>
-                <p className="text-[10px] text-slate-500 font-medium">Dr. Dawit Bekele</p>
-              </div>
+            }`}>
+            {/* Subtle Geometric Star Accent Watermark */}
+            <div className="absolute -right-5 -top-5 w-32 h-32 pointer-events-none text-blue-500/10 select-none">
+              <svg viewBox="0 0 200 200" fill="currentColor" className="w-full h-full">
+                <path d="M100 0 C100 55, 145 100, 200 100 C145 100, 100 145, 100 200 C100 145, 55 100, 0 100 C55 100, 100 55, 100 0 Z" />
+              </svg>
             </div>
 
-            {chair2Apt ? (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-900 text-white whitespace-nowrap shrink-0 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
-                <span>IN TREATMENT</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-300 whitespace-nowrap shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span>READY FOR PATIENT</span>
-              </span>
-            )}
-          </div>
-
-          {/* Chair Graphic & Seated Patient Content */}
-          <div className="p-4 flex-1 flex flex-col justify-between space-y-4 relative z-10">
-            <div className="flex flex-col items-center text-center space-y-2 pt-1">
-              <DentalChairIllustration
-                status={chair2Apt ? 'occupied' : 'available'}
-                className="w-20 h-20"
-              />
+            <div className="p-3.5 bg-white/70 border-b border-blue-200/60 flex items-center justify-between relative z-10 backdrop-blur-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  C2
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-900 leading-tight">Chair 2</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Dr. Dawit Bekele</p>
+                </div>
+              </div>
 
               {chair2Apt ? (
-                <div
-                  onClick={() => handleOpenPatient(chair2Apt.id)}
-                  className="w-full bg-white/95 p-3.5 rounded-2xl border border-blue-300/80 hover:border-blue-400 space-y-2 text-left shadow-2xs cursor-pointer transition-all"
-                  title="Click to view patient profile and clinical chart"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                          Current Patient in Chair
-                        </span>
-                        {Boolean(chair2Apt.isOnlineBooking || chair2Apt.source === 'online' || chair2Apt.source === 'copilot' || (chair2Apt.notes && chair2Apt.notes.includes('Online')) || (chair2Apt.notes && chair2Apt.notes.includes('Booked via'))) && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic" title="በኦንላይን የተያዘ ቀጠሮ">
-                            <Globe className="w-2.5 h-2.5 text-sky-600" />
-                            <span>በኦንላይን</span>
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="text-sm font-bold text-slate-950 leading-tight mt-0.5">
-                        {chair2Apt.patientName}
-                      </h4>
-                    </div>
-                    <span className="text-[10px] font-mono text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-blue-600" />
-                      Active
-                    </span>
-                  </div>
-
-                 
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-slate-700">
-                    <div className="text-[11px]">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Procedure</span>
-                      <span className="font-semibold text-slate-900 truncate block">{chair2Apt.serviceName}</span>
-                    </div>
-                    <div className="text-[11px]">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">MRN / Card</span>
-                      <span className="font-mono text-slate-800 truncate block">{chair2Apt.patientChart?.cardNo || chair2Apt.patientChart?.medicalRecordNumber || (chair2Apt.id.startsWith('BDS-') ? chair2Apt.id : 'BDS-00042')}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : isDoctorRole && pendingChair2Req ? (
-                <div className="w-full bg-white/95 p-3.5 rounded-2xl border border-amber-300 space-y-2 text-left shadow-2xs">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
-                    Incoming Seating Request
-                  </span>
-                  <h4 className="text-sm font-bold text-slate-950 leading-tight">
-                    {pendingChair2Req.patientName}
-                  </h4>
-                  <p className="text-[11px] text-slate-600">
-                    {pendingChair2Req.serviceName} · Dispatched by {pendingChair2Req.requestedBy || 'Helen'}
-                  </p>
-                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-slate-900 text-white whitespace-nowrap shrink-0 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
+                  <span>IN TREATMENT</span>
+                </span>
               ) : (
-                <div className="py-4 text-center space-y-1.5">
-                  <p className="text-xs font-bold text-slate-800">Waiting for Next Patient</p>
-                  <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
-                    {waitingList.length > 0
-                      ? `Next in line from lounge: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
-                      : 'Surgical operatory clean & sanitized. Instruments prepped for Dr. Dawit.'}
-                  </p>
-                </div>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-300 whitespace-nowrap shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span>READY FOR PATIENT</span>
+                </span>
               )}
             </div>
 
-            {/* Bottom Actions for Chair 2 */}
-            <div className="pt-3 border-t border-blue-200/80 flex flex-col gap-2">
-              {chair2Apt ? (
-                isDoctorRole ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (onOpenPatientChart) {
-                          onOpenPatientChart(chair2Apt.id);
-                        } else {
-                          router.push(`/patients?patientId=${chair2Apt.id}`);
-                        }
-                      }}
-                      className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98"
-                    >
-                      <User className="w-3.5 h-3.5" />
-                      <span>Clinical Profile &amp; Chart</span>
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isOwnerRole}
-                      onClick={() => {
-                        if (isOwnerRole) {
-                          sinnaStore.toastInfo('Owner Oversight Mode', 'Encounter completion is managed by the attending doctor.');
-                          return;
-                        }
-                        handleFinishTreatment(2, chair2Apt.id);
-                      }}
-                      className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${
-                        isOwnerRole
-                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                          : 'bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 active:scale-98'
-                      }`}
-                      title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Done → Send to Cashier'}
-                    >
-                      <CheckCircle2 className={`w-3.5 h-3.5 ${isOwnerRole ? 'text-slate-400' : 'text-blue-600'}`} />
-                      <span>{isOwnerRole ? 'Done → Send to Cashier (Doctor Only)' : 'Done → Send to Cashier'}</span>
-                    </button>
-                  </>
-                ) : (
-                  /* Reception view */
+            {/* Chair Graphic & Seated Patient Content */}
+            <div className="p-4 flex-1 flex flex-col justify-between space-y-4 relative z-10">
+              <div className="flex flex-col items-center text-center space-y-2 pt-1">
+                <DentalChairIllustration
+                  status={chair2Apt ? 'occupied' : 'available'}
+                  className="w-20 h-20"
+                />
+
+                {chair2Apt ? (
                   <div
                     onClick={() => handleOpenPatient(chair2Apt.id)}
-                    className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/90 hover:bg-white border border-blue-200 cursor-pointer transition-colors shadow-2xs"
+                    className="w-full bg-white/95 p-3.5 rounded-2xl border border-blue-300/80 hover:border-blue-400 space-y-2 text-left shadow-2xs cursor-pointer transition-all"
+                    title="Click to view patient profile and clinical chart"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
-                      <span className="text-[11px] font-semibold text-slate-800 truncate">Room 2 · In Treatment</span>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                            Current Patient in Chair
+                          </span>
+                          {Boolean(chair2Apt.isOnlineBooking || chair2Apt.source === 'online' || chair2Apt.source === 'copilot' || (chair2Apt.notes && chair2Apt.notes.includes('Online')) || (chair2Apt.notes && chair2Apt.notes.includes('Booked via'))) && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-100/90 px-1 py-0.2 rounded font-amharic" title="በኦንላይን የተያዘ ቀጠሮ">
+                              <Globe className="w-2.5 h-2.5 text-sky-600" />
+                              <span>በኦንላይን</span>
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-bold text-slate-950 leading-tight mt-0.5">
+                          {chair2Apt.patientName}
+                        </h4>
+                      </div>
+                      <span className="text-[10px] font-mono text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-blue-600" />
+                        Active
+                      </span>
                     </div>
-                    <span className="text-[10px] text-blue-800 font-mono font-bold bg-blue-100/80 px-2 py-0.5 rounded-full shrink-0">
-                      Dr. Dawit
-                    </span>
+
+
+                    <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-slate-700">
+                      <div className="text-[11px]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Procedure</span>
+                        <span className="font-semibold text-slate-900 truncate block">{chair2Apt.serviceName}</span>
+                      </div>
+                      <div className="text-[11px]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">MRN / Card</span>
+                        <span className="font-mono text-slate-800 truncate block">{chair2Apt.patientChart?.cardNo || chair2Apt.patientChart?.medicalRecordNumber || (chair2Apt.id.startsWith('BDS-') ? chair2Apt.id : 'BDS-00042')}</span>
+                      </div>
+                    </div>
                   </div>
-                )
-              ) : pendingChair2Req ? (
-                <div className="text-[11px] text-blue-900 bg-blue-50/80 border border-blue-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping shrink-0" />
-                  <span>Waiting for Dr. Dawit to accept...</span>
-                </div>
-              ) : waitingList.length > 0 ? (
-                <button
-                  type="button"
-                  disabled={isOwnerRole}
-                  onClick={() => {
-                    if (isOwnerRole) {
-                      sinnaStore.toastInfo('Owner Oversight Mode', 'Operatory seating is managed by Reception & Doctor.');
-                      return;
-                    }
-                    if (isDoctorRole) {
-                      sinnaStore.assignPatientToChair(waitingList[0].id, 2);
-                    } else {
-                      handleSeatInChair(waitingList[0].id, 2);
-                    }
-                  }}
-                  className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${
-                    isOwnerRole
+                ) : isDoctorRole && pendingChair2Req ? (
+                  <div className="w-full bg-white/95 p-3.5 rounded-2xl border border-amber-300 space-y-2 text-left shadow-2xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">
+                      Incoming Seating Request
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-950 leading-tight">
+                      {pendingChair2Req.patientName}
+                    </h4>
+                    <p className="text-[11px] text-slate-600">
+                      {pendingChair2Req.serviceName} · Dispatched by {pendingChair2Req.requestedBy || 'Helen'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center space-y-1.5">
+                    <p className="text-xs font-bold text-slate-800">Waiting for Next Patient</p>
+                    <p className="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
+                      {waitingList.length > 0
+                        ? `Next in line from lounge: ${waitingList[0].patientName} (${waitingList[0].serviceName})`
+                        : 'Surgical operatory clean & sanitized. Instruments prepped for Dr. Dawit.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Actions for Chair 2 */}
+              <div className="pt-3 border-t border-blue-200/80 flex flex-col gap-2">
+                {chair2Apt ? (
+                  isDoctorRole ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onOpenPatientChart) {
+                            onOpenPatientChart(chair2Apt.id);
+                          } else {
+                            router.push(`/patients?patientId=${chair2Apt.id}`);
+                          }
+                        }}
+                        className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 active:scale-98"
+                      >
+                        <User className="w-3.5 h-3.5" />
+                        <span>Clinical Profile &amp; Chart</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isOwnerRole}
+                        onClick={() => {
+                          if (isOwnerRole) {
+                            sinnaStore.toastInfo('Owner Oversight Mode', 'Encounter completion is managed by the attending doctor.');
+                            return;
+                          }
+                          handleFinishTreatment(2, chair2Apt.id);
+                        }}
+                        className={`w-full py-2 px-3 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs ${isOwnerRole
+                          ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                          : 'bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 active:scale-98'
+                          }`}
+                        title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Done → Send to Cashier'}
+                      >
+                        <CheckCircle2 className={`w-3.5 h-3.5 ${isOwnerRole ? 'text-slate-400' : 'text-blue-600'}`} />
+                        <span>{isOwnerRole ? 'Done → Send to Cashier (Doctor Only)' : 'Done → Send to Cashier'}</span>
+                      </button>
+                    </>
+                  ) : (
+                    /* Reception view */
+                    <div
+                      onClick={() => handleOpenPatient(chair2Apt.id)}
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white/90 hover:bg-white border border-blue-200 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />
+                        <span className="text-[11px] font-semibold text-slate-800 truncate">Room 2 · In Treatment</span>
+                      </div>
+                      <span className="text-[10px] text-blue-800 font-mono font-bold bg-blue-100/80 px-2 py-0.5 rounded-full shrink-0">
+                        Dr. Dawit
+                      </span>
+                    </div>
+                  )
+                ) : pendingChair2Req ? (
+                  <div className="text-[11px] text-blue-900 bg-blue-50/80 border border-blue-200/80 p-2.5 rounded-xl text-center font-medium flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping shrink-0" />
+                    <span>Waiting for Dr. Dawit to accept...</span>
+                  </div>
+                ) : waitingList.length > 0 ? (
+                  <button
+                    type="button"
+                    disabled={isOwnerRole}
+                    onClick={() => {
+                      if (isOwnerRole) {
+                        sinnaStore.toastInfo('Owner Oversight Mode', 'Operatory seating is managed by Reception & Doctor.');
+                        return;
+                      }
+                      if (isDoctorRole) {
+                        sinnaStore.assignPatientToChair(waitingList[0].id, 2);
+                      } else {
+                        handleSeatInChair(waitingList[0].id, 2);
+                      }
+                    }}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold text-center transition-colors shadow-2xs flex items-center justify-center gap-1.5 ${isOwnerRole
                       ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                       : 'bg-slate-900 hover:bg-slate-800 text-white active:scale-98'
-                  }`}
-                  title={isOwnerRole ? 'Owner Oversight Mode: Seating is managed by active duty staff.' : 'Seat next waiting patient in Chair 2'}
-                >
-                  <Armchair className="w-3.5 h-3.5 text-blue-400" />
-                  <span>
-                    {isOwnerRole
-                      ? `Chair 2 Dispatch (Locked - Owner View)`
-                      : isDoctorRole
-                      ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 2`
-                      : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 2`}
-                  </span>
-                </button>
-              ) : (
-                <div className="text-[11px] text-slate-400 text-center py-2 font-medium">
-                  Ready to seat next patient from Waiting Room
-                </div>
-              )}
+                      }`}
+                    title={isOwnerRole ? 'Owner Oversight Mode: Seating is managed by active duty staff.' : 'Seat next waiting patient in Chair 2'}
+                  >
+                    <Armchair className="w-3.5 h-3.5 text-blue-400" />
+                    <span>
+                      {isOwnerRole
+                        ? `Chair 2 Dispatch (Locked - Owner View)`
+                        : isDoctorRole
+                          ? `Call & Seat ${waitingList[0].patientName.split(' ')[0]} in Chair 2`
+                          : `Send ${waitingList[0].patientName.split(' ')[0]} to Chair 2`}
+                    </span>
+                  </button>
+                ) : (
+                  <div className="text-[11px] text-slate-400 text-center py-2 font-medium">
+                    Ready to seat next patient from Waiting Room
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* ================================================================= */}
         {/* ZONE 4: CASHIER DESK (BILL PAYMENT & MOR FISCAL RECEIPT)          */}
@@ -1034,14 +1015,13 @@ export function VisualClinicFloor({
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 leading-tight">Cashier Desk</h3>
-                  <p className="text-[10px] text-slate-500">Collect Bill &amp; MoR Fiscal Receipt</p>
+                  <p className="text-[10px] text-slate-500">Collect Bill</p>
                 </div>
               </div>
-              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${
-                cashierQueue.length > 0
-                  ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
-                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              }`}>
+              <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border shadow-2xs ${cashierQueue.length > 0
+                ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
+                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                }`}>
                 {cashierQueue.length} To Pay
               </span>
             </div>
@@ -1089,7 +1069,6 @@ export function VisualClinicFloor({
                       key={apt.id}
                       onClick={() => handleOpenPatient(apt.id, 'billing')}
                       className="group relative bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-3 shadow-2xs hover:shadow-card transition-all cursor-pointer flex flex-col gap-2 border-l-4 border-l-emerald-500"
-                      title="Click to launch Reception Patient Profile &amp; MoR Cashier Desk"
                     >
                       {/* Top Header: Monogram Avatar + Name/MRN + Dynamic DUE Pill */}
                       <div className="flex items-start justify-between gap-2.5">
@@ -1103,7 +1082,7 @@ export function VisualClinicFloor({
                                 {apt.patientName}
                               </h4>
                               {Boolean(apt.isOnlineBooking || apt.source === 'online' || apt.source === 'copilot' || (apt.notes && apt.notes.includes('Online')) || (apt.notes && apt.notes.includes('Booked via'))) && (
-                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.2 rounded font-amharic border border-sky-200 shrink-0" title="በኦንላይን የተያዘ ቀጠሮ">
+                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-sky-700 bg-sky-50 px-1.5 py-0.2 rounded font-amharic border border-sky-200 shrink-0">
                                   <Globe className="w-2.5 h-2.5 text-sky-600" />
                                   <span>በኦንላይን</span>
                                 </span>
@@ -1112,14 +1091,14 @@ export function VisualClinicFloor({
                             <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-mono mt-0.5 truncate">
                               <span className="font-semibold text-slate-600">{cardNo}</span>
                               <span className="text-slate-300">·</span>
-                              <span className="font-sans text-slate-500 truncate max-w-[130px]" title={procedureTitle}>
+                              <span className="font-sans text-slate-500 truncate max-w-[130px]">
                                 {procedureTitle}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        
+
                       </div>
 
                       {/* Doctor Treatment Done Summary */}
@@ -1128,7 +1107,7 @@ export function VisualClinicFloor({
                           <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
                           <span className="truncate">Done by {apt.doctorName || 'Dr. Senait'}</span>
                         </div>
-                        
+
                       </div>
 
                       {/* Bottom 1-Click Fast Cashier Rails (Telebirr, CBE Birr, Cash, Chapa) */}
@@ -1136,7 +1115,7 @@ export function VisualClinicFloor({
                         className="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1.5"
                         onClick={(e) => e.stopPropagation()}
                       >
-                       
+
                         <div className="grid grid-cols-2 items-center gap-1 shrink-0 flex-wrap justify-end">
                           <button
                             type="button"
@@ -1149,12 +1128,10 @@ export function VisualClinicFloor({
                               }
                               handleQuickPay(apt.id, 'telebirr_manual');
                             }}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${
-                              isOwnerRole
-                                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                                : 'bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white border border-sky-200 active:scale-95'
-                            }`}
-                            title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Instant Telebirr payment settlement'}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${isOwnerRole
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                              : 'bg-sky-50 text-sky-700 hover:bg-sky-600 hover:text-white border border-sky-200 active:scale-95'
+                              }`}
                           >
                             <Smartphone className="w-3 h-3" />
                             <span>Telebirr</span>
@@ -1170,12 +1147,10 @@ export function VisualClinicFloor({
                               }
                               handleQuickPay(apt.id, 'cbe_manual');
                             }}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${
-                              isOwnerRole
-                                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                                : 'bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white border border-purple-200 active:scale-95'
-                            }`}
-                            title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Instant CBE Birr POS settlement'}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${isOwnerRole
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                              : 'bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white border border-purple-200 active:scale-95'
+                              }`}
                           >
                             <CreditCard className="w-3 h-3" />
                             <span>CBE Birr</span>
@@ -1191,12 +1166,10 @@ export function VisualClinicFloor({
                               }
                               handleQuickPay(apt.id, 'cash');
                             }}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${
-                              isOwnerRole
-                                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                                : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-600 hover:text-white border border-emerald-200 active:scale-95'
-                            }`}
-                            title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : 'Instant Cash settlement with MoR Receipt'}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${isOwnerRole
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                              : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-600 hover:text-white border border-emerald-200 active:scale-95'
+                              }`}
                           >
                             <Banknote className="w-3 h-3" />
                             <span>Cash</span>
@@ -1212,12 +1185,10 @@ export function VisualClinicFloor({
                               }
                               handleQuickPay(apt.id, 'chapa_online');
                             }}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${
-                              isOwnerRole
-                                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
-                                : 'bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 active:scale-95'
-                            }`}
-                            title={isOwnerRole ? 'Owner Oversight Mode (Read-Only)' : "Chapa checkout link for patient's phone"}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 shadow-2xs ${isOwnerRole
+                              ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                              : 'bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border border-blue-200 active:scale-95'
+                              }`}
                           >
                             <Globe className="w-3 h-3" />
                             <span>Chapa</span>
@@ -1225,22 +1196,22 @@ export function VisualClinicFloor({
                         </div>
                       </div>
 
-                      {/* DUE AMOUNT PILL (Dynamic High-Precision) */}
-                        <div className="">
-                          <div className="bg-slate-900 group-hover:bg-emerald-700 text-white px-2.5 py-2 rounded-xl shadow-2xs transition-colors">
-                            <span className="text-[8px] font-bold text-slate-300 uppercase block tracking-wider leading-none">
-                              DUE
-                            </span>
-                            <span className="text-xs font-black font-mono text-white leading-tight">
-                              {balanceDue.toLocaleString()} ETB
-                            </span>
-                          </div>
-                          {(apt.depositPaidETB || 0) > 0 && (
-                            <span className="text-[9px] font-mono font-bold text-emerald-700 block mt-0.5 text-right">
-                              Paid: {apt.depositPaidETB.toLocaleString()} ETB
-                            </span>
-                          )}
+                      {/* DUE AMOUNT */}
+                      <div className="text-right">
+                        <div className="bg-slate-900 group-hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-xl shadow-2xs transition-colors inline-block">
+                          <span className="text-[8px] font-bold text-slate-300 uppercase block tracking-wider leading-none">
+                            DUE
+                          </span>
+                          <span className="text-xs font-black font-mono text-white leading-tight">
+                            {balanceDue.toLocaleString()} ETB
+                          </span>
                         </div>
+                        {(apt.depositPaidETB || 0) > 0 && (
+                          <span className="text-[9px] font-mono font-bold text-emerald-700 block mt-0.5 text-right">
+                            Paid: {apt.depositPaidETB.toLocaleString()} ETB
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })

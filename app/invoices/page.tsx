@@ -306,7 +306,7 @@ export default function InvoicesPage() {
               Invoices
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {clinic.name} · Ministry of Revenues (MoR) TIN {clinic.tinNumber || '0049283711'} Fiscal Tax Invoices
+              {clinic.name} · TIN {clinic.tinNumber || '0049283711'}
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -321,18 +321,18 @@ export default function InvoicesPage() {
           </div>
         </div>
 
-        {/* Ethiopian Fiscal Tax Summary Pill Badges */}
+        {/* Tax Summary */}
         <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <div className="inline-flex items-center gap-1.5 text-xs bg-slate-100 text-slate-800 px-3 py-1 rounded-lg border border-slate-200">
-            <span className="text-slate-500 font-medium">Gross Invoiced:</span>
+          <div className="inline-flex items-center gap-1.5 text-xs bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg border border-slate-200">
+            <span className="text-slate-500">Gross:</span>
             <strong className="font-mono">{invoiceTaxSummary.grossETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
           </div>
-          <div className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 px-3 py-1 rounded-lg border border-emerald-200">
-            <span className="text-emerald-600 font-medium">Taxable Net Base:</span>
+          <div className="inline-flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-200">
+            <span className="text-emerald-700">Net:</span>
             <strong className="font-mono">{invoiceTaxSummary.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
           </div>
-          <div className="inline-flex items-center gap-1.5 text-xs bg-sky-50 text-sky-800 px-3 py-1 rounded-lg border border-sky-200">
-            <span className="text-sky-600 font-medium">MoR 15% VAT:</span>
+          <div className="inline-flex items-center gap-1.5 text-xs bg-sky-50 text-sky-800 px-2.5 py-1 rounded-lg border border-sky-200">
+            <span className="text-sky-700">VAT (15%):</span>
             <strong className="font-mono">+{invoiceTaxSummary.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</strong>
           </div>
         </div>
@@ -506,22 +506,18 @@ export default function InvoicesPage() {
                       <div className="shrink-0 flex items-center gap-1">
                         <button
                           type="button"
-                          aria-label="Download Fiscal Receipt"
-                          title="Print / Download official MoR fiscal receipt"
                           onClick={(e) => {
                             e.stopPropagation();
                             printFiscalInvoice(invoice, clinic);
                           }}
-                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200/80 hover:border-emerald-300 hover:text-emerald-700"
+                          className="rounded-md inline-flex items-center text-xs text-slate-600 hover:bg-slate-100 p-1.5 border border-slate-200"
                         >
                           <Download className="shrink-0 size-4 text-slate-500" />
                         </button>
                         <button
                           type="button"
-                          aria-label="Delete invoice"
-                          title="Delete invoice"
                           onClick={() => handleDeleteInvoice(invoice.id, invoice.invoiceNumber)}
-                          className="rounded-md font-medium inline-flex items-center transition-colors text-xs text-rose-600 hover:bg-rose-50 p-1.5 border border-rose-200/80"
+                          className="rounded-md inline-flex items-center text-xs text-rose-600 hover:bg-rose-50 p-1.5 border border-rose-200"
                         >
                           <Trash2 className="shrink-0 size-4 text-rose-500" />
                         </button>
@@ -725,9 +721,9 @@ export default function InvoicesPage() {
                 <Receipt className="size-5 text-emerald-600" />
                 <div>
                   <h3 className="font-bold text-slate-900 text-base">
-                    {clinic.name} · Official MoR Tax Receipt
+                    {clinic.name} · Tax Invoice & Receipt
                   </h3>
-                  <p className="text-xs text-slate-400 font-mono">TIN: {clinic.tinNumber || '0049283711'} · {clinic.location}</p>
+                  <p className="text-xs text-slate-400 font-mono">TIN: {clinic.tinNumber || '0049283711'}</p>
                 </div>
               </div>
               <button
@@ -742,50 +738,54 @@ export default function InvoicesPage() {
             {/* Receipt Summary Card */}
             <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
               <div>
-                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Patient / Customer</p>
+                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Patient</p>
                 <p className="font-bold text-slate-900 text-sm mt-0.5">{selectedInvoiceForPrint.patientName}</p>
                 <p className="text-slate-500 font-amharic text-xs">{selectedInvoiceForPrint.patientNameAmharic}</p>
                 <p className="font-mono text-slate-500 text-[11px] mt-0.5">{selectedInvoiceForPrint.patientMrn}</p>
               </div>
               <div className="text-right">
-                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Fiscal Invoice Number</p>
+                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Invoice No.</p>
                 <p className="font-mono font-bold text-sky-700 text-sm mt-0.5">{selectedInvoiceForPrint.invoiceNumber}</p>
                 <p className="text-slate-500 text-xs">Date: {selectedInvoiceForPrint.issueDate}</p>
-                <p className="text-emerald-700 text-xs font-semibold">Payment Rail: {selectedInvoiceForPrint.paymentMethod}</p>
+                <p className="text-emerald-700 text-xs font-semibold">{selectedInvoiceForPrint.paymentMethod}</p>
               </div>
             </div>
 
             {/* Service & Items Table */}
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between pb-1 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                <span>Description of Services Rendered</span>
-                <span>Amount (ETB)</span>
+                <span>Service</span>
+                <span>Amount</span>
               </div>
               <div className="flex items-center justify-between py-2 border-b border-slate-100">
                 <span className="text-slate-800 font-medium">{selectedInvoiceForPrint.serviceDescription}</span>
                 <span className="font-mono font-bold text-slate-900">{selectedInvoiceForPrint.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
               </div>
-              <div className="flex items-center justify-between pt-2 text-xs text-slate-600">
-                <span>Subtotal:</span>
-                <span className="font-mono">{selectedInvoiceForPrint.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
-              </div>
-              <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Healthcare Exemption (VAT 0%):</span>
-                <span className="font-mono">0.00 ETB</span>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
-                <span>Total Settled:</span>
-                <span className="font-mono text-emerald-700 text-base">{selectedInvoiceForPrint.totalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
-              </div>
+              {(() => {
+                const tax = calculateTaxInclusive(selectedInvoiceForPrint.totalETB, 0.15);
+                return (
+                  <>
+                    <div className="flex items-center justify-between pt-2 text-xs text-slate-600">
+                      <span>Net:</span>
+                      <span className="font-mono">{tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-600">
+                      <span>VAT (15%):</span>
+                      <span className="font-mono text-sky-700 font-semibold">+{tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
+                      <span>Total:</span>
+                      <span className="font-mono text-emerald-700 text-base">{tax.grossETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</span>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Fiscal Footer */}
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 space-y-1">
-              <div className="flex items-center justify-between font-mono text-[10px]">
-                <span>Fiscal Register: Bole Woreda 03</span>
-                <span>MoR TIN: 0049283711</span>
-              </div>
-              <p className="text-slate-400 text-[10px]">Electronic Fiscal Receipt generated under Ethiopian Ministry of Revenues Guidelines.</p>
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+              <span>Bole Woreda 03</span>
+              <span>TIN {clinic.tinNumber || '0049283711'}</span>
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-200 text-xs">
@@ -802,12 +802,12 @@ export default function InvoicesPage() {
                   type="button"
                   onClick={() => {
                     printFiscalInvoice(selectedInvoiceForPrint, clinic);
-                    sinnaStore.toastSuccess('Receipt Printed', `Official MoR fiscal tax invoice sent to printer.`);
+                    sinnaStore.toastSuccess('Receipt Printed', `${selectedInvoiceForPrint.invoiceNumber} sent to printer.`);
                   }}
                   className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 shadow-2xs"
                 >
                   <Printer className="size-3.5" />
-                  <span>Print Fiscal Receipt</span>
+                  <span>Print Receipt</span>
                 </button>
               </div>
             </div>

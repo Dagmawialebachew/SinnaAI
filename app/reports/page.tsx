@@ -420,7 +420,7 @@ export default function ReportsPage() {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5 truncate">
-              {currentStats.subLabel} · Gross: <strong className="text-slate-900 font-mono">{currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong> · Net Base: <strong className="text-slate-700 font-mono">{periodTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong> · 15% VAT: <strong className="text-sky-700 font-mono">+{periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong>
+              {currentStats.subLabel} · Revenue: <strong className="text-slate-900 font-mono">{currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</strong> (Net {periodTax.netETB.toLocaleString(undefined, { maximumFractionDigits: 0 })} · VAT {periodTax.vatETB.toLocaleString(undefined, { maximumFractionDigits: 0 })})
             </p>
           </div>
         </div>
@@ -430,17 +430,16 @@ export default function ReportsPage() {
             type="button"
             onClick={() => setIsReportModalOpen(true)}
             className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
-            title="Inspect A4 document layout"
           >
             <Eye className="size-3.5 text-slate-500" />
-            <span>Preview Document</span>
+            <span>Preview</span>
           </button>
         </div>
       </div>
 
-      {/* 3. FIVE PRIMARY SUMMARY CARDS (With MoR 15% VAT Tax Compliance) */}
+      {/* 3. FIVE PRIMARY SUMMARY CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        {/* Card 1: Total Earnings (Collected Gross) */}
+        {/* Card 1: Revenue */}
         <div
           onClick={() => setIsReportModalOpen(true)}
           className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden transition-all hover:bg-slate-50/80 cursor-pointer shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-emerald-500"
@@ -448,7 +447,7 @@ export default function ReportsPage() {
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <Banknote className="w-4 h-4 shrink-0 text-emerald-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Gross Earnings
+              Revenue
             </span>
           </header>
           <div className="flex-1 px-4 pb-3.5 min-w-0">
@@ -457,7 +456,7 @@ export default function ReportsPage() {
                 {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">{currentStats.paymentsCount} payments · Tax Inclusive</div>
+                <div className="text-xs text-slate-500 truncate">{currentStats.paymentsCount} payments</div>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <svg
@@ -593,7 +592,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Card 5: MoR 15% VAT Collected */}
+        {/* Card 5: VAT (15%) */}
         <div
           onClick={() => setIsReportModalOpen(true)}
           className="relative flex flex-col rounded-2xl border border-sky-200/90 bg-white overflow-hidden shadow-xs cursor-pointer hover:bg-sky-50/40 transition-all before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-sky-600"
@@ -601,10 +600,10 @@ export default function ReportsPage() {
           <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
             <Receipt className="w-4 h-4 shrink-0 text-sky-600" />
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
-              MoR 15% VAT
+              VAT (15%)
             </span>
             <span className="ms-auto inline-flex items-center text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded border border-sky-200">
-              FDRE Tax
+              15%
             </span>
           </header>
           <div className="flex-1 px-4 pb-3.5 min-w-0">
@@ -613,7 +612,7 @@ export default function ReportsPage() {
                 {periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
               </div>
               <div className="flex items-center justify-between min-w-0 text-xs">
-                <span className="text-slate-500 truncate">Taxable Base: {periodTax.netETB.toLocaleString(undefined, { maximumFractionDigits: 0 })} ETB</span>
+                <span className="text-slate-500 truncate">Net: {periodTax.netETB.toLocaleString(undefined, { maximumFractionDigits: 0 })} ETB</span>
               </div>
               <div className="block w-full mt-2" style={{ height: 32 }}>
                 <div className="h-full flex items-end">
@@ -800,113 +799,96 @@ export default function ReportsPage() {
         </div>
       </section>
 
-      {/* 4.5 ETHIOPIAN MoR FISCAL TAX COMPLIANCE & VAT RECONCILIATION LEDGER */}
+      {/* 4.5 TAX & VAT BREAKDOWN */}
       <section className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-sky-600">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700">
-              <Building2 className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-900 tracking-tight">
-                  FDRE Ministry of Revenues (MoR) Fiscal Tax Compliance Ledger
-                </h3>
-                <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
-                  FDRE Proclamation No. 983/2016
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 font-mono">
-                Tax Identification Number (TIN): <strong>{clinic.tinNumber || '0049283711'}</strong> · Standard 15% VAT Inclusive Accounting
-              </p>
-            </div>
+        <header className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-sky-600" />
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Tax & VAT Breakdown
+            </h3>
+            <span className="text-[10px] font-mono text-slate-400">TIN {clinic.tinNumber || '0049283711'}</span>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>100% Tax Compliant</span>
-            </span>
-          </div>
+          <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded border border-sky-200">
+            15% VAT
+          </span>
         </header>
 
-        <div className="p-5 overflow-x-auto">
+        <div className="p-4 overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
-                <th className="pb-3 font-semibold">Payment Tender / Channel</th>
-                <th className="pb-3 font-semibold text-right">Taxable Service Base (Net)</th>
-                <th className="pb-3 font-semibold text-right text-sky-700">MoR VAT (15%)</th>
-                <th className="pb-3 font-semibold text-right text-slate-900">Total Fiscal Turnover (Gross)</th>
-                <th className="pb-3 font-semibold text-center">Status</th>
+                <th className="pb-2.5 font-semibold">Channel</th>
+                <th className="pb-2.5 font-semibold text-right">Net</th>
+                <th className="pb-2.5 font-semibold text-right text-sky-700">VAT (15%)</th>
+                <th className="pb-2.5 font-semibold text-right text-slate-900">Gross</th>
+                <th className="pb-2.5 font-semibold text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               <tr>
-                <td className="py-3 font-medium flex items-center gap-2">
+                <td className="py-2.5 font-medium flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-sky-600" />
-                  <span>CBE Birr POS / Card Merchant</span>
+                  <span>CBE Birr</span>
                 </td>
-                <td className="py-3 text-right font-mono">{cbeTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-sky-700">+{cbeTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.cbeTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-center">
+                <td className="py-2.5 text-right font-mono">{cbeTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-sky-700">+{cbeTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-slate-900">{currentStats.cbeTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-center">
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
                 </td>
               </tr>
               <tr>
-                <td className="py-3 font-medium flex items-center gap-2">
+                <td className="py-2.5 font-medium flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-slate-500" />
-                  <span>Telebirr SuperApp Merchant</span>
+                  <span>Telebirr</span>
                 </td>
-                <td className="py-3 text-right font-mono">{telebirrTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-sky-700">+{telebirrTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.telebirrTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-center">
+                <td className="py-2.5 text-right font-mono">{telebirrTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-sky-700">+{telebirrTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-slate-900">{currentStats.telebirrTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-center">
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
                 </td>
               </tr>
               <tr>
-                <td className="py-3 font-medium flex items-center gap-2">
+                <td className="py-2.5 font-medium flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-indigo-500" />
-                  <span>Bank Transfer (RTGS / Wire)</span>
+                  <span>Bank Transfer</span>
                 </td>
-                <td className="py-3 text-right font-mono">{transferTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-sky-700">+{transferTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.transferTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-center">
+                <td className="py-2.5 text-right font-mono">{transferTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-sky-700">+{transferTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-slate-900">{currentStats.transferTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-center">
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Reconciled</span>
                 </td>
               </tr>
               <tr>
-                <td className="py-3 font-medium flex items-center gap-2">
+                <td className="py-2.5 font-medium flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>Physical Cash Vault</span>
+                  <span>Cash</span>
                 </td>
-                <td className="py-3 text-right font-mono">{cashTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-sky-700">+{cashTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-right font-mono font-bold text-slate-900">{currentStats.cashTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
-                <td className="py-3 text-center">
+                <td className="py-2.5 text-right font-mono">{cashTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-sky-700">+{cashTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-right font-mono font-bold text-slate-900">{currentStats.cashTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</td>
+                <td className="py-2.5 text-center">
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Audited</span>
                 </td>
               </tr>
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-slate-900 font-bold bg-slate-50/80">
-                <td className="py-3 text-slate-900">
-                  <span className="text-xs uppercase tracking-wider font-extrabold">Total Practice Remittance ({currentStats.label})</span>
-                </td>
-                <td className="py-3 text-right font-mono text-slate-800 text-sm">
+                <td className="py-2.5 text-slate-900 text-xs font-bold uppercase tracking-wider">Total ({currentStats.label})</td>
+                <td className="py-2.5 text-right font-mono text-slate-800 text-xs font-bold">
                   {periodTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
                 </td>
-                <td className="py-3 text-right font-mono text-sky-800 text-sm font-black">
+                <td className="py-2.5 text-right font-mono text-sky-800 text-xs font-bold">
                   +{periodTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
                 </td>
-                <td className="py-3 text-right font-mono text-emerald-700 text-sm font-black">
+                <td className="py-2.5 text-right font-mono text-emerald-700 text-xs font-bold">
                   {currentStats.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB
                 </td>
-                <td className="py-3 text-center">
-                  <span className="text-[10px] font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded border border-sky-300">MoR Ready</span>
+                <td className="py-2.5 text-center">
+                  <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">Audited</span>
                 </td>
               </tr>
             </tfoot>

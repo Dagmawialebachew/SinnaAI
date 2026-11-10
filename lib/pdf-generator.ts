@@ -174,17 +174,17 @@ export function getClinicalReportHTML(
                 <td style="padding: 4px 8px; text-align: right; font-weight: 600; font-family: monospace;">${data.cashTotalETB.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
               <tr style="font-weight: 700; background: #FAFAFA; border-top: 1.5px solid #111827;">
-                <td colspan="2" style="padding: 4px 8px; font-family: 'Montserrat', sans-serif;">Total Collections (Gross):</td>
+                <td colspan="2" style="padding: 4px 8px; font-family: 'Montserrat', sans-serif;">Total Collections:</td>
                 <td style="padding: 4px 8px; text-align: right; font-family: 'Montserrat', sans-serif; font-size: 8.5pt; color: #111827;">
                   ${data.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
                 </td>
               </tr>
               <tr style="font-size: 7.5pt; color: #4B5563; background: #F8FAFC;">
-                <td colspan="2" style="padding: 3px 8px;">Taxable Clinical Base (Net):</td>
+                <td colspan="2" style="padding: 3px 8px;">Net:</td>
                 <td style="padding: 3px 8px; text-align: right; font-family: monospace;">${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</td>
               </tr>
               <tr style="font-size: 7.5pt; color: #0369A1; font-weight: 600; background: #F0F9FF;">
-                <td colspan="2" style="padding: 3px 8px;">MoR 15% VAT Remittance (TIN ${tinNumber}):</td>
+                <td colspan="2" style="padding: 3px 8px;">VAT (15%):</td>
                 <td style="padding: 3px 8px; text-align: right; font-family: monospace;">+${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB</td>
               </tr>
             </tbody>
@@ -223,14 +223,14 @@ export function getClinicalReportHTML(
           </table>
         </div>
 
-        <!-- 6. SUMMARY STATS: 4 CLEAN FIGURES (With MoR 15% VAT Tax Compliance) -->
+        <!-- 6. SUMMARY STATS: 4 CLEAN FIGURES -->
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 10px; text-align: left; padding: 6px 0;">
           <div style="border-left: 2px solid #111827; padding-left: 8px;">
             <div style="font-family: 'Montserrat', sans-serif; font-size: 11pt; font-weight: 800; color: #111827; letter-spacing: -0.01em;">
               ${data.collectedETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Gross Collections
+              Collections
             </div>
           </div>
 
@@ -239,7 +239,7 @@ export function getClinicalReportHTML(
               +${tax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <div style="font-size: 7pt; color: #0284C7; font-weight: 600; margin-top: 1px;">
-              MoR 15% VAT Remittance
+              VAT (15%)
             </div>
           </div>
 
@@ -248,7 +248,7 @@ export function getClinicalReportHTML(
               ${tax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Taxable Net Revenue
+              Net Revenue
             </div>
           </div>
 
@@ -257,7 +257,7 @@ export function getClinicalReportHTML(
               ${totalReceivables.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
             </div>
             <div style="font-size: 7pt; color: #6B7280; font-weight: 500; margin-top: 1px;">
-              Unsettled Receivables
+              Unsettled
             </div>
           </div>
         </div>

@@ -174,23 +174,23 @@ export function ZReportModal({ report: reportProp, clinic: clinicProp, isOpen, o
               </div>
             </div>
 
-            {/* MoR VAT Remittance & Fiscal Tax Ledger */}
+            {/* VAT Breakdown */}
             <div className="space-y-2 border-b border-dashed border-slate-300 pb-4 bg-sky-50/60 -mx-5 px-5 py-3 border-t">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-sky-950 uppercase tracking-wider">MoR 15% VAT Reconciliation</span>
-                <span className="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded border border-sky-200">FDRE MoR Procl. 983</span>
+                <span className="text-[10px] font-bold text-sky-950 uppercase tracking-wider">VAT Breakdown</span>
+                <span className="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded border border-sky-200">15% VAT</span>
               </div>
 
               <div className="flex justify-between text-xs">
-                <span className="text-slate-600">Taxable Clinical Base (Net):</span>
+                <span className="text-slate-600">Net:</span>
                 <span className="font-bold text-slate-800">{totalTax.netETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
               </div>
               <div className="flex justify-between text-xs text-sky-800">
-                <span className="font-semibold">MoR VAT Remittance (15%):</span>
+                <span className="font-semibold">VAT (15%):</span>
                 <span className="font-black text-sky-950">+{totalTax.vatETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
               </div>
               <div className="flex justify-between text-xs font-bold pt-1 border-t border-sky-200 text-slate-900">
-                <span>Gross Fiscal Turnover:</span>
+                <span>Gross:</span>
                 <span className="font-mono">{report.totalCollectedETB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB</span>
               </div>
 

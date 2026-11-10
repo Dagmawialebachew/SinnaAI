@@ -1137,29 +1137,25 @@ export function resolveOfflineClinicalQuery(
     const netBase = Math.round((totalGross / 1.15) * 100) / 100;
     const vat15 = Math.round((totalGross - netBase) * 100) / 100;
 
-    const textEn = `**FDRE Ministry of Revenues (MoR) 15% VAT Tax Compliance & Calculation**\n\n` +
-      `Under Ethiopian fiscal law (FDRE Proclamation No. 983/2016), dental clinical services at ${clinicName} (TIN \`${clinicTin}\`) follow standard **tax-inclusive pricing**:\n\n` +
-      `### 1. Mathematical Formula (Tax-Inclusive):\n` +
-      `- **Gross Clinical Fee** = Net Service Base + 15% VAT\n` +
-      `- **Taxable Net Base** = Gross / 1.15 (approx. Gross * 0.869565)\n` +
-      `- **Remitted VAT (15%)** = Gross - Net (approx. Gross * 0.130435)\n\n` +
-      `### 2. Today's Fiscal Shift Breakdown:\n` +
-      `- **Total Gross Collections:** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
-      `- **Taxable Clinical Base (Net):** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
-      `- **MoR 15% VAT Remittance:** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n\n` +
-      `*All printed thermal slips, A4 fiscal tax invoices, and End-of-Day Z-Reports reflect this deductible VAT breakdown with zero rounding drift.*`;
+    const textEn = `**Tax & VAT Breakdown (${clinicName})**\n\n` +
+      `Dental clinical services follow standard 15% VAT inclusive pricing (TIN \`${clinicTin}\`):\n\n` +
+      `- **Gross Fee** = Net + 15% VAT\n` +
+      `- **Net Base** = Gross / 1.15\n` +
+      `- **VAT (15%)** = Gross - Net\n\n` +
+      `**Today's Shift:**\n` +
+      `- **Total Revenue:** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
+      `- **Net Base:** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**\n` +
+      `- **VAT (15%):** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB**`;
 
-    const textAm = `**የገቢዎች ሚኒስቴር (MoR) 15% የተጨማሪ እሴት ታክስ (VAT) አሰራር እና ስሌት**\n\n` +
-      `በኢትዮጵያ የታክስ አዋጅ (አዋጅ ቁጥር 983/2008) መሰረት በ${clinicName} (TIN \`0049283711\`) የሚሰጡ የጥርስ ህክምና ክፍያዎች ታክስን ጨምሮ (Tax-Inclusive) የተሰሉ ናቸው፦\n\n` +
-      `### 1. የስሌት ቀመር (Tax-Inclusive Math)፦\n` +
-      `- **ጠቅላላ ክፍያ (Gross)** = የተጣራ የህክምና ዋጋ (Net) + 15% ቫት (VAT)\n` +
-      `- **የታክስ መነሻ ዋጋ (Net Base)** = Gross / 1.15\n` +
-      `- **የሚከፈል 15% ቫት (VAT)** = Gross - Net\n\n` +
-      `### 2. የዛሬው የክሊኒካችን የታክስ ማጠቃለያ፦\n` +
-      `- **ጠቅላላ የተሰበሰበ ገቢ (Gross):** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n` +
-      `- **የታክስ መነሻ የተጣራ ገቢ (Net):** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n` +
-      `- **ለገቢዎች ሚኒስቴር የሚተላለፍ 15% ቫት:** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n\n` +
-      `*ሁሉም የደረሰኝ ህትመቶች፣ የክፍያ ሰነዶች እና የዕለቱ Z-Report ይህንን የታክስ ክፍፍል በግልጽ ያሳያሉ።*`;
+    const textAm = `**የታክስ እና ቫት (VAT 15%) ስሌት**\n\n` +
+      `የጥርስ ህክምና ክፍያዎች 15% ቫት ታክስን ጨምሮ የተሰሉ ናቸው (TIN \`0049283711\`)፦\n\n` +
+      `- **ጠቅላላ ክፍያ (Gross)** = Net + 15% VAT\n` +
+      `- **የተጣራ ዋጋ (Net)** = Gross / 1.15\n` +
+      `- **ቫት (15%)** = Gross - Net\n\n` +
+      `**የዛሬው ማጠቃለያ፦**\n` +
+      `- **ጠቅላላ ገቢ:** **${totalGross.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር (ETB)**\n` +
+      `- **የተጣራ ገቢ (Net):** **${netBase.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር**\n` +
+      `- **15% ቫት (VAT):** **+${vat15.toLocaleString(undefined, { minimumFractionDigits: 2 })} ብር**`;
 
     return {
       text: lang === 'am' ? textAm : textEn,
