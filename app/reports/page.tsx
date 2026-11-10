@@ -393,8 +393,8 @@ export default function ReportsPage() {
               type="button"
               onClick={() => setSelectedTimeframe(t.id as ReportPeriod)}
               className={`flex-1 min-w-[110px] sm:min-w-0 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${isSelected
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                ? 'bg-white text-slate-900 shadow-xs border border-slate-200/80'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                 }`}
             >
               <IconComp className={`w-3.5 h-3.5 ${isSelected ? 'text-sky-600' : 'text-slate-400'}`} />
@@ -438,7 +438,7 @@ export default function ReportsPage() {
       </div>
 
       {/* 3. FIVE PRIMARY SUMMARY CARDS */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Revenue */}
         <div
           onClick={() => setIsReportModalOpen(true)}
@@ -565,32 +565,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* Card 4: Average Per Patient */}
-        <div className="relative flex flex-col rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs before:absolute before:start-0 before:top-0 before:bottom-0 before:w-1.5 before:bg-slate-400">
-          <header className="flex items-center gap-2 px-4 pt-3.5 pb-1">
-            <Receipt className="w-4 h-4 shrink-0 text-slate-500" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Average Visit Bill
-            </span>
-          </header>
-          <div className="flex-1 px-4 pb-3.5 min-w-0">
-            <div className="flex flex-col gap-1">
-              <div className="text-xl sm:text-2xl text-slate-900 font-bold font-mono truncate">
-                {avgCollectedTicketETB.toLocaleString(undefined, { minimumFractionDigits: 2 })} ETB
-              </div>
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="text-xs text-slate-500 truncate">Per patient visit</div>
-              </div>
-              <div className="block w-full mt-2" style={{ height: 32 }}>
-                <div className="h-full flex items-end">
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="w-3/4 h-full bg-slate-400 rounded-full" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         {/* Card 5: VAT (15%) */}
         <div
@@ -1251,8 +1226,8 @@ export default function ReportsPage() {
                     type="button"
                     onClick={() => setSelectedTimeframe(period)}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedTimeframe === period
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                       }`}
                   >
                     {TIMEFRAMES[period].label.split(' ')[0]}
